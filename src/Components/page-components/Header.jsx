@@ -1,10 +1,14 @@
 import { Link } from "react-router-dom";
 import useColorScheme from "../../hooks/useColorScheme";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faMoon, faSun, faCar, faTaxi, faUserCircle, faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons"; // Ajout d'icônes pour l'authentification
+import { 
+  faBars, faMoon, faSun, faCar, faTaxi, faUserCircle, 
+  faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass,
+  faPlusCircle, faRoute // Ajout des icônes pour le bouton "Publier un Trajet"
+} from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import HeaderDropDown from "./HeaderDropDown"; // Assurez-vous que ce composant est correctement stylisé pour le dark mode
-import useAuth from "../../hooks/useAuth"; // Assurez-vous que ce hook retourne un objet utilisateur ou null/undefined
+import HeaderDropDown from "./HeaderDropDown";
+import useAuth from "../../hooks/useAuth";
 
 const Header = () => {
   const { theme, setTheme } = useColorScheme();
@@ -37,14 +41,34 @@ const Header = () => {
           <FontAwesomeIcon icon={faTaxi} />
           Taxi
         </Link>
+        {/* Bouton "Publier un Trajet" pour Desktop - visible si l'utilisateur est connecté */}
+        {user && (
+          <Link 
+            to="/publish-trip" // Assurez-vous d'avoir une route définie pour cela
+            className="px-4 py-2 bg-kombigreen-500 text-white rounded-full font-bold
+                       hover:bg-kombigreen-600 transition-colors duration-200 shadow-md
+                       flex items-center gap-2 text-sm" // Ajustez la taille du texte si nécessaire
+          >
+            <FontAwesomeIcon icon={faPlusCircle} />
+            <FontAwesomeIcon icon={faRoute} />
+            Publier un Trajet
+          </Link>
+        )}
       </nav>
 
       {/* Actions (Dropdown, Dark Mode Toggle, Burger Menu) */}
       <div className="flex items-center gap-4">
-        <Link to="/results">
-        <FontAwesomeIcon icon={faMagnifyingGlass}/>
-        Rechercher
+        {/* Lien "Rechercher" pour Desktop et Mobile */}
+        <Link 
+          to="/results" 
+          className="flex items-center gap-2 text-gray-700 dark:text-gray-300 
+                     hover:text-kombigreen-500 dark:hover:text-green-400 
+                     transition-colors duration-200 text-sm md:text-base" // Ajuste la taille du texte
+        >
+          <FontAwesomeIcon icon={faMagnifyingGlass}/>
+          <span className="hidden sm:inline">Rechercher</span> {/* Cache le texte sur très petit écran */}
         </Link>
+        
         {/* HeaderDropDown (Assurez-vous qu'il gère le dark mode en interne) */}
         <HeaderDropDown />
 
@@ -70,14 +94,11 @@ const Header = () => {
       </div>
 
       {/* Navigation Mobile (Responsive) */}
-      {/* Positionnement corrigé : fixed, pleine largeur, juste en dessous du header */}
-      {/* Utilisation de `transform` pour l'animation et `top-full` pour le positionnement */}
       <nav
         id="responsive-navbar"
         className={`fixed top-[64px] left-0 w-full bg-white dark:bg-gray-800 shadow-lg md:hidden flex flex-col items-start px-4 sm:px-6 py-4 gap-4 text-kombiblue-500 font-semibold dark:text-blue-300 transition-transform duration-300 ease-in-out ${
           showNav ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}
-        // Pour cacher l'overflow lorsque le menu est fermé
         style={{ overflowY: showNav ? 'auto' : 'hidden', maxHeight: showNav ? 'calc(100vh - 64px)' : '0' }}
       >
         <Link to="/covoiturage" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
@@ -88,7 +109,25 @@ const Header = () => {
           <FontAwesomeIcon icon={faTaxi} />
           Taxi
         </Link>
-        <hr className="w-full border-gray-200 dark:border-gray-600 my-2" /> {/* Séparateur */}
+        <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
+
+        {/* Bouton "Publier un Trajet" pour Mobile - visible si l'utilisateur est connecté */}
+        {user && (
+          <>
+            <Link 
+              to="/publish-trip" // Assurez-vous d'avoir une route définie pour cela
+              className="flex items-center gap-2 w-full p-2 
+                         bg-kombigreen-500 text-white rounded-md font-bold
+                         hover:bg-kombigreen-600 transition-colors duration-200 shadow-md"
+              onClick={toggleResponsiveNav} // Ferme le menu après le clic
+            >
+              <FontAwesomeIcon icon={faPlusCircle} />
+              <FontAwesomeIcon icon={faRoute} />
+              Publier un Trajet
+            </Link>
+            <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
+          </>
+        )}
 
         {/* Liens conditionnels pour l'authentification en mobile */}
         {user ? (

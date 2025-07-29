@@ -19,6 +19,7 @@ import Cars from "./Pages/Dashboard/Cars"
 import CarTypes from "./Pages/Dashboard/CarTypes"
 import Colors from "./Pages/Dashboard/Colors"
 import Wallet from "./Pages/Dashboard/Wallet"
+import Publish from "./Pages/Publish"
 
 const Routes = () => {
   const route = useRoutes([
@@ -39,12 +40,12 @@ const Routes = () => {
           element:<Taxi/>
         },
         {
-          path:"/results",
-          element:<Results/>
-        },
-        {
           path:"/trip-detail",
           element:<TripDetail/>
+        },
+        {
+          path:"/publish-trip",
+          element:<Publish/>
         }
         ,
         {
