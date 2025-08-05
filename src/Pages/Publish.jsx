@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react'; // Importez useEffect
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
@@ -6,9 +6,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../hooks/useColorScheme'; // Assurez-vous que le chemin est correct
 import { Toaster, toast } from 'react-hot-toast'; // Pour les notifications
+import useTrips from '../hooks/useTrips'; // Importez le hook useTrips
+import useCars from '../hooks/useCar'; // Importez le hook useCars
+import  useAuth  from '../hooks/useAuth'; // Importez le hook d'authentification pour l'ID utilisateur
 
 const Publish = () => {
   const { theme } = useColorScheme();
+  const { createTrip } = useTrips(); // Récupérez la fonction createTrip du contexte
+  const { cars, loading: loadingCars, error: carsError, fetchCars } = useCars(); // Récupérez les véhicules et leur état du contexte
+  const { user } = useAuth(); // Récupérez l'utilisateur connecté pour son ID
 
   // États pour les champs du formulaire
   const [departure, setDeparture] = useState('');
@@ -19,7 +25,12 @@ const Publish = () => {
   const [pricePerSeat, setPricePerSeat] = useState('');
   const [luggageAllowed, setLuggageAllowed] = useState(false);
   const [description, setDescription] = useState('');
-  const [vehicle, setVehicle] = useState(''); // Pour sélectionner le véhicule (ID ou nom)
+  const [selectedVehicleId, setSelectedVehicleId] = useState(''); // Pour stocker l'ID du véhicule sélectionné
+
+  // Charger les véhicules de l'utilisateur au montage du composant
+  useEffect(() => {
+    fetchCars();
+  }, []);
 
   // Couleurs conditionnelles pour le dark mode
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -29,19 +40,19 @@ const Publish = () => {
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const shadow = theme === 'dark' ? 'shadow-lg' : 'shadow-md';
 
-  // Simulation d'une liste de véhicules disponibles pour le sélecteur
-  const availableVehicles = [
-    { id: 1, name: 'Toyota Camry (CE123AA)' },
-    { id: 2, name: 'Mercedes C-Class (CE456BB)' },
-    { id: 3, name: 'Hyundai Elantra (CE789CC)' },
-  ];
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validation basique des champs
-    if (!departure || !destination || !date || !time || !availableSeats || !pricePerSeat || !vehicle) {
+    if (!departure || !destination || !date || !time || !availableSeats || !pricePerSeat || !selectedVehicleId) {
       toast.error('Veuillez remplir tous les champs obligatoires.', { position: 'top-right' });
+      return;
+    }
+
+    // Récupérer l'ID de l'utilisateur connecté
+    const publisherId = user?.id; // Utilisez l'ID de l'utilisateur du AuthContext
+    if (!publisherId) {
+      toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
       return;
     }
 
@@ -54,46 +65,41 @@ const Publish = () => {
       pricePerSeat: parseFloat(pricePerSeat),
       luggageAllowed,
       description,
-      vehicleId: vehicle, // Ou vehicle.id si vous voulez l'ID du véhicule
-      publisherId: 'user_id_simule', // Remplacer par l'ID de l'utilisateur réel
-      status: 'pending', // Statut initial du trajet
-      createdAt: new Date().toISOString(),
+      vehicleId: selectedVehicleId, // Utilise l'ID du véhicule sélectionné
+      publisherId: publisherId, // Utilise l'ID de l'utilisateur connecté
+      status: 'pending', // Statut initial du trajet (à confirmer par votre API)
+      createdAt: new Date().toISOString(), // Date de création
     };
 
-    console.log('Nouveau trajet à publier :', newTrip);
+    console.log('Données soumises par le formulaire :', newTrip); // Console.log des données soumises
 
-    // Simuler l'appel API pour la publication
-    const publishPromise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const success = Math.random() > 0.1; // 90% chance de succès
-        if (success) {
-          toast.success('Votre trajet a été publié avec succès !', { position: 'top-right' });
-          // Réinitialiser le formulaire après succès
-          setDeparture('');
-          setDestination('');
-          setDate('');
-          setTime('');
-          setAvailableSeats('');
-          setPricePerSeat('');
-          setLuggageAllowed(false);
-          setDescription('');
-          setVehicle('');
-          resolve();
-        } else {
-          reject(new Error("Échec de la publication du trajet. Veuillez réessayer."));
-        }
-      }, 1500); // Simule un délai réseau
-    });
+    // Appel à la fonction createTrip du contexte
+    const publishPromise = createTrip(newTrip);
 
     toast.promise(publishPromise, {
       loading: 'Publication de votre trajet...',
-      success: 'Trajet publié !',
-      error: (err) => `Erreur: ${err.message}`,
+      success: 'Trajet publié avec succès !',
+      error: (err) => `Erreur: ${err.message || 'Échec de la publication du trajet.'}`,
+    });
+
+    // Réinitialiser le formulaire après un succès (la promesse gère le toast)
+    publishPromise.then((result) => {
+      if (result) { // Si la publication a réussi
+        setDeparture('');
+        setDestination('');
+        setDate('');
+        setTime('');
+        setAvailableSeats('');
+        setPricePerSeat('');
+        setLuggageAllowed(false);
+        setDescription('');
+        setSelectedVehicleId('');
+      }
     });
   };
 
   return (
-    <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900' : ''}`}>
       <Toaster /> {/* Composant Toaster pour afficher les notifications */}
 
       <div className="max-w-4xl mx-auto py-8">
@@ -204,7 +210,6 @@ const Publish = () => {
                 value={pricePerSeat}
                 onChange={(e) => setPricePerSeat(e.target.value)}
                 min="0"
-                step="500" // Par exemple, incréments de 500 XAF
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
                 placeholder="Ex: 5000"
                 required
@@ -219,15 +224,21 @@ const Publish = () => {
               </label>
               <select
                 id="vehicle"
-                value={vehicle}
-                onChange={(e) => setVehicle(e.target.value)}
+                value={selectedVehicleId}
+                onChange={(e) => setSelectedVehicleId(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
                 required
               >
-                <option value="">Sélectionnez un véhicule</option>
-                {availableVehicles.map(v => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
+                <option value="">
+                  {loadingCars ? 'Chargement des véhicules...' : 'Sélectionnez un véhicule'}
+                </option>
+                {carsError ? (
+                  <option value="" disabled>Erreur de chargement des véhicules</option>
+                ) : (
+                  cars.map(v => (
+                    <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.registrationCode})</option>
+                  ))
+                )}
               </select>
             </div>
 

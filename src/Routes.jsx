@@ -46,6 +46,10 @@ const Routes = () => {
         {
           path:"/publish-trip",
           element:<Publish/>
+        },
+        {
+          path:"/results",
+          element:<Results/>
         }
         ,
         {
@@ -118,4 +122,4 @@ const Routes = () => {
   return route 
 }
 
-export default Routes
+export default Routes;

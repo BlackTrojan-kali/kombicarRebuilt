@@ -44,7 +44,7 @@ const Header = () => {
         {/* Bouton "Publier un Trajet" pour Desktop - visible si l'utilisateur est connecté */}
         {user && (
           <Link 
-            to="/publish-trip" // Assurez-vous d'avoir une route définie pour cela
+            to="/publish-trip" 
             className="px-4 py-2 bg-kombigreen-500 text-white rounded-full font-bold
                        hover:bg-kombigreen-600 transition-colors duration-200 shadow-md
                        flex items-center gap-2 text-sm" // Ajustez la taille du texte si nécessaire

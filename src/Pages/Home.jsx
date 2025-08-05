@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import HeroSection from '../Components/page-components/HeroSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faBoltLightning, faCoins, faNewspaper, faChevronLeft, faChevronRight, faMapLocationDot } from '@fortawesome/free-solid-svg-icons';
@@ -7,35 +7,51 @@ import TripCard from '../Components/Cards/TripCard';
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import useTrips from '../hooks/useTrips';
+import useColorScheme from '../hooks/useColorScheme';
+import { Link } from 'react-router-dom'; // Importez Link pour le bouton "Afficher plus"
 
 // Composants de flèches personnalisées pour le slider
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
+  const { theme } = useColorScheme();
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
+  const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
   return (
     <div
-      className={`${className} absolute top-1/2 -translate-y-1/2 right-4 z-10 p-3 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 hidden lg:flex items-center justify-center dark:bg-gray-800 dark:hover:bg-gray-700`}
+      className={`${className} absolute top-1/2 -translate-y-1/2 right-4 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center ${bgColor} ${hoverBgColor}`}
       style={{ ...style, display: "flex" }}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faChevronRight} className="text-xl text-gray-700 dark:text-gray-300" />
+      <FontAwesomeIcon icon={faChevronRight} className={`text-xl ${textColor}`} />
     </div>
   );
 };
 
 const PrevArrow = (props) => {
   const { className, style, onClick } = props;
+  const { theme } = useColorScheme();
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
+  const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
   return (
     <div
-      className={`${className} absolute top-1/2 -translate-y-1/2 left-4 z-10 p-3 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 hidden lg:flex items-center justify-center dark:bg-gray-800 dark:hover:bg-gray-700`}
+      className={`${className} absolute top-1/2 -translate-y-1/2 left-4 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center ${bgColor} ${hoverBgColor}`}
       style={{ ...style, display: "flex" }}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faChevronLeft} className="text-xl text-gray-700 dark:text-gray-300" />
+      <FontAwesomeIcon icon={faChevronLeft} className={`text-xl ${textColor}`} />
     </div>
   );
 };
 
 const Home = () => {
+  const { trips, loading, error, fetchTrips } = useTrips();
+  const { theme } = useColorScheme();
+
   // Paramètres du slider pour les trajets populaires
   const sliderSettings = {
     dots: true,
@@ -75,37 +91,42 @@ const Home = () => {
     ]
   };
 
-  // Données de trajets pour le slider (plus complètes pour la démo)
-  const tripsData = [
-    { thumbnail: "/default/city-1.jpg", depart: "Yaoundé", arrive: "Douala", prix: 4000, chauffeur: { nom: "Yassine", trajets_effectues: 20 }, distance: 240 },
-    { thumbnail: "/default/city-2.jpg", depart: "Douala", arrive: "Bafoussam", prix: 3500, chauffeur: { nom: "Fatima", trajets_effectues: 15 }, distance: 280 },
-    { thumbnail: "/default/city-3.jpg", depart: "Yaoundé", arrive: "Kribi", prix: 5000, chauffeur: { nom: "Jean", trajets_effectues: 10 }, distance: 180 },
-   ];
+  // Charger les trajets au montage du composant
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  // Définition des couleurs dynamiques pour la page
+  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
+  const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'; // Réintroduit sectionBgColor
+  const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
+  const paragraphColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
 
   return (
-    // Supprimé la classe `bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300` ici
-    <div>
+    <div className={`${pageBgColor} ${textColor} transition-colors duration-300`}>
       <HeroSection label={"bienvenue sur kombicar"}/>
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 mt-[250px] lg:mt-[100px]'>
         {/* --- */}
         {/* Section des Avantages Clés */}
         <section className='max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between gap-8 text-center md:text-left mb-24'>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          {/* Utilisation de sectionBgColor ici */}
+          <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
             <FontAwesomeIcon icon={faCoins} className='text-5xl text-green-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Économisez sur vos trajets</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
               Partagez les coûts, réduisez vos dépenses et profitez de tarifs abordables pour toutes vos destinations.
             </p>
           </div>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
             <FontAwesomeIcon icon={faBoltLightning} className='text-5xl text-yellow-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Réservez en un éclair</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
               Trouvez et réservez votre place en quelques clics. Votre prochain voyage n'attend pas !
             </p>
           </div>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
             <FontAwesomeIcon icon={faNewspaper} className='text-5xl text-blue-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Voyagez en toute confiance</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
@@ -123,10 +144,10 @@ const Home = () => {
             className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
           />
           <div className='w-full md:w-1/2 md:p-8'>
-            <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColor} leading-tight`}>
               Simplifiez chaque déplacement, voyagez malin avec Kombicar
             </h2>
-            <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+            <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
               Finis les tracas des transports ! Kombicar rend le covoiturage au Cameroun simple et accessible. Trouvez ou proposez des trajets en quelques clics, connectez-vous avec des voyageurs fiables et profitez d'une nouvelle façon de vous déplacer, économique et conviviale.
             </p>
             <div className='text-center md:text-left'>
@@ -146,10 +167,10 @@ const Home = () => {
             className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
           />
           <div className='w-full md:w-1/2 md:p-8'>
-            <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColor} leading-tight`}>
               Votre sécurité, notre priorité. Voyagez sereinement.
             </h2>
-            <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+            <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
               Chez Kombicar, chaque trajet est pensé pour votre tranquillité. Nous nous engageons à construire une communauté de confiance où chaque membre est vérifié et évalué. Profitez d'une expérience de voyage agréable et fiable, à chaque fois.
             </p>
             <div className='text-center md:text-left'>
@@ -167,17 +188,34 @@ const Home = () => {
         <div className='max-w-7xl mx-auto'>
           <h3 className='text-white font-bold text-3xl sm:text-4xl mb-10'>Découvrez les Trajets Fréquents</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {['Yaoundé - Douala', 'Douala - Bafoussam', 'Yaoundé - Kribi', 'Bafoussam - Limbe', 'Douala - Edea', 'Yaoundé - Garoua'].map((route, index) => (
-              <a href="#" key={index} className='bg-white p-6 rounded-lg shadow-md flex justify-between items-center group hover:bg-gray-50 transition-colors duration-200 cursor-pointer dark:bg-gray-700 dark:hover:bg-gray-600'>
-                <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100'>
-                  <p className='font-semibold'>{route.split(' - ')[0]}</p>
-                  <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform dark:text-gray-400' />
-                  <p className='font-semibold'>{route.split(' - ')[1]}</p>
-                </div>
-                <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors dark:text-gray-400' />
-              </a>
-            ))}
+            {loading ? (
+              <p className="text-gray-300">Chargement des itinéraires...</p>
+            ) : trips.length === 0 ? (
+              <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
+            ) : (
+              // Affiche les 8 premiers trajets
+              trips.slice(0, 8).map((tripData) => (
+                <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}> {/* Utilisation de sectionBgColor ici */}
+                  <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
+                    <p className='font-semibold'>{tripData.depart}</p>
+                    <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform dark:text-gray-400 group-hover:text-white' />
+                    <p className='font-semibold'>{tripData.arrive}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors dark:text-gray-400' />
+                </Link>
+              ))
+            )}
           </div>
+          {/* Bouton "Afficher plus" conditionnel */}
+          {!loading && !error && trips.length > 8 && (
+            <div className="text-center mt-10">
+              <Link to="/results"> {/* Lien vers la page des résultats */}
+                <Button className='px-8 py-3 rounded-full bg-white text-emerald-800 font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'>
+                  Afficher plus de trajets
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -188,13 +226,20 @@ const Home = () => {
           Explorez nos itinéraires les plus recherchés
         </h2>
         <div className='relative max-w-7xl mx-auto'>
-          <Slider {...sliderSettings}>
-            {tripsData.map((tripData, index) => (
-              <div key={index} className="px-3">
-                <TripCard trip={tripData} />
-              </div>
-            ))}
-          </Slider>
+          {loading ? (
+            <p className="text-gray-600 dark:text-gray-400">Chargement des trajets...</p>
+          ) : trips.length === 0 ? (
+            <p className="text-gray-600 dark:text-gray-400">Aucune donnée trouvée.</p>
+          ) : (
+            // Le Slider ne s'affiche que s'il y a des trajets
+            <Slider {...sliderSettings}>
+              {trips.map((tripData) => (
+                <div key={tripData.id} className="px-3">
+                  <TripCard trip={tripData} />
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
       </section>
 
@@ -207,10 +252,10 @@ const Home = () => {
           className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
         />
         <div className='w-full md:w-1/2 md:p-8'>
-          <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+          <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColor} leading-tight`}>
             Le Cameroun à portée de main avec Kombicar
           </h2>
-          <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+          <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
             Que vous voyagiez pour le travail, les études ou les loisirs, Kombicar vous connecte aux villes clés du Cameroun. Découvrez de nouvelles régions et vivez des expériences authentiques grâce à notre réseau de covoiturage fiable et étendu.
           </p>
           <div className='text-center md:text-left'>

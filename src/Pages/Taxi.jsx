@@ -1,41 +1,56 @@
-import React from 'react';
-import HeroSection from '../Components/page-components/HeroSection'; // Assurez-vous que le chemin est correct
+import React, { useEffect } from 'react';
+import HeroSection from '../Components/page-components/HeroSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBoltLightning, faCoins, faUserShield, faMapLocationDot, faTaxi, faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons'; // Ajout de faChevronLeft/Right pour la cohérence
-import Button from '../Components/ui/Button'; // Assurez-vous que le chemin est correct
-import TripCard from '../Components/Cards/TripCard'; // Utilisation de TripCard pour la cohérence
-import Slider from "react-slick"; // Utilisation de React-Slick pour la cohérence
+import { faArrowRight, faBoltLightning, faCoins, faUserShield, faMapLocationDot, faTaxi, faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import Button from '../Components/ui/Button';
+import TripCard from '../Components/Cards/TripCard';
+import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import useTrips from '../hooks/useTrips'; // Importez le hook useTrips
+import useColorScheme from '../hooks/useColorScheme'; // Importez le hook de thème
 
-// Composants de flèches personnalisées pour le slider (mêmes que sur la page d'accueil)
+// Composants de flèches personnalisées pour le slider
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
+  const { theme } = useColorScheme(); // Utilisez le thème ici
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
+  const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
   return (
     <div
-      className={`${className} absolute top-1/2 -translate-y-1/2 right-4 z-10 p-3 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 hidden lg:flex items-center justify-center dark:bg-gray-800 dark:hover:bg-gray-700`}
+      className={`${className} absolute top-1/2 -translate-y-1/2 right-4 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center ${bgColor} ${hoverBgColor}`}
       style={{ ...style, display: "flex" }}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faChevronRight} className="text-xl text-gray-700 dark:text-gray-300" />
+      <FontAwesomeIcon icon={faChevronRight} className={`text-xl ${textColor}`} />
     </div>
   );
 };
 
 const PrevArrow = (props) => {
   const { className, style, onClick } = props;
+  const { theme } = useColorScheme(); // Utilisez le thème ici
+  const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
+  const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
   return (
     <div
-      className={`${className} absolute top-1/2 -translate-y-1/2 left-4 z-10 p-3 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-100 transition-colors duration-200 hidden lg:flex items-center justify-center dark:bg-gray-800 dark:hover:bg-gray-700`}
+      className={`${className} absolute top-1/2 -translate-y-1/2 left-4 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center ${bgColor} ${hoverBgColor}`}
       style={{ ...style, display: "flex" }}
       onClick={onClick}
     >
-      <FontAwesomeIcon icon={faChevronLeft} className="text-xl text-gray-700 dark:text-gray-300" />
+      <FontAwesomeIcon icon={faChevronLeft} className={`text-xl ${textColor}`} />
     </div>
   );
 };
 
 const Taxi = () => {
+  const { trips, loading, error, fetchTrips } = useTrips(); // Utilisez le hook useTrips
+  const { theme } = useColorScheme(); // Pour les couleurs de fond de la page
+
   // Paramètres du slider pour les trajets populaires (adaptés du composant Home)
   const sliderSettings = {
     dots: true,
@@ -75,18 +90,20 @@ const Taxi = () => {
     ]
   };
 
-  // Données de trajets pour le slider (plus complètes pour la démo) - Adapté pour les taxis
-  const tripsData = [
-    { thumbnail: "/default/city-1.jpg", depart: "Yaoundé", arrive: "Douala", prix: 30000, chauffeur: { nom: "Jean Dupont", trajets_effectues: 45 }, distance: 240 },
-    { thumbnail: "/default/city-2.jpg", depart: "Douala", arrive: "Bafoussam", prix: 25000, chauffeur: { nom: "Marie Curie", trajets_effectues: 30 }, distance: 280 },
-    { thumbnail: "/default/city-3.jpg", depart: "Yaoundé", arrive: "Kribi", prix: 20000, chauffeur: { nom: "Pierre Martin", trajets_effectues: 20 }, distance: 180 },
-    { thumbnail: "/default/city-4.jpg", depart: "Douala", arrive: "Limbe", prix: 35000, chauffeur: { nom: "Fatima Zahra", trajets_effectues: 55 }, distance: 60 }, // Exemple
-   ];
+  // Charger les trajets au montage du composant
+  useEffect(() => {
+    fetchTrips();
+  }, []); // Ajoutez fetchTrips comme dépendance pour éviter les avertissements ESLint
+
+  // Définition des couleurs dynamiques pour la page
+  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50';
+  const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
+  const textColorSecondary = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
 
   return (
-    <div className="text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      {/* Padding for fixed header */}
-
+    <div className={`${pageBgColor} ${textColorPrimary} transition-colors duration-300`}>
       {/* Hero Section for Taxi */}
       <HeroSection url='/default/carsharing-6.jpg' label="Taxi : Voyagez avec chauffeur en toute sérénité" showLogo={false} />
 
@@ -95,21 +112,21 @@ const Taxi = () => {
         {/* --- */}
         {/* Section des Avantages Clés du Taxi */}
         <section className='max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between gap-8 text-center md:text-left mb-24'>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          <div className={`md:w-1/3 p-6 ${sectionBgColor} rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300`}>
             <FontAwesomeIcon icon={faUserShield} className='text-5xl text-blue-600 mb-4' /> {/* icône adaptée */}
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Confort et Sérénité</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
               Voyagez dans des véhicules modernes et bien entretenus, conduits par des chauffeurs professionnels et courtois.
             </p>
           </div>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          <div className={`md:w-1/3 p-6 ${sectionBgColor} rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300`}>
             <FontAwesomeIcon icon={faCoins} className='text-5xl text-green-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Tarifs Transparents</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
               Connaissez le prix de votre course à l'avance, sans surprise. Nos tarifs sont clairs et compétitifs pour tous vos trajets.
             </p>
           </div>
-          <div className='md:w-1/3 p-6 bg-white rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 dark:bg-gray-800'>
+          <div className={`md:w-1/3 p-6 ${sectionBgColor} rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300`}>
             <FontAwesomeIcon icon={faBoltLightning} className='text-5xl text-yellow-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Service Rapide et Disponible</h4>
             <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
@@ -127,10 +144,10 @@ const Taxi = () => {
             className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
           />
           <div className='w-full md:w-1/2 md:p-8'>
-            <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColorPrimary} leading-tight`}>
               Voyagez sans contrainte, avec un chauffeur dédié
             </h2>
-            <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+            <p className={`${textColorSecondary} leading-relaxed text-lg mb-8`}>
               Pour vos rendez-vous d'affaires, vos transferts aéroport, ou simplement pour un confort optimal, Kombicar Taxi est votre solution privilégiée. Profitez d'un service personnalisé, discret et ponctuel, adapté à tous vos besoins.
             </p>
             <div className='text-center md:text-left'>
@@ -143,17 +160,17 @@ const Taxi = () => {
 
         {/* --- */}
         {/* Section Texte et Image (inversée) : Sécurité et Fiabilité */}
-        <section className='mt-24 flex flex-col md:flex-row-reverse gap-12 items-center max-w-7xl mx-auto mb-24'>
+        <section className='mt-24 flex flex-col md:flex-row-reverse gap-12 items-center mb-24 max-w-7xl mx-auto'>
           <img
             src="/default/carsharing-2.jpg" // Nouvelle image pertinente
             alt="Chauffeur de taxi souriant et passager en sécurité"
             className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
           />
           <div className='w-full md:w-1/2 md:p-8'>
-            <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColorPrimary} leading-tight`}>
               La sécurité et la fiabilité au cœur de chaque course
             </h2>
-            <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+            <p className={`${textColorSecondary} leading-relaxed text-lg mb-8`}>
               Avec Kombicar Taxi, votre tranquillité est garantie. Nos chauffeurs sont rigoureusement sélectionnés et nos véhicules sont régulièrement inspectés. Profitez d'un suivi de course en temps réel et d'un support client dédié pour une expérience sans souci.
             </p>
             <div className='text-center md:text-left'>
@@ -167,50 +184,56 @@ const Taxi = () => {
 
       {/* --- */}
       {/* Slider des Trajets Taxi Populaires (Remplace la Swiper Section) */}
-      <section className='py-20 px-4 sm:px-6 lg:px-12 xl:px-24 text-center bg-gray-50 dark:bg-gray-900'>
-        <h2 className='font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 text-gray-800 dark:text-gray-100'>
+      <section className={`${pageBgColor} py-20 px-4 sm:px-6 lg:px-12 xl:px-24 text-center`}>
+        <h2 className={`font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 ${textColorPrimary}`}>
           Découvrez nos itinéraires Taxi les plus populaires
         </h2>
         <div className='relative max-w-7xl mx-auto'>
-          <Slider {...sliderSettings}>
-            {tripsData.map((tripData, index) => (
-              <div key={index} className="px-3"> {/* Ajout de padding pour éviter que les cartes ne touchent les bords du slider */}
-                <TripCard trip={tripData} />
-              </div>
-            ))}
-          </Slider>
+          {loading ? (
+            <p className={`${textColorSecondary}`}>Chargement des trajets taxi...</p>
+          ): trips.length === 0 ? (
+            <p className={`${textColorSecondary}`}>Aucun trajet taxi disponible pour le moment.</p>
+          ) : (
+            <Slider {...sliderSettings}>
+              {trips.map((tripData) => (
+                <div key={tripData.id} className="px-3">
+                  <TripCard trip={tripData} />
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
       </section>
 
       {/* --- */}
       {/* FAQ Section for Taxi */}
-      <section className='py-16 px-4 sm:px-6 lg:px-12 xl:px-24 bg-gray-50 rounded-lg max-w-7xl mx-auto dark:bg-gray-900 mt-24'> {/* Ajout de mt-24 pour espacer */}
-        <h1 className='text-center font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 text-gray-800 dark:text-gray-100'>
+      <section className={`py-16 px-4 sm:px-6 lg:px-12 xl:px-24 rounded-lg max-w-7xl mx-auto ${sectionBgColor} mt-24`}>
+        <h1 className={`text-center font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 ${textColorPrimary}`}>
           <FontAwesomeIcon icon={faTaxi} className='text-3xl sm:text-4xl text-red-500 mr-4' />
           Questions fréquentes sur nos services Taxi
         </h1>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-          <div className='p-6 bg-white rounded-lg shadow-md dark:bg-gray-800'>
-            <h4 className='font-bold text-xl text-gray-800 mb-2 dark:text-gray-100'>Comment réserver un Taxi avec Kombicar ?</h4>
-            <p className='text-gray-700 text-base leading-relaxed dark:text-gray-300'>
+          <div className={`${sectionBgColor} p-6 rounded-lg shadow-md`}>
+            <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Comment réserver un Taxi avec Kombicar ?</h4>
+            <p className={`${textColorSecondary} text-base leading-relaxed`}>
               La réservation d'un Taxi est simple et rapide. Rendez-vous sur notre application mobile ou sur le site web, choisissez votre destination, la date et l'heure souhaitées, et confirmez votre course en quelques secondes.
             </p>
           </div>
-          <div className='p-6 bg-white rounded-lg shadow-md dark:bg-gray-800'>
-            <h4 className='font-bold text-xl text-gray-800 mb-2 dark:text-gray-100'>Puis-je commander un Taxi à l'avance ?</h4>
-            <p className='text-gray-700 text-base leading-relaxed dark:text-gray-300'>
+          <div className={`${sectionBgColor} p-6 rounded-lg shadow-md`}>
+            <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Puis-je commander un Taxi à l'avance ?</h4>
+            <p className={`${textColorSecondary} text-base leading-relaxed`}>
               Oui, absolument ! Vous avez la possibilité de réserver votre Taxi plusieurs heures ou même plusieurs jours à l'avance. C'est la solution idéale pour vos transferts aéroport, vos rendez-vous importants ou vos événements spéciaux.
             </p>
           </div>
-          <div className='p-6 bg-white rounded-lg shadow-md dark:bg-gray-800'>
-            <h4 className='font-bold text-xl text-gray-800 mb-2 dark:text-gray-100'>Quels sont les modes de paiement acceptés ?</h4>
-            <p className='text-gray-700 text-base leading-relaxed dark:text-gray-300'>
+          <div className={`${sectionBgColor} p-6 rounded-lg shadow-md`}>
+            <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Quels sont les modes de paiement acceptés ?</h4>
+            <p className={`${textColorSecondary} text-base leading-relaxed`}>
               Pour votre confort, nous acceptons plusieurs modes de paiement sécurisés, y compris les cartes de crédit/débit et les paiements mobiles populaires au Cameroun. Vous réglez votre course en toute simplicité.
             </p>
           </div>
-          <div className='p-6 bg-white rounded-lg shadow-md dark:bg-gray-800'>
-            <h4 className='font-bold text-xl text-gray-800 mb-2 dark:text-gray-100'>Les chauffeurs sont-ils qualifiés et fiables ?</h4>
-            <p className='text-gray-700 text-base leading-relaxed dark:text-gray-300'>
+          <div className={`${sectionBgColor} p-6 rounded-lg shadow-md`}>
+            <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Les chauffeurs sont-ils qualifiés et fiables ?</h4>
+            <p className={`${textColorSecondary} text-base leading-relaxed`}>
               Absolument. Tous nos chauffeurs Taxi sont des professionnels expérimentés, rigoureusement sélectionnés, titulaires des licences nécessaires et soumis à des contrôles de qualité réguliers pour garantir votre satisfaction et votre sécurité.
             </p>
           </div>
@@ -226,10 +249,10 @@ const Taxi = () => {
           className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
         />
         <div className='w-full md:w-1/2 md:p-8'>
-          <h2 className='font-extrabold text-3xl sm:text-4xl mb-6 text-gray-800 dark:text-gray-100 leading-tight'>
+          <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColorPrimary} leading-tight`}>
             Le Cameroun à portée de main avec Kombicar Taxi
           </h2>
-          <p className='text-gray-700 leading-relaxed text-lg mb-8 dark:text-gray-300'>
+          <p className={`${textColorSecondary} leading-relaxed text-lg mb-8`}>
             Que vous ayez besoin d'une course en ville, d'un transfert interurbain ou d'un service de transport privé, Kombicar Taxi vous connecte aux villes clés du Cameroun. Profitez d'une flexibilité et d'une efficacité inégalées.
           </p>
           <div className='text-center md:text-left'>
