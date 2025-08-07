@@ -21,6 +21,7 @@ import Colors from "./Pages/Dashboard/Colors"
 import Wallet from "./Pages/Dashboard/Wallet"
 import Publish from "./Pages/Publish"
 import SignInAdmin from "./Pages/Auth/SignInAdmin" // Importation du composant de connexion admin
+import ConfirmEmail from "./Pages/Auth/ConfirmEmail" // Importation de la page de confirmation d'e-mail
 
 const Routes = () => {
   const route = useRoutes([
@@ -70,6 +71,10 @@ const Routes = () => {
         {
           path:"/auth/signup",
           element:<Signup/>
+        },
+        {
+          path:"/auth/confirm-email", // Ajout de la route pour la confirmation d'e-mail
+          element:<ConfirmEmail/>
         }
       ]
     },

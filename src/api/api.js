@@ -71,8 +71,8 @@ api.interceptors.response.use(
 
                 try {
                     // Appel à l'API de rafraîchissement du token
-                    // Assurez-vous que votre backend C# a un endpoint pour cela (ex: /api/auth/refresh)
-                    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+                    // Assurez-vous que votre backend C# a un endpoint pour cela (ex: /api/v1/users/refresh-token)
+                    const response = await axios.post(`${API_BASE_URL}/v1/users/refresh-token`, { refreshToken });
                     const { accessToken, refreshToken: newRefreshToken } = response.data;
 
                     // Met à jour les tokens dans le localStorage
