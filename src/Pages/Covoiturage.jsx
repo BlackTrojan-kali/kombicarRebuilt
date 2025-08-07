@@ -1,38 +1,39 @@
-import React, { useEffect } from 'react'; // Importez useEffect
-import HeroSection from '../Components/page-components/HeroSection'; // Assurez-vous que le chemin est correct
+import React, { useEffect } from 'react';
+import HeroSection from '../Components/page-components/HeroSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faChevronRight, faCircleQuestion, } from '@fortawesome/free-solid-svg-icons';
 import Button from '../Components/ui/Button';
-import useTrips from '../hooks/useTrips'; // Importez le hook useTrips
-import useColorScheme from '../hooks/useColorScheme'; // Importez le hook de thème
-import { Link } from 'react-router-dom'; // Importez Link pour le bouton "Afficher plus"
+import useTrips from '../hooks/useTrips';
+import useColorScheme from '../hooks/useColorScheme';
+import { Link } from 'react-router-dom';
 
 const Covoiturage = () => {
-  const { trips, loading, error, fetchTrips } = useTrips(); // Utilisez le hook useTrips
-  const { theme } = useColorScheme(); // Utilisez le hook de thème pour les couleurs
+  // Hook pour récupérer les données de trajets
+  const { trips, loading, error, fetchTrips } = useTrips();
+  // Hook pour la gestion du thème clair/sombre
+  const { theme } = useColorScheme();
 
   // Charger les trajets au montage du composant
   useEffect(() => {
     fetchTrips();
-  }, []); // Ajoutez fetchTrips comme dépendance pour éviter les avertissements ESLint
+  }, []);
 
-  // Définition des couleurs dynamiques pour la page
+  // Définition des couleurs dynamiques pour le thème
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const linkBgColor = theme === 'dark' ? 'bg-gray-700' : 'bg-white';
   const linkHoverBgColor = theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-50';
 
-
   return (
     <div className={`${textColorPrimary} transition-colors duration-300`}>
-      {/* Hero Section */}
       <HeroSection url='/default/jeunes.jpg' label="Covoiturage : Votre trajet partagé, facile et économique" showLogo={false} />
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16'>
 
-        {/* --- */}
-        {/* Section 1: Covoiturage pour les Conducteurs */}
+        {/* ==================================== */}
+        {/* Section: Covoiturage pour les Conducteurs */}
+        {/* ==================================== */}
         <section className='flex flex-col md:flex-row gap-12 items-center mb-24 max-w-7xl mx-auto'>
           <img
             src="/default/carsharing-4.jpg"
@@ -54,23 +55,25 @@ const Covoiturage = () => {
           </div>
         </section>
 
-        {/* --- */}
-        {/* Section des Trajets de Covoiturage Disponibles */}
+        {/* ==================================== */}
+        {/* Section: Trajets de Covoiturage Disponibles */}
+        {/* ==================================== */}
         <section className='w-full text-left bg-emerald-800 py-12 px-4 sm:px-6 lg:px-12 xl:px-24 mb-24 rounded-lg max-w-7xl mx-auto dark:bg-gray-800'>
           <h3 className='text-white font-bold text-3xl sm:text-4xl mb-8'>Découvrez les itinéraires de covoiturage populaires</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {loading ? (
+            { loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
             ) : trips.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
-              // Affiche les 8 premiers trajets
               trips.slice(0, 8).map((tripData) => (
                 <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
                   <div className={`flex items-center gap-4 ${textColorPrimary}`}>
-                    <p className='font-semibold'>{tripData.depart}</p>
+                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville de départ */}
+                    <p className='font-semibold'>{tripData.startAreaPointCreateDto?.homeTownName || 'N/A'}</p>
                     <FontAwesomeIcon icon={faArrowRight} className={`text-lg ${textColorSecondary} group-hover:translate-x-1 transition-transform`} />
-                    <p className='font-semibold'>{tripData.arrive}</p>
+                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville d'arrivée */}
+                    <p className='font-semibold'>{tripData.arivalAreaPointCreateDto?.homeTownName || 'N/A'}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className={`text-xl ${textColorSecondary} group-hover:text-green-500 transition-colors`} />
                 </Link>
@@ -80,7 +83,7 @@ const Covoiturage = () => {
           {/* Bouton "Afficher plus" conditionnel */}
           {!loading && !error && trips.length > 8 && (
             <div className="text-center mt-10">
-              <Link to="/results"> {/* Lien vers la page des résultats */}
+              <Link to="/results">
                 <Button className='px-8 py-3 rounded-full bg-white text-emerald-800 font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'>
                   Afficher plus de trajets
                 </Button>
@@ -89,8 +92,9 @@ const Covoiturage = () => {
           )}
         </section>
 
-        {/* --- */}
-        {/* Section 2: Covoiturage pour les Passagers */}
+        {/* ==================================== */}
+        {/* Section: Covoiturage pour les Passagers */}
+        {/* ==================================== */}
         <section className='flex flex-col md:flex-row-reverse gap-12 items-center mb-24 max-w-7xl mx-auto'>
           <img
             src="/default/carsharing-6.jpg"
@@ -112,36 +116,33 @@ const Covoiturage = () => {
           </div>
         </section>
 
-        {/* --- */}
-        {/* FAQ Section */}
+        {/* ==================================== */}
+        {/* Section: FAQ */}
+        {/* ==================================== */}
         <section className={`py-16 px-4 sm:px-6 lg:px-12 xl:px-24 rounded-lg max-w-7xl mx-auto ${sectionBgColor}`}>
           <h1 className={`text-center font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 ${textColorPrimary}`}>
             <FontAwesomeIcon icon={faCircleQuestion} className='text-3xl sm:text-4xl text-blue-500 mr-4' />
             Questions fréquentes sur le covoiturage
           </h1>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-            {/* FAQ Item 1 */}
             <div className={`${linkBgColor} p-6 rounded-lg shadow-md`}>
               <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Comment fonctionne le covoiturage sur Kombicar ?</h4>
               <p className={`${textColorSecondary} text-base leading-relaxed`}>
                 Que vous soyez conducteur ou passager, le principe est simple : les conducteurs proposent leurs trajets avec leurs places disponibles, et les passagers peuvent les réserver. Le partage des frais se fait directement via l'application, en toute transparence.
               </p>
             </div>
-            {/* FAQ Item 2 */}
             <div className={`${linkBgColor} p-6 rounded-lg shadow-md`}>
               <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Est-ce que le covoiturage est sûr ?</h4>
               <p className={`${textColorSecondary} text-base leading-relaxed`}>
                 La sécurité est notre priorité absolue. Nous encourageons nos utilisateurs à vérifier les profils, les avis et les évaluations des autres membres avant de voyager. Vous pouvez également communiquer avec eux avant le départ pour plus de sérénité.
               </p>
             </div>
-            {/* FAQ Item 3 */}
             <div className={`${linkBgColor} p-6 rounded-lg shadow-md`}>
               <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Comment sont fixés les prix ?</h4>
               <p className={`${textColorSecondary} text-base leading-relaxed`}>
                 Les prix sont suggérés par Kombicar en fonction de la distance et des frais habituels (carburant, péages), mais le conducteur peut ajuster ce montant dans une certaine limite. L'objectif est de partager les frais de manière équitable, pas de faire du profit.
               </p>
             </div>
-            {/* FAQ Item 4 */}
             <div className={`${linkBgColor} p-6 rounded-lg shadow-md`}>
               <h4 className={`font-bold text-xl ${textColorPrimary} mb-2`}>Que faire en cas de problème ou d'annulation ?</h4>
               <p className={`${textColorSecondary} text-base leading-relaxed`}>
@@ -152,8 +153,9 @@ const Covoiturage = () => {
         </section>
       </main>
 
-      {/* --- */}
-      {/* Mobile App Presentation */}
+      {/* ==================================== */}
+      {/* Section: Mobile App Presentation */}
+      {/* ==================================== */}
       <section className="py-16 bg-yellow-400 text-gray-700 dark:bg-yellow-700 dark:text-gray-100">
         <h1 className="text-3xl sm:text-4xl text-center font-bold mb-4">Simplifiez votre expérience</h1>
         <h2 className="text-xl sm:text-2xl text-center font-semibold mb-12">Téléchargez notre application mobile !</h2>
@@ -167,7 +169,6 @@ const Covoiturage = () => {
             />
           </div>
           <div className='flex flex-col items-center md:items-start gap-4'>
-            {/* App Store Button */}
             <a href="https://apps.apple.com/us/app/kombicar/id6468362045" target="_blank" rel="noopener noreferrer" aria-label="Télécharger sur l'App Store">
               <button
                 type="button"
@@ -189,7 +190,6 @@ const Covoiturage = () => {
                 </div>
               </button>
             </a>
-            {/* Google Play Button */}
             <a href="https://play.google.com/store/apps/details?id=com.kombicar.app" target="_blank" rel="noopener noreferrer" aria-label="Télécharger sur Google Play">
               <button
                 type="button"

@@ -42,7 +42,7 @@ const Routes = () => {
           element:<Taxi/>
         },
         {
-          path:"/trip-detail",
+          path:"/trip-detail/:tripId", // Mise à jour de la route
           element:<TripDetail/>
         },
         {

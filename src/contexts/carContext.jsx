@@ -1,6 +1,7 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 import api from '../api/api'; // Assurez-vous que le chemin vers votre instance Axios est correct
 import toast from 'react-hot-toast'; // Pour les notifications
+import useAuth from "../hooks/useAuth"; // Importation de votre hook d'authentification
 
 // Crée le contexte. C'est ce que le hook useContext(carContext) consommera.
 export const carContext = createContext({});
@@ -11,80 +12,82 @@ export function CarContextProvider({ children }) {
     const [loading, setLoading] = useState(false); // Indique si une opération est en cours de chargement
     const [error, setError] = useState(null); // Stocke les erreurs éventuelles des opérations
 
-    // Données de véhicules fictives pour le cas où la requête API échoue ou est vide.
+    // Utilisation de votre hook d'authentification pour obtenir les informations de l'utilisateur
+    const { user, loading: authLoading } = useAuth();
+
+    // Données de véhicules fictives mises à jour pour correspondre au DTO.
     const mockCars = [
         {
             id: 1,
-            marque: "Toyota",
-            modele: "Corolla",
-            annee: 2020,
-            couleur: "Gris",
-            disponible: true
+            userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+            brand: "Toyota",
+            model: "Corolla",
+            numberPlaces: 5,
+            color: "Gris",
+            registrationCode: "AB-123-CD"
         },
         {
             id: 2,
-            marque: "Honda",
-            modele: "Civic",
-            annee: 2021,
-            couleur: "Noir",
-            disponible: false
+            userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+            brand: "Honda",
+            model: "Civic",
+            numberPlaces: 4,
+            color: "Noir",
+            registrationCode: "EF-456-GH"
         },
         {
             id: 3,
-            marque: "Ford",
-            modele: "Focus",
-            annee: 2019,
-            couleur: "Bleu",
-            disponible: true
+            userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+            brand: "Ford",
+            model: "Focus",
+            numberPlaces: 5,
+            color: "Bleu",
+            registrationCode: "IJ-789-KL"
         }
     ];
 
     // Fonction pour récupérer tous les véhicules.
-    // Elle peut accepter des paramètres pour la pagination, le filtrage, etc.
-    // Endpoint: GET /api/vehicules
     const fetchCars = async (params = {}) => {
+        if (authLoading) return; // Attendre que l'authentification soit prête
+
         setLoading(true);
-        setError(null); // Réinitialise l'erreur avant une nouvelle tentative
+        setError(null);
         try {
-            // Appel API pour récupérer les véhicules
             const response = await api.get('/api/vehicules', { params });
             
-            // Vérifie si la réponse contient des données. Sinon, utilise les données fictives.
             if (response.data && response.data.length > 0) {
-                setCars(response.data); // Met à jour l'état avec les données reçues
-                toast.success('Véhicules chargés avec succès !'); // Notification de succès
+                setCars(response.data);
+                toast.success('Véhicules chargés avec succès !');
             } else {
-                setCars(mockCars); // Utilisation des données fictives
+                setCars(mockCars);
                 toast.warn('La réponse du serveur est vide. Utilisation de données fictives.');
             }
             
-            return response.data; // Retourne les données pour une utilisation directe si nécessaire
+            return response.data;
         } catch (err) {
             console.error("Erreur lors de la récupération des véhicules:", err);
-            setError(err); // Stocke l'objet d'erreur
-            // En cas d'échec de la requête, utilise les données fictives
+            setError(err);
             setCars(mockCars);
-            // Affiche un message d'erreur à l'utilisateur
             toast.error(err.response?.data?.message || 'Échec du chargement des véhicules. Utilisation de données fictives.');
-            return null; // Indique un échec
+            return null;
         } finally {
-            setLoading(false); // Termine le chargement, que ce soit un succès ou un échec
+            setLoading(false);
         }
     };
 
     // Fonction pour récupérer un véhicule spécifique par son ID
-    // Endpoint: GET /api/vehicules/{id}
     const getCarById = async (id) => {
+        if (authLoading) return;
+
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/vehicules/${id}`); // <-- Endpoint mis à jour
+            const response = await api.get(`/api/vehicules/${id}`);
             toast.success('Véhicule trouvé !');
             return response.data;
         } catch (err) {
             console.error(`Erreur lors de la récupération du véhicule ${id}:`, err);
             setError(err);
-            // En cas d'échec, essaie de trouver le véhicule dans les données fictives
             const car = mockCars.find(c => c.id === parseInt(id));
             if (car) {
                 toast.warn('Véhicule non trouvé sur le serveur, mais trouvé dans les données fictives.');
@@ -98,13 +101,17 @@ export function CarContextProvider({ children }) {
     };
 
     // Fonction pour créer un nouveau véhicule
-    // Endpoint: POST /api/vehicules
     const createCar = async (carData) => {
+        if (!user) {
+            toast.error("Veuillez vous connecter pour créer un véhicule.");
+            return null;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const response = await api.post('/api/vehicules', carData); // <-- Endpoint mis à jour
-            // Si l'API renvoie le nouveau véhicule créé, l'ajoute à la liste locale
+            const newCarData = { ...carData, userId: user.id };
+            const response = await api.post('/api/vehicules', newCarData);
             setCars(prevCars => [...prevCars, response.data]);
             toast.success('Véhicule créé avec succès !');
             return response.data;
@@ -119,13 +126,16 @@ export function CarContextProvider({ children }) {
     };
 
     // Fonction pour mettre à jour un véhicule existant
-    // Endpoint: PUT /api/vehicules/{id}
     const updateCar = async (id, carData) => {
+        if (!user) {
+            toast.error("Veuillez vous connecter pour modifier un véhicule.");
+            return null;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const response = await api.put(`/api/vehicules/${id}`, carData); // <-- Endpoint mis à jour
-            // Met à jour le véhicule dans la liste locale
+            const response = await api.put(`/api/vehicules/${id}`, carData);
             setCars(prevCars => prevCars.map(car => 
                 car.id === id ? response.data : car
             ));
@@ -142,40 +152,45 @@ export function CarContextProvider({ children }) {
     };
 
     // Fonction pour supprimer un véhicule
-    // Endpoint: DELETE /api/vehicules/{id}
     const deleteCar = async (id) => {
+        if (!user) {
+            toast.error("Veuillez vous connecter pour supprimer un véhicule.");
+            return false;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            await api.delete(`/api/vehicules/${id}`); // C'est ici que la requête DELETE est effectuée
-            // Supprime le véhicule de la liste locale
+            await api.delete(`/api/vehicules/${id}`);
             setCars(prevCars => prevCars.filter(car => car.id !== id));
             toast.success('Véhicule supprimé avec succès !');
-            return true; // Indique le succès
+            return true;
         } catch (err) {
             console.error(`Erreur lors de la suppression du véhicule ${id}:`, err);
             setError(err);
             toast.error(err.response?.data?.message || 'Échec de la suppression du véhicule.');
-            return false; // Indique l'échec
+            return false;
         } finally {
             setLoading(false);
         }
     };
 
     // Nouvelle fonction pour téléverser un document pour un véhicule
-    // Endpoint: POST /api/vehicules/upload/{documentType}/{vehiculeId}
     const uploadVehicleDocument = async (documentType, vehiculeId, file) => {
+        if (!user) {
+            toast.error("Veuillez vous connecter pour téléverser un document.");
+            return null;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            // Crée un objet FormData pour envoyer le fichier
             const formData = new FormData();
-            formData.append('file', file); // 'file' doit correspondre au nom attendu par votre backend
+            formData.append('file', file);
 
-            // En-têtes spécifiques pour l'upload de fichier
             const config = {
                 headers: {
-                    'Content-Type': 'multipart/form-data', // Important pour l'upload de fichiers
+                    'Content-Type': 'multipart/form-data',
                 },
             };
 
@@ -192,16 +207,6 @@ export function CarContextProvider({ children }) {
         }
     };
 
-    // Le `useEffect` ci-dessous est commenté pour donner plus de flexibilité.
-    // Si vous voulez que les véhicules soient chargés automatiquement au montage du fournisseur,
-    // décommentez-le. Sinon, appelez `fetchCars()` manuellement dans les composants.
-    /*
-    useEffect(() => {
-        fetchCars();
-    }, []);
-    */
-
-    // Les valeurs fournies par le contexte à tous ses consommateurs
     const contextValue = { 
         cars, 
         loading, 
@@ -211,7 +216,8 @@ export function CarContextProvider({ children }) {
         createCar, 
         updateCar, 
         deleteCar,
-        uploadVehicleDocument // Ajout de la nouvelle fonction au contexte
+        uploadVehicleDocument,
+        userId: user?.id || null
     };
 
     return (

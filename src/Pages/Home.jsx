@@ -9,9 +9,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
-import { Link } from 'react-router-dom'; // Importez Link pour le bouton "Afficher plus"
+import { Link } from 'react-router-dom';
 
-// Composants de flèches personnalisées pour le slider
+// Composant de flèche personnalisée pour le slider (flèche suivante)
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();
@@ -30,6 +30,7 @@ const NextArrow = (props) => {
   );
 };
 
+// Composant de flèche personnalisée pour le slider (flèche précédente)
 const PrevArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();
@@ -49,7 +50,9 @@ const PrevArrow = (props) => {
 };
 
 const Home = () => {
+  // Hook pour récupérer les données de trajets
   const { trips, loading, error, fetchTrips } = useTrips();
+  // Hook pour la gestion du thème clair/sombre
   const { theme } = useColorScheme();
 
   // Paramètres du slider pour les trajets populaires
@@ -98,7 +101,7 @@ const Home = () => {
 
   // Définition des couleurs dynamiques pour la page
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
-  const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white'; // Réintroduit sectionBgColor
+  const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const paragraphColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
 
@@ -108,10 +111,10 @@ const Home = () => {
       <HeroSection label={"bienvenue sur kombicar"}/>
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 mt-[250px] lg:mt-[100px]'>
-        {/* --- */}
-        {/* Section des Avantages Clés */}
+        {/* ==================================== */}
+        {/* Section: Avantages Clés */}
+        {/* ==================================== */}
         <section className='max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between gap-8 text-center md:text-left mb-24'>
-          {/* Utilisation de sectionBgColor ici */}
           <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
             <FontAwesomeIcon icon={faCoins} className='text-5xl text-green-500 mb-4' />
             <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Économisez sur vos trajets</h4>
@@ -135,8 +138,9 @@ const Home = () => {
           </div>
         </section>
 
-        {/* --- */}
-        {/* Section Texte et Image : Simplicité */}
+        {/* ==================================== */}
+        {/* Section: Texte et Image - Simplicité */}
+        {/* ==================================== */}
         <section className='mt-24 flex flex-col md:flex-row gap-12 items-center max-w-7xl mx-auto mb-24'>
           <img
             src="/default/solve.png"
@@ -158,8 +162,9 @@ const Home = () => {
           </div>
         </section>
 
-        {/* --- */}
-        {/* Section Texte et Image (inversée) : Sécurité et Communauté */}
+        {/* ==================================== */}
+        {/* Section: Texte et Image - Sécurité et Communauté */}
+        {/* ==================================== */}
         <section className='mt-24 flex flex-col md:flex-row-reverse gap-12 items-center max-w-7xl mx-auto mb-24'>
           <img
             src="/default/car-women.png"
@@ -182,24 +187,27 @@ const Home = () => {
         </section>
       </main>
 
-      {/* --- */}
-      {/* Section des Itinéraires Populaires */}
+      {/* ==================================== */}
+      {/* Section: Itinéraires Fréquents */}
+      {/* ==================================== */}
       <section className='w-full text-left bg-emerald-800 py-12 px-4 sm:px-6 lg:px-12 xl:px-24 mt-24 dark:bg-gray-800'>
         <div className='max-w-7xl mx-auto'>
           <h3 className='text-white font-bold text-3xl sm:text-4xl mb-10'>Découvrez les Trajets Fréquents</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            {loading ? (
+            { loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
             ) : trips.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
               // Affiche les 8 premiers trajets
               trips.slice(0, 8).map((tripData) => (
-                <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}> {/* Utilisation de sectionBgColor ici */}
+                <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
                   <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
-                    <p className='font-semibold'>{tripData.depart}</p>
+                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville de départ */}
+                    <p className='font-semibold'>{tripData.startAreaPointCreateDto?.homeTownName || 'N/A'}</p>
                     <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform dark:text-gray-400 group-hover:text-white' />
-                    <p className='font-semibold'>{tripData.arrive}</p>
+                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville d'arrivée */}
+                    <p className='font-semibold'>{tripData.arivalAreaPointCreateDto?.homeTownName || 'N/A'}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors dark:text-gray-400' />
                 </Link>
@@ -209,7 +217,7 @@ const Home = () => {
           {/* Bouton "Afficher plus" conditionnel */}
           {!loading && !error && trips.length > 8 && (
             <div className="text-center mt-10">
-              <Link to="/results"> {/* Lien vers la page des résultats */}
+              <Link to="/results">
                 <Button className='px-8 py-3 rounded-full bg-white text-emerald-800 font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'>
                   Afficher plus de trajets
                 </Button>
@@ -219,14 +227,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- */}
-      {/* Slider des Trajets Populaires */}
+      {/* ==================================== */}
+      {/* Section: Slider des Trajets Populaires */}
+      {/* ==================================== */}
       <section className='py-20 px-4 sm:px-6 lg:px-12 xl:px-24 text-center bg-gray-50 dark:bg-gray-900'>
         <h2 className='font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 text-gray-800 dark:text-gray-100'>
           Explorez nos itinéraires les plus recherchés
         </h2>
         <div className='relative max-w-7xl mx-auto'>
-          {loading ? (
+          { loading ? (
             <p className="text-gray-600 dark:text-gray-400">Chargement des trajets...</p>
           ) : trips.length === 0 ? (
             <p className="text-gray-600 dark:text-gray-400">Aucune donnée trouvée.</p>
@@ -243,8 +252,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- */}
-      {/* Section Carte du Cameroun */}
+      {/* ==================================== */}
+      {/* Section: Carte du Cameroun */}
+      {/* ==================================== */}
       <section className='mt-24 flex flex-col md:flex-row gap-12 items-center px-4 sm:px-6 lg:px-12 xl:px-24 pb-20 max-w-7xl mx-auto'>
         <img
           src="/default/map-cameroon.png"

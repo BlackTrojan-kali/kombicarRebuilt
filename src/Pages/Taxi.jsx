@@ -189,7 +189,7 @@ const Taxi = () => {
           Découvrez nos itinéraires Taxi les plus populaires
         </h2>
         <div className='relative max-w-7xl mx-auto'>
-          {loading ? (
+          { loading ? (
             <p className={`${textColorSecondary}`}>Chargement des trajets taxi...</p>
           ): trips.length === 0 ? (
             <p className={`${textColorSecondary}`}>Aucun trajet taxi disponible pour le moment.</p>
