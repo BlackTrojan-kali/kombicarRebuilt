@@ -85,7 +85,7 @@ export function AuthContextProvider({ children }) {
         } else {
             // Si aucun token n'est trouvé, utilise l'utilisateur fictif pour le développement
             // Commenter cette ligne en production si vous ne voulez pas d'utilisateur par défaut
-            setUser(dummyUser);
+            setUser(null)//dummyUser);
             console.log("Aucun token trouvé. Utilisateur fictif chargé pour le développement.");
         }
         setLoading(false);

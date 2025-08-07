@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react'; // Importez useEffect
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
   faEuroSign, faInfoCircle, faCar, faMoneyBillWave, faPlusCircle, faRoute
 } from '@fortawesome/free-solid-svg-icons';
-import useColorScheme from '../hooks/useColorScheme'; // Assurez-vous que le chemin est correct
-import { Toaster, toast } from 'react-hot-toast'; // Pour les notifications
-import useTrips from '../hooks/useTrips'; // Importez le hook useTrips
-import useCars from '../hooks/useCar'; // Importez le hook useCars
-import  useAuth  from '../hooks/useAuth'; // Importez le hook d'authentification pour l'ID utilisateur
+import useColorScheme from '../hooks/useColorScheme';
+import { Toaster, toast } from 'react-hot-toast';
+import useTrips from '../hooks/useTrips';
+import useCars from '../hooks/useCar';
+import  useAuth  from '../hooks/useAuth';
 
 const Publish = () => {
   const { theme } = useColorScheme();
-  const { createTrip } = useTrips(); // Récupérez la fonction createTrip du contexte
-  const { cars, loading: loadingCars, error: carsError, fetchCars } = useCars(); // Récupérez les véhicules et leur état du contexte
-  const { user } = useAuth(); // Récupérez l'utilisateur connecté pour son ID
+  const { createTrip } = useTrips();
+  const { cars, loading: loadingCars, error: carsError, fetchCars } = useCars();
+  const { user } = useAuth();
 
   // États pour les champs du formulaire
   const [departure, setDeparture] = useState('');
@@ -25,12 +25,15 @@ const Publish = () => {
   const [pricePerSeat, setPricePerSeat] = useState('');
   const [luggageAllowed, setLuggageAllowed] = useState(false);
   const [description, setDescription] = useState('');
-  const [selectedVehicleId, setSelectedVehicleId] = useState(''); // Pour stocker l'ID du véhicule sélectionné
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
 
   // Charger les véhicules de l'utilisateur au montage du composant
   useEffect(() => {
-    fetchCars();
-  }, []);
+    // Si la liste de voitures est vide, on les récupère
+    if (cars.length === 0 && !loadingCars && !carsError) {
+      fetchCars();
+    }
+  }, [cars, loadingCars, carsError, fetchCars]);
 
   // Couleurs conditionnelles pour le dark mode
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -50,7 +53,7 @@ const Publish = () => {
     }
 
     // Récupérer l'ID de l'utilisateur connecté
-    const publisherId = user?.id; // Utilisez l'ID de l'utilisateur du AuthContext
+    const publisherId = user?.id;
     if (!publisherId) {
       toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
       return;
@@ -65,13 +68,13 @@ const Publish = () => {
       pricePerSeat: parseFloat(pricePerSeat),
       luggageAllowed,
       description,
-      vehicleId: selectedVehicleId, // Utilise l'ID du véhicule sélectionné
-      publisherId: publisherId, // Utilise l'ID de l'utilisateur connecté
-      status: 'pending', // Statut initial du trajet (à confirmer par votre API)
-      createdAt: new Date().toISOString(), // Date de création
+      vehicleId: selectedVehicleId,
+      publisherId: publisherId,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
     };
 
-    console.log('Données soumises par le formulaire :', newTrip); // Console.log des données soumises
+    console.log('Données soumises par le formulaire :', newTrip);
 
     // Appel à la fonction createTrip du contexte
     const publishPromise = createTrip(newTrip);
@@ -82,9 +85,9 @@ const Publish = () => {
       error: (err) => `Erreur: ${err.message || 'Échec de la publication du trajet.'}`,
     });
 
-    // Réinitialiser le formulaire après un succès (la promesse gère le toast)
+    // Réinitialiser le formulaire après un succès
     publishPromise.then((result) => {
-      if (result) { // Si la publication a réussi
+      if (result) {
         setDeparture('');
         setDestination('');
         setDate('');
@@ -100,7 +103,7 @@ const Publish = () => {
 
   return (
     <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900' : ''}`}>
-      <Toaster /> {/* Composant Toaster pour afficher les notifications */}
+      <Toaster />
 
       <div className="max-w-4xl mx-auto py-8">
         <h1 className={`text-4xl font-extrabold mb-8 text-center ${textColor}`}>
@@ -123,6 +126,7 @@ const Publish = () => {
               <input
                 type="text"
                 id="departure"
+                name="departure"
                 value={departure}
                 onChange={(e) => setDeparture(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
@@ -140,6 +144,7 @@ const Publish = () => {
               <input
                 type="text"
                 id="destination"
+                name="destination"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
@@ -157,6 +162,7 @@ const Publish = () => {
               <input
                 type="date"
                 id="date"
+                name="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
@@ -173,6 +179,7 @@ const Publish = () => {
               <input
                 type="time"
                 id="time"
+                name="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
@@ -189,6 +196,7 @@ const Publish = () => {
               <input
                 type="number"
                 id="availableSeats"
+                name="availableSeats"
                 value={availableSeats}
                 onChange={(e) => setAvailableSeats(e.target.value)}
                 min="1"
@@ -207,6 +215,7 @@ const Publish = () => {
               <input
                 type="number"
                 id="pricePerSeat"
+                name="pricePerSeat"
                 value={pricePerSeat}
                 onChange={(e) => setPricePerSeat(e.target.value)}
                 min="0"
@@ -224,6 +233,7 @@ const Publish = () => {
               </label>
               <select
                 id="vehicle"
+                name="selectedVehicleId"
                 value={selectedVehicleId}
                 onChange={(e) => setSelectedVehicleId(e.target.value)}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
@@ -236,7 +246,7 @@ const Publish = () => {
                   <option value="" disabled>Erreur de chargement des véhicules</option>
                 ) : (
                   cars.map(v => (
-                    <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.registrationCode})</option>
+                    <option key={v.id} value={v.id}>{v.marque} {v.modele}</option>
                   ))
                 )}
               </select>
@@ -247,6 +257,7 @@ const Publish = () => {
               <input
                 type="checkbox"
                 id="luggageAllowed"
+                name="luggageAllowed"
                 checked={luggageAllowed}
                 onChange={(e) => setLuggageAllowed(e.target.checked)}
                 className={`mr-2 h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500
@@ -266,6 +277,7 @@ const Publish = () => {
               </label>
               <textarea
                 id="description"
+                name="description"
                 rows="3"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
