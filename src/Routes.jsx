@@ -20,6 +20,7 @@ import CarTypes from "./Pages/Dashboard/CarTypes"
 import Colors from "./Pages/Dashboard/Colors"
 import Wallet from "./Pages/Dashboard/Wallet"
 import Publish from "./Pages/Publish"
+import SignInAdmin from "./Pages/Auth/SignInAdmin" // Importation du composant de connexion admin
 
 const Routes = () => {
   const route = useRoutes([
@@ -67,12 +68,16 @@ const Routes = () => {
           element:<Signin/>
         },
         {
-
           path:"/auth/signup",
           element:<Signup/>
         }
       ]
-    },{
+    },
+    {
+      path:"/admin/signin", // Nouvelle route pour la connexion admin
+      element:<SignInAdmin/>
+    },
+    {
       path:"/admin",
       element:<DashboardLayout/>,
       children:[
@@ -84,7 +89,6 @@ const Routes = () => {
         path:"/admin/admins",
         element:<Admins/>
       },
-
         {
         path:"/admin/drivers",
         element:<Drivers/>
@@ -101,7 +105,6 @@ const Routes = () => {
         path:"/admin/cars",
         element:<Cars/>
       },
-
       {
         path:"/admin/cars-type",
         element:<CarTypes/>
@@ -110,12 +113,10 @@ const Routes = () => {
         path:"/admin/colors",
         element:<Colors/>
       },
-
       {
         path:"/admin/wallets",
         element:<Wallet/>
       },
-      
       ]
     }
   ])

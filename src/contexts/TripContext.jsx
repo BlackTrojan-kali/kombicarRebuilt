@@ -17,6 +17,7 @@ const dummyTrips = [
         distance: 240,
         heure_depart: "08h00",
         heure_arrive: "12h00",
+        date_depart: "2025-08-10", // Ajouté pour le filtrage par date
         desc: "Climatisé, pas de surcharge",
         climatise: true, // Ajouté pour le filtre
         luggageAllowed: true, // Déjà existant
@@ -32,6 +33,7 @@ const dummyTrips = [
         distance: 280,
         heure_depart: "09h30",
         heure_arrive: "14h00",
+        date_depart: "2025-08-10", // Ajouté pour le filtrage par date
         desc: "Wifi à bord",
         climatise: true,
         luggageAllowed: true,
@@ -47,6 +49,7 @@ const dummyTrips = [
         distance: 180,
         heure_depart: "14h00",
         heure_arrive: "16h30",
+        date_depart: "2025-08-11", // Ajouté pour le filtrage par date
         desc: "Sièges inclinables",
         climatise: false,
         luggageAllowed: true,
@@ -62,6 +65,7 @@ const dummyTrips = [
         distance: 280,
         heure_depart: "09h00",
         heure_arrive: "13h00",
+        date_depart: "2025-08-12", // Ajouté pour le filtrage par date
         desc: "Musique au choix",
         climatise: true,
         luggageAllowed: false,
@@ -77,6 +81,7 @@ const dummyTrips = [
         distance: 60,
         heure_depart: "16h00",
         heure_arrive: "17h30",
+        date_depart: "2025-08-13", // Ajouté pour le filtrage par date
         desc: "Bagages inclus",
         climatise: true,
         luggageAllowed: true,
@@ -92,6 +97,7 @@ const dummyTrips = [
         distance: 160,
         heure_depart: "07h00",
         heure_arrive: "09h30",
+        date_depart: "2025-08-10", // Ajouté pour le filtrage par date
         desc: "Départ immédiat",
         climatise: false,
         luggageAllowed: true,
@@ -102,6 +108,7 @@ const dummyTrips = [
 // Le fournisseur de contexte qui enveloppera les composants nécessitant les données de trajets.
 export function TripContextProvider({ children }) {
     const [trips, setTrips] = useState([]); // État pour stocker la liste des trajets
+    const [searchResults, setSearchResults] = useState([]); // Nouvel état pour stocker les résultats de la recherche
     const [loading, setLoading] = useState(false); // Indique si une opération est en cours de chargement
     const [error, setError] = useState(null); // Stocke les erreurs éventuelles des opérations
 
@@ -261,6 +268,7 @@ export function TripContextProvider({ children }) {
     // Les valeurs fournies par le contexte à tous ses consommateurs
     const contextValue = { 
         trips, 
+        searchResults, // Ajout des résultats de la recherche au contexte
         loading, 
         error, 
         fetchTrips, 
@@ -268,7 +276,8 @@ export function TripContextProvider({ children }) {
         createTrip, 
         updateTrip, 
         deleteTrip,
-        cancelTrip // Ajout de la nouvelle fonction au contexte
+        cancelTrip, // Ajout de la nouvelle fonction au contexte
+        setSearchResults // Ajout de la fonction pour mettre à jour les résultats
     };
 
     return (

@@ -11,6 +11,34 @@ export function CarContextProvider({ children }) {
     const [loading, setLoading] = useState(false); // Indique si une opération est en cours de chargement
     const [error, setError] = useState(null); // Stocke les erreurs éventuelles des opérations
 
+    // Données de véhicules fictives pour le cas où la requête API échoue ou est vide.
+    const mockCars = [
+        {
+            id: 1,
+            marque: "Toyota",
+            modele: "Corolla",
+            annee: 2020,
+            couleur: "Gris",
+            disponible: true
+        },
+        {
+            id: 2,
+            marque: "Honda",
+            modele: "Civic",
+            annee: 2021,
+            couleur: "Noir",
+            disponible: false
+        },
+        {
+            id: 3,
+            marque: "Ford",
+            modele: "Focus",
+            annee: 2019,
+            couleur: "Bleu",
+            disponible: true
+        }
+    ];
+
     // Fonction pour récupérer tous les véhicules.
     // Elle peut accepter des paramètres pour la pagination, le filtrage, etc.
     // Endpoint: GET /api/vehicules
@@ -19,15 +47,25 @@ export function CarContextProvider({ children }) {
         setError(null); // Réinitialise l'erreur avant une nouvelle tentative
         try {
             // Appel API pour récupérer les véhicules
-            const response = await api.get('/api/vehicules', { params }); // <-- Endpoint mis à jour
-            setCars(response.data); // Met à jour l'état avec les données reçues
-            toast.success('Véhicules chargés avec succès !'); // Notification de succès
+            const response = await api.get('/api/vehicules', { params });
+            
+            // Vérifie si la réponse contient des données. Sinon, utilise les données fictives.
+            if (response.data && response.data.length > 0) {
+                setCars(response.data); // Met à jour l'état avec les données reçues
+                toast.success('Véhicules chargés avec succès !'); // Notification de succès
+            } else {
+                setCars(mockCars); // Utilisation des données fictives
+                toast.warn('La réponse du serveur est vide. Utilisation de données fictives.');
+            }
+            
             return response.data; // Retourne les données pour une utilisation directe si nécessaire
         } catch (err) {
             console.error("Erreur lors de la récupération des véhicules:", err);
             setError(err); // Stocke l'objet d'erreur
+            // En cas d'échec de la requête, utilise les données fictives
+            setCars(mockCars);
             // Affiche un message d'erreur à l'utilisateur
-            toast.error(err.response?.data?.message || 'Échec du chargement des véhicules.');
+            toast.error(err.response?.data?.message || 'Échec du chargement des véhicules. Utilisation de données fictives.');
             return null; // Indique un échec
         } finally {
             setLoading(false); // Termine le chargement, que ce soit un succès ou un échec
@@ -46,6 +84,12 @@ export function CarContextProvider({ children }) {
         } catch (err) {
             console.error(`Erreur lors de la récupération du véhicule ${id}:`, err);
             setError(err);
+            // En cas d'échec, essaie de trouver le véhicule dans les données fictives
+            const car = mockCars.find(c => c.id === parseInt(id));
+            if (car) {
+                toast.warn('Véhicule non trouvé sur le serveur, mais trouvé dans les données fictives.');
+                return car;
+            }
             toast.error(err.response?.data?.message || 'Échec de la récupération du véhicule.');
             return null;
         } finally {
