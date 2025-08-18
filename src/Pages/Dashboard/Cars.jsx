@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCar, faBuilding, faCalendarAlt, faGasPump, faCog, faListAlt,
   faEye, faEdit, faTrash, faPlusCircle, faCheckCircle, faTimesCircle, faCarSide,
-  faPalette
+  faPalette, faUser, faIdCard
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
@@ -36,23 +36,23 @@ createTheme('darkTheme', {
 
 const Cars = () => {
   const { theme } = useColorScheme();
-  
+   
   // Utilisation du contexte pour récupérer les données et les fonctions
   const { cars, loading, fetchCars, deleteCar, createCar, updateCar } = useCars();
-
+console.log(cars);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false); // État pour ouvrir/fermer la modal de formulaire
   const [carToEdit, setCarToEdit] = useState(null); // Contient les données du véhicule à modifier
 
   // useEffect pour charger les véhicules au montage du composant
   useEffect(() => {
     fetchCars();
-  }, []); // Dépendance à fetchCars pour éviter les avertissements
+  }, []); // Dépendance vide pour s'exécuter une seule fois au montage
 
   // --- Delete function with SweetAlert2 ---
-  const handleDeleteVehicle = (vehicleId, vehicleMarque, vehicleModele) => {
+  const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => { // Renommé marque/modele en brand/model
     Swal.fire({
       title: 'Êtes-vous sûr ?',
-      text: `Vous êtes sur le point de supprimer le véhicule "${vehicleMarque} ${vehicleModele}". Cette action est irréversible !`,
+      text: `Vous êtes sur le point de supprimer le véhicule "${vehicleBrand} ${vehicleModel}". Cette action est irréversible !`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#DC2626',
@@ -66,9 +66,9 @@ const Cars = () => {
         // Appel de la fonction de suppression du contexte
         const success = await deleteCar(vehicleId);
         if (success) {
-          toast.success(`Le véhicule "${vehicleMarque} ${vehicleModele}" a été supprimé avec succès !`);
+          toast.success(`Le véhicule "${vehicleBrand} ${vehicleModel}" a été supprimé avec succès !`);
         } else {
-          toast.error(`Échec de la suppression du véhicule "${vehicleMarque} ${vehicleModele}".`);
+          toast.error(`Échec de la suppression du véhicule "${vehicleBrand} ${vehicleModel}".`);
         }
       }
     });
@@ -98,17 +98,17 @@ const Cars = () => {
       // Appel de la fonction de mise à jour du contexte
       const result = await updateCar(carData.id, carData);
       if (result) {
-        toast.success(`Le véhicule "${carData.marque} ${carData.modele}" a été mis à jour avec succès !`);
+        toast.success(`Le véhicule "${carData.brand} ${carData.model}" a été mis à jour avec succès !`);
       } else {
-        toast.error(`Échec de la mise à jour du véhicule "${carData.marque} ${carData.modele}".`);
+        toast.error(`Échec de la mise à jour du véhicule "${carData.brand} ${carData.model}".`);
       }
     } else {
       // Appel de la fonction de création du contexte
       const result = await createCar(carData);
       if (result) {
-        toast.success(`Le véhicule "${result.marque} ${result.modele}" a été ajouté avec succès !`);
+        toast.success(`Le véhicule "${result.brand} ${result.model}" a été ajouté avec succès !`);
       } else {
-        toast.error(`Échec de l'ajout du véhicule "${carData.marque} ${carData.modele}".`);
+        toast.error(`Échec de l'ajout du véhicule "${carData.brand} ${carData.model}".`);
       }
     }
   };
@@ -122,69 +122,86 @@ const Cars = () => {
       width: '80px',
     },
     {
+        name: 'Conducteur ID',
+        selector: row => row.userId,
+        sortable: true,
+        cell: row => (
+            <span className="flex items-center gap-2">
+                <FontAwesomeIcon icon={faUser} className="text-gray-400" />
+                {row.userId}
+            </span>
+        ),
+        minWidth: '250px',
+    },
+    {
       name: 'Marque',
-      selector: row => row.marque,
+      selector: row => row.brand, // CHANGÉ: de 'marque' à 'brand'
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
           <FontAwesomeIcon icon={faBuilding} className="text-gray-400" />
-          {row.marque}
+          {row.brand}
         </span>
       ),
       minWidth: '150px',
     },
     {
       name: 'Modèle',
-      selector: row => row.modele,
+      selector: row => row.model, // CHANGÉ: de 'modele' à 'model'
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
           <FontAwesomeIcon icon={faCar} className="text-gray-400" />
-          {row.modele}
+          {row.model}
         </span>
       ),
       minWidth: '150px',
     },
     {
-      name: 'Année',
-      selector: row => row.annee,
-      sortable: true,
-      width: '100px',
+        name: 'Places',
+        selector: row => row.numberPlaces,
+        sortable: true,
+        width: '100px',
+        cell: row => (
+            <span className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faListAlt} className="text-gray-400" />
+              {row.numberPlaces}
+            </span>
+          ),
     },
     {
       name: 'Couleur',
-      selector: row => row.couleur,
+      selector: row => row.color, // CHANGÉ: de 'couleur' à 'color'
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
           <FontAwesomeIcon icon={faPalette} className="text-gray-400" />
-          {row.couleur}
+          {row.color}
         </span>
       ),
       minWidth: '120px',
     },
-    // Remarque: La plaque d'immatriculation et les autres champs sont absents des données fictives.
-    // Vous pouvez les ajouter à votre mockCars ou les commenter ici.
-    // {
-    //   name: 'Plaque Immat.',
-    //   selector: row => row.plateNumber,
-    //   sortable: true,
-    //   cell: row => (
-    //     <span className="font-semibold text-blue-600 dark:text-blue-400">
-    //       {row.plateNumber}
-    //     </span>
-    //   ),
-    //   minWidth: '150px',
-    // },
     {
-      name: 'Statut',
-      selector: row => row.disponible,
+        name: 'Immatriculation',
+        selector: row => row.registrationCode,
+        sortable: true,
+        cell: row => (
+            <span className="flex items-center gap-2 font-semibold text-blue-600 dark:text-blue-400">
+                <FontAwesomeIcon icon={faIdCard} className="text-gray-400" />
+                {row.registrationCode}
+            </span>
+        ),
+        minWidth: '180px',
+    },
+    {
+      name: 'Vérifié', // CHANGÉ: de 'Statut' à 'Vérifié' pour correspondre à 'isVerified'
+      selector: row => row.isVerified, // CHANGÉ: de 'disponible' à 'isVerified'
       sortable: true,
       cell: row => {
-        const status = row.disponible ? 'Disponible' : 'Indisponible';
+        const isVerified = row.isVerified;
         let statusClasses = '';
         let statusIcon = null;
-        if (status === 'Disponible') {
+        if (isVerified) {
           statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
           statusIcon = faCheckCircle;
         } else {
@@ -194,18 +211,18 @@ const Cars = () => {
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusClasses}`}>
             <FontAwesomeIcon icon={statusIcon} />
-            {status}
+            {isVerified ? 'Oui' : 'Non'}
           </span>
         );
       },
-      minWidth: '150px',
+      minWidth: '120px',
     },
     {
       name: 'Actions',
       cell: row => (
         <div className="flex gap-2">
           <button
-            onClick={() => toast(`Affichage des détails de ${row.marque} ${row.modele}`, { icon: 'ℹ️' })}
+            onClick={() => toast(`Affichage des détails de ${row.brand} ${row.model}`, { icon: 'ℹ️' })} // CHANGÉ: de marque/modele à brand/model
             className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
             title="Voir les détails"
           >
@@ -219,7 +236,7 @@ const Cars = () => {
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
-            onClick={() => handleDeleteVehicle(row.id, row.marque, row.modele)}
+            onClick={() => handleDeleteVehicle(row.id, row.brand, row.model)} // CHANGÉ: de marque/modele à brand/model
             className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
             title="Supprimer"
           >

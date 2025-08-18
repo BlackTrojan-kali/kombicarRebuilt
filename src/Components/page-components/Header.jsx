@@ -13,7 +13,7 @@ import useAuth from "../../hooks/useAuth";
 const Header = () => {
   const { theme, setTheme } = useColorScheme();
   const [showNav, setShowNav] = useState(false);
-  const user = useAuth(); // Assume 'user' est un objet si connecté, null/undefined sinon
+  const {user} = useAuth(); // Assume 'user' est un objet si connecté, null/undefined sinon
 
   const toggleDarkMode = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -42,7 +42,7 @@ const Header = () => {
           Taxi
         </Link>
         {/* Bouton "Publier un Trajet" pour Desktop - visible si l'utilisateur est connecté */}
-        {user && (
+        {user ? (
           <Link 
             to="/publish-trip" 
             className="px-4 py-2 bg-kombigreen-500 text-white rounded-full font-bold
@@ -53,7 +53,7 @@ const Header = () => {
             <FontAwesomeIcon icon={faRoute} />
             Publier un Trajet
           </Link>
-        )}
+        ):""}
       </nav>
 
       {/* Actions (Dropdown, Dark Mode Toggle, Burger Menu) */}
@@ -112,7 +112,7 @@ const Header = () => {
         <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
 
         {/* Bouton "Publier un Trajet" pour Mobile - visible si l'utilisateur est connecté */}
-        {user && (
+        {user ? (
           <>
             <Link 
               to="/publish-trip" // Assurez-vous d'avoir une route définie pour cela
@@ -127,7 +127,7 @@ const Header = () => {
             </Link>
             <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
           </>
-        )}
+        ):""}
 
         {/* Liens conditionnels pour l'authentification en mobile */}
         {user ? (

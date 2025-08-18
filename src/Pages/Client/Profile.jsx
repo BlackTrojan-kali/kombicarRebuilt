@@ -1,22 +1,24 @@
 import React, { useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faPhone, faUserCircle, faCalendarAlt, faCarSide, faStar, faPlusCircle, faCheckCircle, faHistory, faRoute, faInfoCircle } from '@fortawesome/free-solid-svg-icons'; // Ajout de faRoute et faHistory
+import { faEnvelope, faPhone, faUserCircle, faCalendarAlt, faCarSide, faStar, faPlusCircle, faCheckCircle, faHistory, faRoute, faInfoCircle, faWallet } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
+
 import useAuth from '../../hooks/useAuth';
-import useTrips from '../../hooks/useTrips'; // Importez le hook useTrips
-import useColorScheme from '../../hooks/useColorScheme'; // Importez le hook de thème
-import ResultCard from '../../Components/Cards/ResultCard'; // Importez ResultCard
+import useTrips from '../../hooks/useTrips';
+import useColorScheme from '../../hooks/useColorScheme';
+import ResultCard from '../../Components/Cards/ResultCard';
 
 const Profile = () => {
-  const { user, loading: loadingUser } = useAuth(); // Récupère l'utilisateur et l'état de chargement de l'authentification
-  const { trips, loading: loadingTrips, error: tripsError, fetchTrips } = useTrips(); // Récupère tous les trajets
-  const { theme } = useColorScheme(); // Récupère le thème
+  const { user, loading: loadingUser } = useAuth();
+  const { trips, loading: loadingTrips, error: tripsError, fetchTrips } = useTrips();
+  const { theme } = useColorScheme();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Charge tous les trajets si l'utilisateur est disponible
     if (user && !loadingUser) {
       fetchTrips();
     }
-  }, []); // Déclenche le rechargement si l'utilisateur change
+  }, [])//user, loadingUser, fetchTrips]);
 
   // Couleurs conditionnelles pour le dark mode
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
@@ -32,9 +34,7 @@ const Profile = () => {
       </div>
     );
   }
-
  
-
   if (!user) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
@@ -50,6 +50,16 @@ const Profile = () => {
     (trip.participants && trip.participants.includes(user.id) && trip.status === 'completed')
   );
 
+  // Fonction pour gérer la redirection vers la page de création de véhicule sous le profil
+  const handleAddVehicleClick = () => {
+    navigate('car'); // Chemin relatif: /profile/car
+  };
+
+  // Fonction pour gérer la redirection vers la page du portefeuille sous le profil
+  const handleViewWalletClick = () => {
+    navigate('wallet'); // Chemin relatif: /profile/wallet
+  };
+
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
       <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -58,20 +68,16 @@ const Profile = () => {
             {/* Image de profil */}
             <div className='relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0'>
               <img
-                src={user.profilePicture || "https://via.placeholder.com/150/cccccc/ffffff?text=Profil"} // Image par défaut si non présente
+                src={user.profilePicture || "https://via.placeholder.com/150/cccccc/ffffff?text=Profil"}
                 alt={`Profil de ${user.username}`}
                 className='w-full h-full rounded-full object-cover border-4 border-blue-500 dark:border-blue-400 shadow-md'
               />
-              {/* Optionnel: Ajouter un indicateur de vérification si pertinent */}
-              {/* <span className='absolute bottom-0 right-0 bg-green-500 text-white rounded-full p-2 text-xs'>
-                <FontAwesomeIcon icon={faCheckCircle} /> Vérifié
-              </span> */}
             </div>
 
             {/* Informations de base de l'utilisateur */}
             <div className='text-center sm:text-left mt-4 sm:mt-0'>
               <h1 className={`text-3xl sm:text-4xl font-extrabold ${textColorPrimary} mb-2`}>
-                {user.firstName} {user.lastName} {/* Utilisation de firstName et lastName */}
+                {user.firstName} {user.lastName}
               </h1>
               <p className={`text-lg ${textColorSecondary} mb-2`}>
                 <FontAwesomeIcon icon={faUserCircle} className='mr-2 text-blue-500' />
@@ -88,6 +94,27 @@ const Profile = () => {
                     <FontAwesomeIcon icon={faPhone} className='mr-2 text-gray-500' /> {user.phone}
                   </p>
                 )}
+              </div>
+              
+              {/* Conteneur pour les boutons */}
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                {/* Bouton pour ajouter un véhicule */}
+                <button
+                  onClick={handleAddVehicleClick}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center"
+                >
+                  <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
+                  Ajouter un Véhicule
+                </button>
+
+                {/* Bouton pour voir le portefeuille */}
+                <button
+                  onClick={handleViewWalletClick}
+                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center"
+                >
+                  <FontAwesomeIcon icon={faWallet} className="mr-2" />
+                  Voir mon Portefeuille
+                </button>
               </div>
             </div>
           </div>

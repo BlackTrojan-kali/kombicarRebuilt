@@ -9,6 +9,9 @@ import Taxi from "./Pages/Taxi"
 import Results from "./Pages/Results"
 import TripDetail from "./Pages/TripDetail"
 import Profile from "./Pages/Client/Profile"
+// Importez le nouveau composant MyVehicle
+import MyVehicle from "./Pages/Client/Vehicule" // Assurez-vous que le chemin est correct
+
 import DashboardLayout from "./Layouts/DashboardLayout"
 import Dashboard from "./Pages/Dashboard/Dashboard"
 import Admins from "./Pages/Dashboard/Admins"
@@ -20,8 +23,9 @@ import CarTypes from "./Pages/Dashboard/CarTypes"
 import Colors from "./Pages/Dashboard/Colors"
 import Wallet from "./Pages/Dashboard/Wallet"
 import Publish from "./Pages/Publish"
-import SignInAdmin from "./Pages/Auth/SignInAdmin" // Importation du composant de connexion admin
-import ConfirmEmail from "./Pages/Auth/ConfirmEmail" // Importation de la page de confirmation d'e-mail
+import SignInAdmin from "./Pages/Auth/SignInAdmin"
+import ConfirmEmail from "./Pages/Auth/ConfirmEmail"
+import UserWallet from "./Pages/Client/UserWallet"
 
 const Routes = () => {
   const route = useRoutes([
@@ -42,7 +46,7 @@ const Routes = () => {
           element:<Taxi/>
         },
         {
-          path:"/trip-detail/:tripId", // Mise à jour de la route
+          path:"/trip-detail/:tripId",
           element:<TripDetail/>
         },
         {
@@ -52,11 +56,19 @@ const Routes = () => {
         {
           path:"/results",
           element:<Results/>
-        }
-        ,
+        },
         {
           path:"/profile",
           element:<Profile/>
+        },
+        // NOUVELLE ROUTE : Pour le véhicule de l'utilisateur
+        {
+          path:"/profile/car", // Route dédiée pour le véhicule de l'utilisateur
+          element:<MyVehicle/>
+        },
+        {
+          path:"/profile/wallet", // Route dédiée pour le véhicule de l'utilisateur
+          element:<UserWallet/>
         }
       ]
     },
@@ -70,16 +82,16 @@ const Routes = () => {
         },
         {
           path:"/auth/signup",
-          element:<Signup/>
+          element:"<Signup/>"
         },
         {
-          path:"/auth/confirm-email", // Ajout de la route pour la confirmation d'e-mail
+          path:"/auth/confirm-email",
           element:<ConfirmEmail/>
         }
       ]
     },
     {
-      path:"/admin/signin", // Nouvelle route pour la connexion admin
+      path:"/admin/signin",
       element:<SignInAdmin/>
     },
     {
@@ -125,7 +137,7 @@ const Routes = () => {
       ]
     }
   ])
-  return route 
+  return route
 }
 
 export default Routes;
