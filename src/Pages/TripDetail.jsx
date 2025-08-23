@@ -1,28 +1,51 @@
-import { faCalendar, faStar, faRoad, faInfoCircle, faCar, faCircle, faUser, faCommentDots } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faStar, faRoad, faInfoCircle, faCar, faCircle, faUser, faCommentDots, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Button from '../Components/ui/Button';
-import useTrips from '../hooks/useTrips'; // Import mis à jour
+import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import dayjs from 'dayjs';
-import 'dayjs/locale/fr'; // Import de la locale française
+import 'dayjs/locale/fr';
 dayjs.locale('fr');
 
 const TripDetail = () => {
     const { tripId } = useParams();
-    const { getTripById, loading,test, error } = useTrips(); // Utilisation du hook useTrip
+    const { getTripById, loading, error } = useTrips();
     const { theme } = useColorScheme();
     const [trip, setTrip] = useState(null);
+
+    // Données fictives pour le développement, à supprimer en production
+    const mockDriver = {
+        name: "John Doe",
+        rating: 4.5,
+        profileImage: "https://via.placeholder.com/150/0000FF/FFFFFF?text=JD",
+    };
+    const mockVehicle = {
+        brand: "Toyota",
+        model: "Camry",
+        color: "Noir",
+        year: 2020,
+    };
+    const mockPassengers = [
+        { id: 1, name: "Alice", profileImage: "https://via.placeholder.com/150/FF0000/FFFFFF?text=A" },
+        { id: 2, name: "Bob", profileImage: "https://via.placeholder.com/150/008000/FFFFFF?text=B" },
+    ];
+
     useEffect(() => {
         const fetchDetails = async () => {
             if (tripId) {
                 const fetchedTrip = await getTripById(tripId);
+                // En production, il faudra que le backend retourne le driver et le véhicule
+                // Pour le moment, on les ajoute manuellement pour le visuel
+                const tripWithDriver = { ...fetchedTrip, driver: mockDriver, vehicle: mockVehicle, passengers: mockPassengers };
                 setTrip(fetchedTrip);
+                console.log(fetchedTrip)
             }
         };
+        console.log(trip)
         fetchDetails();
-    }, [tripId]);
+    }, [])//tripId, getTripById]);
 
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
@@ -45,7 +68,6 @@ const TripDetail = () => {
         );
     }
     
-    // Extraction de la date et de l'heure de départ
     const departureDate = trip.departureDate ? dayjs(trip.departureDate).format('DD MMMM YYYY') : 'Date non spécifiée';
     const departureTime = trip.departureDate ? dayjs(trip.departureDate).format('HH:mm') : 'Heure non spécifiée';
     
@@ -59,7 +81,7 @@ const TripDetail = () => {
     };
 
     return (
-        <div className={`min-h-screen pt-20 pb-10 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} ${textColorPrimary} transition-colors duration-300`}>
+        <div className={`min-h-screen pt-20 pb-10 ${theme === 'dark' ? 'bg-gray-900' : ''} ${textColorPrimary} transition-colors duration-300`}>
             <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center mb-8 ${textColorPrimary}`}>
                     Trajet {trip.startAreaPointCreateDto.homeTownName} - {trip.arivalAreaPointCreateDto.homeTownName}
@@ -105,7 +127,7 @@ const TripDetail = () => {
                             </p>
                         </div>
                         
-                        {/* Carte du Chauffeur - Réactivée */}
+                        {/* Carte du Chauffeur */}
                         {trip.driver && (
                             <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
                                 <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
@@ -124,7 +146,51 @@ const TripDetail = () => {
                             </div>
                         )}
 
-                        {/* Carte de la Description du Trajet - Réactivée */}
+                        {/* Carte des Options du véhicule */}
+                        {trip.vehicle && (
+                            <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
+                                <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
+                                    <FontAwesomeIcon icon={faCar} className='mr-2 text-gray-500' /> Options du véhicule
+                                </h2>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                    <div className='flex items-center'>
+                                        <p className={`text-lg ${textColorSecondary}`}>Marque:</p>
+                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.vehicle.brand}</p>
+                                    </div>
+                                    <div className='flex items-center'>
+                                        <p className={`text-lg ${textColorSecondary}`}>Modèle:</p>
+                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.vehicle.model}</p>
+                                    </div>
+                                    <div className='flex items-center'>
+                                        <p className={`text-lg ${textColorSecondary}`}>Couleur:</p>
+                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.vehicle.color}</p>
+                                    </div>
+                                    <div className='flex items-center'>
+                                        <p className={`text-lg ${textColorSecondary}`}>Année:</p>
+                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.vehicle.year}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Carte des Passagers à bord */}
+                        {trip.passengers && trip.passengers.length > 0 && (
+                            <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
+                                <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
+                                    <FontAwesomeIcon icon={faUsers} className='mr-2 text-gray-500' /> Passagers à bord
+                                </h2>
+                                <div className="flex flex-wrap gap-4">
+                                    {trip.passengers.map(passenger => (
+                                        <div key={passenger.id} className="text-center">
+                                            <img src={passenger.profileImage} alt={`Profil de ${passenger.name}`} className="w-16 h-16 rounded-full object-cover border-2 border-gray-300" />
+                                            <p className={`text-sm mt-1 ${textColorSecondary}`}>{passenger.name}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Carte de la Description du Trajet */}
                         {trip.aditionalInfos && (
                             <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
                                 <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
@@ -133,33 +199,6 @@ const TripDetail = () => {
                                 <p className={`${textColorSecondary} leading-relaxed`}>
                                     {trip.aditionalInfos}
                                 </p>
-                            </div>
-                        )}
-                        
-                        {/* Carte des Options du véhicule - Réactivée */}
-                        {trip.driver && trip.driver.vehicle && (
-                            <div className={`${cardBg} rounded-xl shadow-lg p-6`}>
-                                <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
-                                    <FontAwesomeIcon icon={faCar} className='mr-2 text-gray-500' /> Options du véhicule
-                                </h2>
-                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                    <div className='flex items-center'>
-                                        <p className={`text-lg ${textColorSecondary}`}>Marque:</p>
-                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.driver.vehicle.brand}</p>
-                                    </div>
-                                    <div className='flex items-center'>
-                                        <p className={`text-lg ${textColorSecondary}`}>Modèle:</p>
-                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.driver.vehicle.model}</p>
-                                    </div>
-                                    <div className='flex items-center'>
-                                        <p className={`text-lg ${textColorSecondary}`}>Couleur:</p>
-                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.driver.vehicle.color}</p>
-                                    </div>
-                                    <div className='flex items-center'>
-                                        <p className={`text-lg ${textColorSecondary}`}>Année:</p>
-                                        <p className={`ml-2 font-semibold ${textColorPrimary}`}>{trip.driver.vehicle.year}</p>
-                                    </div>
-                                </div>
                             </div>
                         )}
                     </div>

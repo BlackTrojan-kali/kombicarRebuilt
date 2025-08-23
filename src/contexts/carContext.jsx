@@ -1,23 +1,20 @@
 import { createContext, useState } from "react";
 import api from '../api/api';
 import toast from 'react-hot-toast';
-import useAuth from "../hooks/useAuth"; // Assurez-vous du chemin correct
+import useAuth from "../hooks/useAuth"; 
 
 export const carContext = createContext({});
 
 export function CarContextProvider({ children }) {
-    const [cars, setCars] = useState([]); // Gardons-le comme un tableau
+    const [cars, setCars] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const { user, loading: authLoading } = useAuth();
 
-    // Mock car data for user-specific fallback
-    // Note: If you truly want only ONE vehicle per user,
-    // ensure your backend enforces this. This mock is for frontend display.
     const mockUserCar = {
-        id: "mock-car-123", // Use a string ID for mock to avoid collision with real numeric IDs
-        userId: user?.id || "dummy-user-id", // Lie le mock userId à l'utilisateur actuel si disponible
+        id: "mock-car-123",
+        userId: user?.id || "dummy-user-id",
         brand: "Tesla",
         model: "Model 3",
         numberPlaces: 5,
@@ -26,9 +23,7 @@ export function CarContextProvider({ children }) {
         registrationCode: "AB-123-CD"
     };
 
-    // Keep fetchCars for general use if needed, but fetchUserCars is for the current user's car(s)
     const fetchCars = async (params = {}) => {
-        // ... existing logic ... (unchanged in this specific request)
         setLoading(true);
         setError(null);
         try {
@@ -46,15 +41,12 @@ export function CarContextProvider({ children }) {
     };
 
 
-    // Fonction pour rechercher les véhicules appartenant à l'utilisateur connecté.
     const fetchUserCars = async () => {
         if (authLoading) {
-            // Optionnel: vous pouvez retourner une promesse en attente ou un état particulier
             return;
         }
         if (!user || !user.id) {
-            // Si pas d'utilisateur connecté, mettez le dummy car pour le développement
-            setCars([mockUserCar]); // Place le dummy car si personne n'est connecté
+            setCars([mockUserCar]);
             toast.warn('Non connecté. Affichage du véhicule factice.');
             return;
         }
@@ -62,27 +54,19 @@ export function CarContextProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            // Idéalement, votre API devrait avoir un endpoint comme /api/users/${user.id}/vehicules
-            const response = await api.get('/api/vehicules', { params: { userId: user.id } });
+            const response = await api.get('/api/v1/vehicules');
 
-            let userSpecificCars = [];
-            if (response.data && Array.isArray(response.data)) {
-                userSpecificCars = response.data.filter(car => car.userId === user.id);
-            }
-
-            if (userSpecificCars.length > 0) {
-                setCars(userSpecificCars);
+            if (response.data && response.data.length > 0) {
+                setCars(response.data);
                 toast.success('Votre véhicule a été chargé avec succès !');
             } else {
-                // Si l'API retourne vide pour l'utilisateur, on met le dummy car
-                setCars([mockUserCar]); // Utilisation du dummy car si l'utilisateur n'a pas de véhicule réel
+                setCars([mockUserCar]);
                 toast.warn('Vous n\'avez pas encore de véhicule enregistré. Affichage du véhicule factice.');
             }
-            return userSpecificCars;
+            return response.data;
         } catch (err) {
             console.error("Erreur lors de la récupération des véhicules de l'utilisateur:", err);
             setError(err);
-            // En cas d'échec de la requête API, insérer le dummy car
             setCars([mockUserCar]);
             toast.error(err.response?.data?.message || 'Échec du chargement de votre véhicule. Affichage du véhicule factice.');
             return null;
@@ -92,10 +76,26 @@ export function CarContextProvider({ children }) {
     };
 
     const getCarById = async (id) => {
+        if (!user || !user.id) {
+            toast.error("Veuillez vous connecter pour voir les détails d'un véhicule.");
+            return null;
+        }
+        
+        if (id === mockUserCar.id) {
+            toast('Affichage du véhicule factice (mode développement).');
+            return mockUserCar;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/vehicules/${id}`);
+            const response = await api.get(`/api/v1/vehicules/${id}`);
+            
+            if (response.data.userId !== user.id) {
+                toast.error("Vous n'êtes pas autorisé à voir ce véhicule.");
+                return null;
+            }
+
             return response.data;
         } catch (err) {
             console.error(`Erreur lors de la récupération du véhicule ${id}:`, err);
@@ -107,24 +107,23 @@ export function CarContextProvider({ children }) {
         }
     };
 
-    // Fonction pour créer un nouveau véhicule
     const createCar = async (carData) => {
         if (!user || !user.id) {
             toast.error("Veuillez vous connecter pour créer un véhicule.");
             return null;
         }
-        // Si l'utilisateur a déjà un véhicule dans l'état local, ne pas permettre la création
-        if (cars.length > 0 && cars[0].userId === user.id && cars[0].id !== mockUserCar.id) { // Permettre la création si le véhicule actuel est le dummy
-             toast.error("Vous avez déjà un véhicule enregistré. Veuillez le modifier.");
-             return null;
+        
+        if (cars.length > 0 && cars.some(car => car.userId === user.id && car.id !== mockUserCar.id)) {
+            toast.error("Vous avez déjà un véhicule enregistré. Veuillez le modifier.");
+            return null;
         }
 
         setLoading(true);
         setError(null);
         try {
             const newCarData = { ...carData, userId: user.id, isVerified: carData.isVerified ?? false };
-            const response = await api.post('/api/vehicules', newCarData);
-            setCars([response.data]); // Remplace l'état par le seul nouveau véhicule de l'utilisateur
+            const response = await api.post('/api/v1/vehicules', newCarData);
+            setCars([response.data]); 
             toast.success('Véhicule créé avec succès !');
             return response.data;
         } catch (err) {
@@ -137,15 +136,13 @@ export function CarContextProvider({ children }) {
         }
     };
 
-    // Fonction pour mettre à jour LE véhicule existant de l'utilisateur
     const updateCar = async (id, carData) => {
         if (!user || !user.id) {
             toast.error("Veuillez vous connecter pour modifier un véhicule.");
             return null;
         }
-        // Vérifier que le véhicule à modifier est bien celui de l'utilisateur ou est le dummy car
-        const targetCarId = parseInt(id, 10);
-        const isDummyCarUpdate = (id === mockUserCar.id && !userCar) || cars.some(c => c.id === targetCarId && c.userId === user.id);
+        const targetCarId = (typeof id === 'string' && id.startsWith('mock-')) ? id : parseInt(id, 10);
+        const isDummyCarUpdate = (targetCarId === mockUserCar.id) || cars.some(c => c.id === targetCarId && c.userId === user.id);
 
         if (!isDummyCarUpdate) {
             toast.error("Vous ne pouvez modifier que votre propre véhicule.");
@@ -154,19 +151,18 @@ export function CarContextProvider({ children }) {
 
         setLoading(true);
         setError(null);
-        const carId = (id === mockUserCar.id) ? "dummy" : parseInt(id, 10); // Utilisez "dummy" comme ID pour le mock si nécessaire
+        const carId = (id === mockUserCar.id) ? "dummy" : parseInt(id, 10);
 
         try {
             let response;
             if (carId === "dummy") {
-                // Simulez une mise à jour pour le dummy car
                 const updatedDummyCar = { ...mockUserCar, ...carData, userId: user.id };
                 setCars([updatedDummyCar]);
                 toast.success('Véhicule factice mis à jour (simulation) !');
-                response = { data: updatedDummyCar }; // Retournez une réponse simulée
+                response = { data: updatedDummyCar };
             } else {
-                response = await api.put(`/api/vehicules/${carId}`, carData);
-                setCars([response.data]); // Met à jour le véhicule unique de l'utilisateur
+                response = await api.put(`/api/v1/vehicules/${carId}`, carData);
+                setCars([response.data]);
                 toast.success('Véhicule mis à jour avec succès !');
             }
             return response.data;
@@ -180,19 +176,17 @@ export function CarContextProvider({ children }) {
         }
     };
 
-    // Fonction pour supprimer LE véhicule de l'utilisateur
     const deleteCar = async (id) => {
         if (!user || !user.id) {
             toast.error("Veuillez vous connecter pour supprimer votre véhicule.");
             return false;
         }
-        // Permettre la suppression du dummy car aussi
-        const targetCarId = parseInt(id, 10);
-        const isDummyCarDelete = (id === mockUserCar.id) || cars.some(c => c.id === targetCarId && c.userId === user.id);
+        const targetCarId = (typeof id === 'string' && id.startsWith('mock-')) ? id : parseInt(id, 10);
+        const isDummyCarDelete = (targetCarId === mockUserCar.id) || cars.some(c => c.id === targetCarId && c.userId === user.id);
 
         if (!isDummyCarDelete) {
-             toast.error("Vous ne pouvez supprimer que votre propre véhicule.");
-             return false;
+            toast.error("Vous ne pouvez supprimer que votre propre véhicule.");
+            return false;
         }
 
         setLoading(true);
@@ -201,11 +195,11 @@ export function CarContextProvider({ children }) {
 
         try {
             if (carId === "dummy") {
-                setCars([]); // Supprime le dummy car
+                setCars([]);
                 toast.success('Véhicule factice supprimé (simulation) !');
             } else {
-                await api.delete(`/api/vehicules/${carId}`);
-                setCars([]); // Le véhicule est supprimé, l'état devient vide
+                await api.delete(`/api/v1/vehicules/${carId}`);
+                setCars([]);
                 toast.success('Votre véhicule a été supprimé avec succès !');
             }
             return true;
@@ -224,9 +218,8 @@ export function CarContextProvider({ children }) {
             toast.error("Veuillez vous connecter pour téléverser un document.");
             return null;
         }
-        // Vérifiez que le vehiculeId correspond au véhicule de l'utilisateur actuel si nécessaire, ou si c'est le dummy car
-        const targetVehiculeId = parseInt(vehiculeId, 10);
-        const isDummyCarDocUpload = (vehiculeId === mockUserCar.id) || cars.some(c => c.id === targetVehiculeId && c.userId === user.id);
+        const targetVehiculeId = (typeof vehiculeId === 'string' && vehiculeId.startsWith('mock-')) ? vehiculeId : parseInt(vehiculeId, 10);
+        const isDummyCarDocUpload = (targetVehiculeId === mockUserCar.id) || cars.some(c => c.id === targetVehiculeId && c.userId === user.id);
 
         if (!isDummyCarDocUpload) {
             toast.error("Vous ne pouvez téléverser des documents que pour votre propre véhicule.");
@@ -238,19 +231,18 @@ export function CarContextProvider({ children }) {
         try {
             const formData = new FormData();
             formData.append('file', file);
-
+            
             const config = {
                 headers: {
-                    'Content-Type': 'multipart/form-type',
+                    'Content-Type': 'multipart/form-data',
                 },
             };
             let response;
             if (vehiculeId === mockUserCar.id) {
-                // Simulez l'upload pour le dummy car
                 toast.success(`Document "${documentType}" téléversé avec succès (simulation) pour le véhicule factice !`);
                 response = { data: { message: "Document uploaded successfully (mock)" } };
             } else {
-                response = await api.post(`/api/vehicules/upload/${documentType}/${vehiculeId}`, formData, config);
+                response = await api.post(`/api/v1/vehicules/upload/${documentType}/${vehiculeId}`, formData, config);
                 toast.success(response.data.message || `Document "${documentType}" téléversé avec succès pour le véhicule ${vehiculeId} !`);
             }
             return response.data;
@@ -263,9 +255,71 @@ export function CarContextProvider({ children }) {
             setLoading(false);
         }
     };
+    
+    const getVehicleDocuments = async (vehiculeId) => {
+        if (!user || !user.id) {
+            toast.error("Veuillez vous connecter pour voir les documents.");
+            return null;
+        }
+        
+        setLoading(true);
+        setError(null);
+        try {
+            const targetCar = cars.find(car => car.id === parseInt(vehiculeId, 10));
+            if (!targetCar || targetCar.userId !== user.id) {
+                 toast.error("Vous ne pouvez lister les documents que pour votre propre véhicule.");
+                 return null;
+            }
+
+            const response = await api.get(`/api/v1/vehicules/${vehiculeId}/documents`);
+            toast.success("Documents chargés avec succès !");
+            return response.data;
+        } catch (err) {
+            console.error(`Erreur lors de la récupération des documents du véhicule ${vehiculeId}:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || `Échec du chargement des documents du véhicule ${vehiculeId}.`);
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Nouvelle fonction d'administration pour la vérification du véhicule
+    const updateVehicleVerificationState = async (vehiculeId, isVerified) => {
+        // Vérification des privilèges d'administrateur
+        if (!user || !user.isAdmin) {
+            toast.error("Accès refusé. Cette action est réservée aux administrateurs.");
+            return null;
+        }
+
+        setLoading(true);
+        setError(null);
+        try {
+            // Utilisation du point d'accès d'administration
+            const response = await api.put(`/api/v1/vehicules/update-verify-state/${vehiculeId}/${isVerified}`);
+            
+            // Mise à jour de l'état du véhicule dans le contexte local après une mise à jour réussie
+            setCars(prevCars => 
+                prevCars.map(car => 
+                    car.id === vehiculeId ? { ...car, isVerified: isVerified } : car
+                )
+            );
+            
+            toast.success(`État de vérification du véhicule ${vehiculeId} mis à jour avec succès !`);
+            return response.data;
+        } catch (err) {
+            console.error(`Erreur lors de la mise à jour de l'état de vérification pour le véhicule ${vehiculeId}:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || `Échec de la mise à jour de l'état de vérification.`);
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const contextValue = {
-        cars, // Reste un tableau, contient le véhicule réel ou le dummy car
+        cars,
         loading,
         error,
         fetchCars,
@@ -275,8 +329,10 @@ export function CarContextProvider({ children }) {
         updateCar,
         deleteCar,
         uploadVehicleDocument,
+        getVehicleDocuments,
+        updateVehicleVerificationState, // Ajout de la nouvelle fonction au contexte
         userId: user?.id || null,
-        mockUserCar // Exposez le mockUserCar pour des tests ou des logiques spécifiques si besoin
+        mockUserCar
     };
 
     return (

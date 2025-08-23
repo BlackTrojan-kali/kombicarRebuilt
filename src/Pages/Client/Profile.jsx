@@ -1,33 +1,77 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faPhone, faUserCircle, faCalendarAlt, faCarSide, faStar, faPlusCircle, faCheckCircle, faHistory, faRoute, faInfoCircle, faWallet } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faUserCircle, faCarSide, faStar, faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet, faEdit, faTimesCircle, faCalendarAlt, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
 
 import useAuth from '../../hooks/useAuth';
 import useTrips from '../../hooks/useTrips';
 import useColorScheme from '../../hooks/useColorScheme';
-import ResultCard from '../../Components/Cards/ResultCard';
+
+import EditTripModal from '../../Components/Modals/EditTripModal';
+
+dayjs.locale('fr');
 
 const Profile = () => {
   const { user, loading: loadingUser } = useAuth();
-  const { trips, loading: loadingTrips, error: tripsError, fetchTrips } = useTrips();
+  const { loading: loadingTrips, error: tripsError, fetchTrips, cancelTrip } = useTrips();
   const { theme } = useColorScheme();
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const [publishedTrips, setPublishedTrips] = useState([]);
+  const [completedTrips, setCompletedTrips] = useState([]);
+  const [loadingSpecificTrips, setLoadingSpecificTrips] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState(null);
+
+  const loadUserTrips = async () => {
     if (user && !loadingUser) {
-      fetchTrips();
+      setLoadingSpecificTrips(true);
+      try {
+        const published = await fetchTrips({ pageIndex: 0, status: 4 }); 
+        const completed = await fetchTrips({ pageIndex: 0, status: 3 }); 
+        setPublishedTrips(published || []);
+        setCompletedTrips(completed || []);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des trajets de l'utilisateur :", err);
+      } finally {
+        setLoadingSpecificTrips(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    loadUserTrips();
   }, [])//user, loadingUser, fetchTrips]);
 
-  // Couleurs conditionnelles pour le dark mode
+  const handleEditTrip = (trip) => {
+    setSelectedTrip(trip);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTrip(null);
+    loadUserTrips(); // Reload trips after update
+  };
+
+  const handleCancelTrip = async (tripId) => {
+    if (window.confirm("Êtes-vous sûr de vouloir annuler ce trajet ? Cette action est irréversible et les passagers seront notifiés.")) {
+        const success = await cancelTrip(tripId);
+        if (success) {
+            loadUserTrips();
+        }
+    }
+  };
+
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
 
-  if (loadingUser || loadingTrips) {
+  if (loadingUser || loadingSpecificTrips) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
         <p className="text-xl">Chargement du profil et des trajets...</p>
@@ -43,21 +87,12 @@ const Profile = () => {
     );
   }
 
-  // Filtrer les trajets publiés et effectués par l'utilisateur actuel
-  const publishedTrips = trips.filter(trip => trip.publisherId === user.id && trip.status === 'upcoming');
-  const completedTrips = trips.filter(trip =>
-    (trip.publisherId === user.id && trip.status === 'completed') ||
-    (trip.participants && trip.participants.includes(user.id) && trip.status === 'completed')
-  );
-
-  // Fonction pour gérer la redirection vers la page de création de véhicule sous le profil
   const handleAddVehicleClick = () => {
-    navigate('car'); // Chemin relatif: /profile/car
+    navigate('car');
   };
 
-  // Fonction pour gérer la redirection vers la page du portefeuille sous le profil
   const handleViewWalletClick = () => {
-    navigate('wallet'); // Chemin relatif: /profile/wallet
+    navigate('wallet');
   };
 
   return (
@@ -65,7 +100,6 @@ const Profile = () => {
       <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
           <div className='flex flex-col items-center sm:flex-row sm:items-start sm:gap-6'>
-            {/* Image de profil */}
             <div className='relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0'>
               <img
                 src={user.profilePicture || "https://via.placeholder.com/150/cccccc/ffffff?text=Profil"}
@@ -73,8 +107,6 @@ const Profile = () => {
                 className='w-full h-full rounded-full object-cover border-4 border-blue-500 dark:border-blue-400 shadow-md'
               />
             </div>
-
-            {/* Informations de base de l'utilisateur */}
             <div className='text-center sm:text-left mt-4 sm:mt-0'>
               <h1 className={`text-3xl sm:text-4xl font-extrabold ${textColorPrimary} mb-2`}>
                 {user.firstName} {user.lastName}
@@ -95,10 +127,7 @@ const Profile = () => {
                   </p>
                 )}
               </div>
-              
-              {/* Conteneur pour les boutons */}
               <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                {/* Bouton pour ajouter un véhicule */}
                 <button
                   onClick={handleAddVehicleClick}
                   className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center"
@@ -106,8 +135,6 @@ const Profile = () => {
                   <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
                   Ajouter un Véhicule
                 </button>
-
-                {/* Bouton pour voir le portefeuille */}
                 <button
                   onClick={handleViewWalletClick}
                   className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center"
@@ -120,7 +147,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Section À Propos */}
         {user.bio && (
           <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
             <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
@@ -131,7 +157,6 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Statistiques et Évaluation */}
         <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
           <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
             Statistiques et Évaluation
@@ -154,7 +179,7 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* --- Section: Trajets Publiés --- */}
+        {/* --- Section: Mes Trajets Publiés --- */}
         <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
           <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
             <FontAwesomeIcon icon={faRoute} className='mr-2 text-blue-500' />
@@ -163,7 +188,31 @@ const Profile = () => {
           {publishedTrips.length > 0 ? (
             <div className='flex flex-col gap-6'>
               {publishedTrips.map((trip) => (
-                <ResultCard key={trip.id} trip={trip} />
+                <div key={trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
+                    <div className="flex-1">
+                        <h3 className={`text-lg font-bold ${textColorPrimary}`}>
+                            {trip.startAreaPointCreateDto.homeTownName} - {trip.arivalAreaPointCreateDto.homeTownName}
+                        </h3>
+                        <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                            <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
+                            <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {trip.pricePerPlace} XAF</div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 mt-4 md:mt-0 flex-shrink-0">
+                        <button 
+                            onClick={() => handleEditTrip(trip)}
+                            className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faEdit} /> Modifier
+                        </button>
+                        <button
+                            onClick={() => handleCancelTrip(trip.id)}
+                            className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faTimesCircle} /> Annuler
+                        </button>
+                    </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -180,7 +229,18 @@ const Profile = () => {
           {completedTrips.length > 0 ? (
             <div className='flex flex-col gap-6'>
               {completedTrips.map((trip) => (
-                <ResultCard key={trip.id} trip={trip} />
+                <div key={trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center opacity-70`}>
+                    <div className="flex-1">
+                        <h3 className={`text-lg font-bold ${textColorPrimary}`}>
+                            {trip.startAreaPointCreateDto.homeTownName} - {trip.arivalAreaPointCreateDto.homeTownName}
+                        </h3>
+                        <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                            <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
+                            <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {trip.pricePerPlace} XAF</div>
+                        </div>
+                    </div>
+                    {/* Le statut "terminé" ne nécessite pas de bouton d'action */}
+                </div>
               ))}
             </div>
           ) : (
@@ -189,6 +249,12 @@ const Profile = () => {
         </div>
 
       </main>
+      
+      <EditTripModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        tripToEdit={selectedTrip}
+      />
     </div>
   );
 };

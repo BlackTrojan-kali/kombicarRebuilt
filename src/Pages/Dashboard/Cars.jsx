@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
 
 // Importez votre composant CarFormModal
-import CarFormModal from '../../Components/Modals/CreateCarModal'; // Assurez-vous que le chemin est correct
+import CarFormModal from '../../Components/Modals/CreateCarModal';
 import useCars from '../../hooks/useCar';
 
 // --- Définition des Thèmes pour DataTable ---
@@ -38,18 +38,23 @@ const Cars = () => {
   const { theme } = useColorScheme();
    
   // Utilisation du contexte pour récupérer les données et les fonctions
-  const { cars, loading, fetchCars, deleteCar, createCar, updateCar } = useCars();
-console.log(cars);
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false); // État pour ouvrir/fermer la modal de formulaire
-  const [carToEdit, setCarToEdit] = useState(null); // Contient les données du véhicule à modifier
+  const { 
+    cars, 
+    loading, 
+    fetchCars, 
+    deleteCar, 
+    createCar, 
+    updateCar,
+    updateVehicleVerificationState // Ajout de la nouvelle fonction
+  } = useCars();
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [carToEdit, setCarToEdit] = useState(null);
 
-  // useEffect pour charger les véhicules au montage du composant
   useEffect(() => {
     fetchCars();
-  }, []); // Dépendance vide pour s'exécuter une seule fois au montage
+  }, [])//fetchCars]);
 
-  // --- Delete function with SweetAlert2 ---
-  const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => { // Renommé marque/modele en brand/model
+  const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => {
     Swal.fire({
       title: 'Êtes-vous sûr ?',
       text: `Vous êtes sur le point de supprimer le véhicule "${vehicleBrand} ${vehicleModel}". Cette action est irréversible !`,
@@ -63,7 +68,6 @@ console.log(cars);
       color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Appel de la fonction de suppression du contexte
         const success = await deleteCar(vehicleId);
         if (success) {
           toast.success(`Le véhicule "${vehicleBrand} ${vehicleModel}" a été supprimé avec succès !`);
@@ -74,28 +78,48 @@ console.log(cars);
     });
   };
 
-  // --- Fonction pour ouvrir la modal en mode CRÉATION ---
+  // --- Nouvelle fonction pour gérer la vérification ---
+  const handleToggleVerification = (vehicle) => {
+    const newVerificationState = !vehicle.isVerified;
+    const confirmText = newVerificationState 
+      ? `Êtes-vous sûr de vouloir vérifier ce véhicule ?`
+      : `Êtes-vous sûr de vouloir annuler la vérification de ce véhicule ?`;
+
+    Swal.fire({
+      title: 'Confirmer la vérification',
+      text: confirmText,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: newVerificationState ? '#22C55E' : '#DC2626',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Oui, continuer !',
+      cancelButtonText: 'Annuler',
+      background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+      color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await updateVehicleVerificationState(vehicle.id, newVerificationState);
+      }
+    });
+  };
+
   const handleAddVehicle = () => {
-    setCarToEdit(null); // S'assurer que la modal est en mode création
+    setCarToEdit(null);
     setIsFormModalOpen(true);
   };
 
-  // --- Fonction pour ouvrir la modal en mode MODIFICATION ---
   const handleEditVehicle = (vehicle) => {
-    setCarToEdit(vehicle); // Charger les données du véhicule à modifier
+    setCarToEdit(vehicle);
     setIsFormModalOpen(true);
   };
 
-  // --- Fonction pour fermer la modal de formulaire ---
   const handleCloseFormModal = () => {
     setIsFormModalOpen(false);
-    setCarToEdit(null); // Réinitialiser la voiture à modifier
+    setCarToEdit(null);
   };
 
-  // --- Fonction pour gérer la CRÉATION ou la MODIFICATION d'un véhicule ---
   const handleSaveCar = async (carData, isEditingMode) => {
     if (isEditingMode) {
-      // Appel de la fonction de mise à jour du contexte
       const result = await updateCar(carData.id, carData);
       if (result) {
         toast.success(`Le véhicule "${carData.brand} ${carData.model}" a été mis à jour avec succès !`);
@@ -103,7 +127,6 @@ console.log(cars);
         toast.error(`Échec de la mise à jour du véhicule "${carData.brand} ${carData.model}".`);
       }
     } else {
-      // Appel de la fonction de création du contexte
       const result = await createCar(carData);
       if (result) {
         toast.success(`Le véhicule "${result.brand} ${result.model}" a été ajouté avec succès !`);
@@ -135,7 +158,7 @@ console.log(cars);
     },
     {
       name: 'Marque',
-      selector: row => row.brand, // CHANGÉ: de 'marque' à 'brand'
+      selector: row => row.brand,
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
@@ -147,7 +170,7 @@ console.log(cars);
     },
     {
       name: 'Modèle',
-      selector: row => row.model, // CHANGÉ: de 'modele' à 'model'
+      selector: row => row.model,
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
@@ -171,7 +194,7 @@ console.log(cars);
     },
     {
       name: 'Couleur',
-      selector: row => row.color, // CHANGÉ: de 'couleur' à 'color'
+      selector: row => row.color,
       sortable: true,
       cell: row => (
         <span className="flex items-center gap-2">
@@ -194,8 +217,8 @@ console.log(cars);
         minWidth: '180px',
     },
     {
-      name: 'Vérifié', // CHANGÉ: de 'Statut' à 'Vérifié' pour correspondre à 'isVerified'
-      selector: row => row.isVerified, // CHANGÉ: de 'disponible' à 'isVerified'
+      name: 'Vérifié',
+      selector: row => row.isVerified,
       sortable: true,
       cell: row => {
         const isVerified = row.isVerified;
@@ -217,26 +240,48 @@ console.log(cars);
       },
       minWidth: '120px',
     },
+    // Nouvelle colonne pour la gestion de la vérification
+    {
+      name: 'Vérification',
+      cell: row => (
+        <div className="flex">
+          <button
+            onClick={() => handleToggleVerification(row)}
+            className={`px-3 py-1 rounded-md text-white font-semibold transition-colors duration-200 ${
+              row.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
+            }`}
+            title={row.isVerified ? 'Annuler la vérification' : 'Marquer comme vérifié'}
+          >
+            <FontAwesomeIcon icon={row.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
+            {row.isVerified ? 'Annuler' : 'Vérifier'}
+          </button>
+        </div>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+      width: '150px',
+    },
     {
       name: 'Actions',
       cell: row => (
         <div className="flex gap-2">
           <button
-            onClick={() => toast(`Affichage des détails de ${row.brand} ${row.model}`, { icon: 'ℹ️' })} // CHANGÉ: de marque/modele à brand/model
+            onClick={() => toast(`Affichage des détails de ${row.brand} ${row.model}`, { icon: 'ℹ️' })}
             className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
             title="Voir les détails"
           >
             <FontAwesomeIcon icon={faEye} />
           </button>
           <button
-            onClick={() => handleEditVehicle(row)} // Appelle handleEditVehicle avec les données de la ligne
+            onClick={() => handleEditVehicle(row)}
             className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
             title="Modifier"
           >
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
-            onClick={() => handleDeleteVehicle(row.id, row.brand, row.model)} // CHANGÉ: de marque/modele à brand/model
+            onClick={() => handleDeleteVehicle(row.id, row.brand, row.model)}
             className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
             title="Supprimer"
           >
@@ -249,7 +294,7 @@ console.log(cars);
       button: true,
       width: '180px',
     },
-  ], [handleDeleteVehicle, handleEditVehicle, theme]);
+  ], [handleDeleteVehicle, handleEditVehicle, handleToggleVerification, theme]);
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
@@ -272,7 +317,7 @@ console.log(cars);
         <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Parc Automobile</h2>
         <DataTable
           columns={columns}
-          data={cars} // Utilisation de l'état `cars` du contexte
+          data={cars}
           progressPending={loading}
           pagination
           highlightOnHover
@@ -299,12 +344,11 @@ console.log(cars);
         />
       </div>
 
-      {/* Intégration de CarFormModal */}
       <CarFormModal
         isOpen={isFormModalOpen}
         onClose={handleCloseFormModal}
         onSaveCar={handleSaveCar}
-        initialCarData={carToEdit} // Passe l'objet carToEdit à la modal
+        initialCarData={carToEdit}
       />
     </div>
   );

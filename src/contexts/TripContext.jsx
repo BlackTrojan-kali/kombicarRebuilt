@@ -3,19 +3,17 @@ import api from '../api/api'; // Importez l'instance Axios configurée
 import toast from 'react-hot-toast'; // Pour les notifications
 import useAuth from "../hooks/useAuth"; // Importation de votre hook d'authentification
 
-// Crée le contexte. C'est ce que le hook useContext(tripContext) consommera.
+// Crée le contexte.
 export const tripContext = createContext({});
 
-// Le fournisseur de contexte qui enveloppera les composants nécessitant les données de trajets.
+// Le fournisseur de contexte
 export function TripContextProvider({ children }) {
-    const [trips, setTrips] = useState([]); // État pour stocker la liste des trajets
-    const [loading, setLoading] = useState(false); // Indique si une opération est en cours de chargement
-    const [error, setError] = useState(null); // Stocke les erreurs éventuelles des opérations
-
-    // Utilisation de votre hook d'authentification pour obtenir les informations de l'utilisateur
+    const [trips, setTrips] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const { user, loading: authLoading } = useAuth();
 
-    // Données de trajets fictives mises à jour pour correspondre au Trip Dto.
+    // Données de trajets fictives
     const mockTrips = [
         {
             id: 1,
@@ -40,7 +38,7 @@ export function TripContextProvider({ children }) {
                 name: "Lycée de Bonabéri",
                 latitude: 4.05,
                 longitude: 9.7,
-                order: 999, // Un grand nombre pour le point final
+                order: 999,
                 type: 1 // PointType.Arrival
             },
             stopovers: [
@@ -112,60 +110,101 @@ export function TripContextProvider({ children }) {
         }
     ];
 
-    // Fonction pour récupérer tous les trajets.
+    // Fonction pour récupérer tous les trajets d'un utilisateur
     const fetchTrips = async (params = {}) => {
-        if (authLoading) return; // Attendre que l'authentification soit prête
+        if (authLoading) return;
 
         setLoading(true);
         setError(null);
+
+        const { pageIndex, status } = params;
+        let url = '/api/trips';
+
+        if (pageIndex !== undefined && status !== undefined) {
+            url = `/api/v1/trips/${pageIndex}/${status}`;
+        }
+
         try {
-            const response = await api.get('/api/trips', { params });
-            
+            const response = await api.get(url, { params });
+            // --- DÉBUT : Logique pour les données fictives en cas de réponse vide ---
             if (response.data && response.data.length > 0) {
                 setTrips(response.data);
                 toast.success('Trajets chargés avec succès !');
+                // En production, vous pouvez commenter la ligne ci-dessous
+                // return response.data;
             } else {
                 setTrips(mockTrips);
                 toast.warn('La réponse du serveur est vide. Utilisation de données fictives.');
+                // En production, vous pouvez décommenter la ligne ci-dessous et commenter la ligne ci-dessus
+                // return response.data;
             }
+            // --- FIN : Logique pour les données fictives ---
             return response.data;
+
         } catch (err) {
+        
             console.error("Erreur lors de la récupération des trajets:", err);
             setError(err);
+            // --- DÉBUT : Logique pour les données fictives en cas d'erreur ---
             setTrips(mockTrips);
             toast.error(err.response?.data?.message || 'Échec du chargement des trajets. Utilisation de données fictives.');
-            return null;
+            // En production, vous pouvez commenter la ligne ci-dessus et décommenter la ligne ci-dessous
+            // toast.error(err.response?.data?.message || 'Échec du chargement des trajets.');
+            // --- FIN : Logique pour les données fictives ---
+            return mockTrips;
+
         } finally {
             setLoading(false);
         }
-    }; 
+    };
 
-    // Fonction pour récupérer un trajet spécifique par son ID
-    const getTripById = async (id) => {
-        if (authLoading) return;
+    // Fonction pour récupérer les trajets publics
+    const fetchPublicTrips = async (filters = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/trips/${id}`);
-            toast.success('Trajet trouvé !');
+            const response = await api.post('/api/v1/trips/list-public', filters);
+            if (response.data && response.data.length > 0) {
+                setTrips(response.data);
+                toast.success('Trajets publics chargés avec succès !');
+            } else {
+                setTrips([]);
+                toast.warn('Aucun trajet public trouvé.');
+            }
             return response.data;
         } catch (err) {
-            console.error(`Erreur lors de la récupération du trajet ${id}:`, err);
+            console.error("Erreur lors de la récupération des trajets publics:", err);
             setError(err);
-            // Repli sur les données fictives
-            const trip = mockTrips.find(t => t.id === parseInt(id));
-            if (trip) {
-                toast.warning('Trajet non trouvé sur le serveur, mais trouvé dans les données fictives.');
-            
-                return trip;
-            }
-            toast.error(err.response?.data?.message || 'Échec de la récupération du trajet.');
+            toast.error(err.response?.data?.message || 'Échec du chargement des trajets publics.');
             return null;
         } finally {
             setLoading(false);
         }
     };
 
+    // Fonction pour récupérer un trajet spécifique par son ID
+    const getTripById = async (id) => {
+
+        if (authLoading) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(`/api/v1/trips/${id}`);
+            toast.success('Trajet trouvé !');
+            return response.data;
+        } catch (err) {
+        
+            console.error(`Erreur lors de la récupération du trajet ${id}:`, err);
+            setError(err);
+            // --- DÉBUT : Logique pour les données fictives en cas d'erreur ---
+            const trip = mockTrips.find(t => t.id === parseInt(id));
+              return trip;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fonction pour créer un nouveau trajet.
     const createTrip = async (tripData) => {
         if (!user) {
             toast.error("Veuillez vous connecter pour créer un trajet.");
@@ -175,10 +214,8 @@ export function TripContextProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            // Le DTO TripCreateDto contient déjà toutes les informations.
-            // On ajoute simplement l'ID de l'utilisateur avant d'envoyer la requête.
             const newTripData = { ...tripData, userId: user.id };
-            const response = await api.post('/api/trips', newTripData);
+            const response = await api.post('/api/v1/trips', newTripData);
             setTrips(prevTrips => [...prevTrips, response.data]);
             toast.success('Trajet créé avec succès !');
             return response.data;
@@ -202,8 +239,8 @@ export function TripContextProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.put(`/api/trips/${id}`, tripData);
-            setTrips(prevTrips => prevTrips.map(trip => 
+            const response = await api.put(`/api/v1/trips`, { ...tripData, id });
+            setTrips(prevTrips => prevTrips.map(trip =>
                 trip.id === id ? response.data : trip
             ));
             toast.success('Trajet mis à jour avec succès !');
@@ -213,6 +250,33 @@ export function TripContextProvider({ children }) {
             setError(err);
             toast.error(err.response?.data?.message || 'Échec de la mise à jour du trajet.');
             return null;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fonction pour annuler un trajet
+    const cancelTrip = async (id) => {
+        if (!user) {
+            toast.error("Veuillez vous connecter pour annuler un trajet.");
+            return false;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            // Utilisation du nouveau endpoint pour annuler le trajet
+            await api.put(`/api/v1/trips/cancel/${id}`);
+            // Met à jour l'état local pour marquer le trajet comme annulé (status: 5)
+            setTrips(prevTrips => prevTrips.map(trip =>
+                trip.id === id ? { ...trip, status: 5 } : trip
+            ));
+            toast.success('Trajet annulé avec succès !');
+            return true;
+        } catch (err) {
+            console.error(`Erreur lors de l'annulation du trajet ${id}:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de l\'annulation du trajet.');
+            return false;
         } finally {
             setLoading(false);
         }
@@ -228,7 +292,7 @@ export function TripContextProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            await api.delete(`/api/trips/${id}`);
+            await api.delete(`/api/v1/trips/${id}`);
             setTrips(prevTrips => prevTrips.filter(trip => trip.id !== id));
             toast.success('Trajet supprimé avec succès !');
             return true;
@@ -242,17 +306,19 @@ export function TripContextProvider({ children }) {
         }
     };
 
-    // Les valeurs fournies par le contexte à tous ses consommateurs
-    const contextValue = { 
-        trips, 
-        loading, 
-        error, 
-        fetchTrips, 
-        getTripById, 
-        createTrip, 
-        updateTrip, 
+    // Les valeurs fournies par le contexte
+    const contextValue = {
+        trips,
+        loading,
+        error,
+        fetchTrips,
+        fetchPublicTrips,
+        getTripById,
+        createTrip,
+        updateTrip,
+        cancelTrip,
         deleteTrip,
-        userId: user?.id || null // Expose l'ID de l'utilisateur du contexte d'authentification
+        userId: user?.id || null
     };
 
     return (
@@ -261,4 +327,3 @@ export function TripContextProvider({ children }) {
         </tripContext.Provider>
     );
 }
-

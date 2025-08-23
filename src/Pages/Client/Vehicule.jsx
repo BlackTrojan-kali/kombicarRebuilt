@@ -1,38 +1,46 @@
-import React, { useEffect, useState } from 'react'; // Importez useState et useEffect
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlusCircle, faEdit, faFileUpload, faCarSide, faTag,
   faChair, faPalette, faIdCard, faShieldAlt, faSpinner,
   faTrashAlt, faCheckCircle, faTimesCircle
-} from '@fortawesome/free-solid-svg-icons'; // Importez toutes les icônes nécessaires
+} from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
-import useCars from '../../hooks/useCar'; // Importez VOTRE useCars hook
+import useAuth from '../../hooks/useAuth'; // Assurez-vous d'importer useAuth
+import useCars from '../../hooks/useCar';
 import CarForm from '../../Components/form/CarForm';
-import Modal from '../../Components/Modals/Modal'; // Assurez-vous d'avoir ce composant Modal
+import Modal from '../../Components/Modals/Modal';
 import toast, { Toaster } from 'react-hot-toast';
 
 const MyVehicle = () => {
   const { theme } = useColorScheme();
+  const { user } = useAuth(); // Accès aux informations de l'utilisateur, y compris le statut d'administrateur
 
   // Utilisez VOTRE useCars hook pour accéder directement au CarContext
-  const { cars, loading, error, fetchUserCars, createCar, updateCar, deleteCar, uploadVehicleDocument } = useCars();
+  const { 
+    cars, 
+    loading, 
+    error, 
+    fetchUserCars, 
+    createCar, 
+    updateCar, 
+    deleteCar, 
+    uploadVehicleDocument,
+    updateVehicleVerificationState // Ajoutez la nouvelle fonction d'administration
+  } = useCars();
 
-  // Le véhicule de l'utilisateur (le premier du tableau, ou null si vide)
   const userCar = cars && cars.length > 0 ? cars[0] : null;
 
-  // États locaux pour la gestion de l'interface utilisateur
   const [documentFile, setDocumentFile] = useState(null);
   const [documentType, setDocumentType] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Pour la visibilité de la modal
-  const [editingCarData, setEditingCarData] = useState(null); // Pour passer les données au formulaire d'édition
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCarData, setEditingCarData] = useState(null);
 
-  // Effet pour récupérer les véhicules de l'utilisateur au chargement initial
   useEffect(() => {
     fetchUserCars();
-  },[]) //[fetchUserCars]); // Dépendance essentielle pour que l'effet s'exécute quand fetchUserCars change
+  }, [])//fetchUserCars]);
 
-  // Styles Tailwind conditionnels
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
@@ -41,23 +49,21 @@ const MyVehicle = () => {
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50';
   const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
 
-  // Fonctions de gestion de la modal
   const openCreateModal = () => {
-    setEditingCarData(null); // Pas de données initiales pour une nouvelle création
+    setEditingCarData(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = () => {
-    setEditingCarData(userCar); // Pré-remplir le formulaire avec les données du véhicule existant
+    setEditingCarData(userCar);
     setIsModalOpen(true);
   };
 
   const closeCarModal = () => {
     setIsModalOpen(false);
-    setEditingCarData(null); // Réinitialiser les données d'édition après fermeture
+    setEditingCarData(null);
   };
 
-  // Gestion de la sauvegarde du véhicule (création ou mise à jour)
   const handleSaveCar = async (carDataToSave, isEditingMode) => {
     let success = false;
     if (isEditingMode) {
@@ -75,12 +81,10 @@ const MyVehicle = () => {
         toast.error("Échec de la création du véhicule.");
       }
     }
-    // Après toute opération de sauvegarde, rafraîchir et fermer la modal
     fetchUserCars();
     closeCarModal();
   };
 
-  // Gestion de la suppression du véhicule
   const handleDeleteCar = async () => {
     if (userCar && window.confirm("Êtes-vous sûr de vouloir supprimer votre véhicule ? Cette action est irréversible.")) {
       const success = await deleteCar(userCar.id);
@@ -93,7 +97,6 @@ const MyVehicle = () => {
   };
 
 
-  // Fonctions pour le téléchargement de documents
   const handleDocumentFileChange = (e) => {
     setDocumentFile(e.target.files[0]);
   };
@@ -116,8 +119,8 @@ const MyVehicle = () => {
     setIsUploading(true);
     const success = await uploadVehicleDocument(documentType, userCar.id, documentFile);
     if (success) {
-      setDocumentFile(null); // Réinitialiser le fichier sélectionné
-      setDocumentType(''); // Réinitialiser le type de document
+      setDocumentFile(null);
+      setDocumentType('');
       toast.success("Document téléversé avec succès !");
     } else {
       toast.error("Échec du téléversement du document.");
@@ -125,7 +128,15 @@ const MyVehicle = () => {
     setIsUploading(false);
   };
 
-  // Affichage conditionnel pendant le chargement
+  // Nouvelle fonction pour l'administration
+  const handleUpdateVerificationState = async () => {
+    if (!userCar) return;
+    const isConfirmed = window.confirm(`Êtes-vous sûr de vouloir ${userCar.isVerified ? 'annuler la vérification de' : 'vérifier'} ce véhicule ?`);
+    if (isConfirmed) {
+      await updateVehicleVerificationState(userCar.id, !userCar.isVerified);
+    }
+  };
+
   if (loading) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
@@ -134,7 +145,6 @@ const MyVehicle = () => {
     );
   }
 
-  // Affichage de l'erreur si présente et aucun véhicule chargé
   if (error && !userCar) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
@@ -218,6 +228,37 @@ const MyVehicle = () => {
                 )}
                 <p><strong className={textColorPrimary}>Statut:</strong> {userCar.isVerified ? 'Vérifié' : 'Non Vérifié'}</p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- Section Panneau d'Administration (Visible uniquement pour les admins) --- */}
+        {user?.isAdmin && userCar && (
+          <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
+            <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
+              <FontAwesomeIcon icon={faShieldAlt} className='mr-2 text-red-500' />
+              Panneau d'Administration
+            </h2>
+            <div className="flex items-center space-x-4">
+              <p className={`${textColorSecondary} text-lg font-semibold`}>
+                Statut de Vérification du Véhicule :
+              </p>
+              <button
+                onClick={handleUpdateVerificationState}
+                className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center ${
+                  userCar.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
+                } text-white`}
+                disabled={loading}
+              >
+                {loading ? (
+                  <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={userCar.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
+                    {userCar.isVerified ? 'Annuler la Vérification' : 'Marquer comme Vérifié'}
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}
@@ -321,8 +362,8 @@ const MyVehicle = () => {
           initialCarData={editingCarData}
           onSave={handleSaveCar}
           isEditing={!!editingCarData}
-          isLoading={loading} // Passe le loading directement du useCars hook
-          theme={theme} // Passe le thème pour les styles internes du formulaire
+          isLoading={loading}
+          theme={theme}
         />
       </Modal>
     </div>

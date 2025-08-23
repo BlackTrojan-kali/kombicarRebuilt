@@ -5,16 +5,15 @@ import {
   faRoad, faMapMarkerAlt, faCalendarAlt, faClock, faMoneyBillWave, faUserTie, faCar,
   faEye, faEdit, faTrash, faPlusCircle, faCheckCircle, faHourglassHalf, faBan
 } from '@fortawesome/free-solid-svg-icons';
-import useColorScheme from '../../hooks/useColorScheme'; // Make sure the path is correct
 
-// Imports for SweetAlert2 and React Hot Toast
 import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
 
+// Importation de vos hooks et du contexte
+import useColorScheme from '../../hooks/useColorScheme';
+import useTrips from '../../hooks/useTrips'; // Assurez-vous que le chemin est correct
 
 // --- DataTable Theme Definitions ---
-// As mentioned before, ideally these themes should be defined once globally
-// in your application if you use them in multiple tables.
 createTheme('lightTheme', {
   text: { primary: '#1F2937', secondary: '#4B5563', },
   background: { default: '#FFFFFF', },
@@ -36,84 +35,50 @@ createTheme('darkTheme', {
 
 const Trajets = () => {
   const { theme } = useColorScheme();
+  
+  // Utilisation du hook useTrips pour accéder au contexte
+  const { trips, loading, error, fetchTrips, deleteTrip } = useTrips();
 
-  const [trips, setTrips] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [totalRows, setTotalRows] = useState(0);
+  const [totalRows, setTotalRows] = useState(0); // Nous n'avons pas de totalRows de l'API ici, donc nous le gérons localement
   const [perPage, setPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentStatus, setCurrentStatus] = useState(4); // Supposons un statut par défaut pour les trajets "prévus"
 
-  // Simulate API call to fetch trips
-  const fetchTrips = async (page, size) => {
-    setLoading(true);
-    // Fictitious trip data
-    const responseData = Array.from({ length: 150 }, (_, i) => ({
-      id: i + 1,
-      name: `Trajet ${i + 1}: Ville ${String.fromCharCode(65 + (i % 5))} - Ville ${String.fromCharCode(65 + ((i + 3) % 5))}`,
-      departure: `Ville ${String.fromCharCode(65 + (i % 5))}`,
-      destination: `Ville ${String.fromCharCode(65 + ((i + 3) % 5))}`,
-      date: `2025-07-${(i % 30) + 1 < 10 ? '0' : ''}${(i % 30) + 1}`,
-      time: `${9 + (i % 12)}:${(i % 60) < 10 ? '0' : ''}${(i % 60)}`,
-      price: (5000 + (i * 50)).toLocaleString('fr-CM'), // Format as FCFA here for simplicity in data
-      driver: `Chauffeur ${Math.floor(Math.random() * 10) + 1}`,
-      vehicle: `Véhicule ${Math.floor(Math.random() * 20) + 1}`,
-      status: i % 4 === 0 ? 'Prévu' : (i % 4 === 1 ? 'En cours' : (i % 4 === 2 ? 'Terminé' : 'Annulé')),
-    }));
-
-    const startIndex = (page - 1) * size;
-    const endIndex = startIndex + size;
-
-    setTrips(responseData.slice(startIndex, endIndex));
-    setTotalRows(responseData.length);
-    setLoading(false);
-  };
-
+  // Effet pour récupérer les trajets au chargement du composant ou lorsque la pagination/statut change
   useEffect(() => {
-    fetchTrips(1, perPage);
-  }, [perPage]);
+    fetchTrips({ pageIndex: currentPage, status: currentStatus });
+  }, [])//currentPage, perPage, currentStatus, fetchTrips]);
 
   const handlePageChange = page => {
-    fetchTrips(page, perPage);
+    setCurrentPage(page);
   };
 
   const handlePerRowsChange = (newPerPage, page) => {
     setPerPage(newPerPage);
-    fetchTrips(page, newPerPage);
+    setCurrentPage(page);
   };
 
   // --- Delete function with SweetAlert2 ---
-  const handleDeleteTrip = async (tripId, tripName) => {
+  const handleDeleteTrip = (tripId, tripName) => {
     Swal.fire({
       title: 'Êtes-vous sûr ?',
       text: `Vous êtes sur le point de supprimer le trajet "${tripName}". Cette action est irréversible !`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#DC2626', // bg-red-600
-      cancelButtonColor: '#6B7280', // bg-gray-500
+      confirmButtonColor: '#DC2626',
+      cancelButtonColor: '#6B7280',
       confirmButtonText: 'Oui, supprimer !',
       cancelButtonText: 'Annuler',
       background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
       color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Simulate API call for deletion
-        const deletePromise = new Promise((resolve, reject) => {
-          setTimeout(() => {
-            const success = Math.random() > 0.2; // 80% chance of success
-            if (success) {
-              setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
-              setTotalRows(prevTotalRows => prevTotalRows - 1);
-              resolve();
-            } else {
-              reject(new Error("Échec de la suppression du trajet."));
-            }
-          }, 1000);
-        });
-
-        toast.promise(deletePromise, {
-          loading: `Suppression du trajet "${tripName}"...`,
-          success: `Le trajet "${tripName}" a été supprimé avec succès !`,
-          error: (err) => `Erreur : ${err.message}`,
-        });
+        // Appel de la fonction de suppression du contexte
+        const success = await deleteTrip(tripId);
+        if (success) {
+          // Si la suppression API réussit, toast.promise est géré dans le contexte
+          // Pas besoin de refaire un toast ici, le contexte s'en charge.
+        }
       }
     });
   };
@@ -121,11 +86,10 @@ const Trajets = () => {
   // --- Function to add a trip (example with hot-toast) ---
   const handleAddTrip = () => {
     toast('Un formulaire pour ajouter un nouveau trajet s\'ouvrira ici.', {
-      icon: '🗺️', // Emoji icon for a trip
+      icon: '🗺️',
       duration: 3000,
       position: 'top-right',
     });
-    // Here, you would implement the logic to open an add form, etc.
   };
 
   // Define columns for the trips table
@@ -293,7 +257,6 @@ const Trajets = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      {/* React Hot Toast Toaster component for notifications */}
       <Toaster />
 
       <div className="flex justify-between items-center mb-6">
@@ -317,7 +280,7 @@ const Trajets = () => {
           progressPending={loading}
           pagination
           paginationServer
-          paginationTotalRows={totalRows}
+          paginationTotalRows={totalRows} // Cette valeur devra être mise à jour par l'API dans une version ultérieure
           onChangeRowsPerPage={handlePerRowsChange}
           onChangePage={handlePageChange}
           highlightOnHover
