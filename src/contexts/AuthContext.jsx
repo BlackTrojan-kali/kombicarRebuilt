@@ -1,102 +1,105 @@
 import { createContext, useEffect, useState } from "react";
-import api from '../api/api'; // Importez l'instance Axios configurée
-import toast from 'react-hot-toast'; // Pour les notifications
+import api from '../api/api'; 
+import toast from 'react-hot-toast'; 
 
 export const authContext = createContext({});
 
-// Utilisateur fictif pour les tests et le développement
-const dummyUser = {
-    id: "dummy-user-123",
-    email: "test@example.com",
-    username: "UtilisateurTest",
-    firstName: "Utilisateur",
-    lastName: "Fictif",
-    country: "Cameroun",
-    profilePicture: "https://randomuser.me/api/portraits/men/7.jpg", // Ajouté
-    memberSince: "Janvier 2023", // Ajouté
-    bio: "Passionné de voyages et de nouvelles rencontres. Toujours prêt pour une aventure sur les routes du Cameroun. La sécurité et la convivialité sont mes priorités !", // Ajouté
-    tripsCompleted: 35, // Ajouté
-    rating: 4.9, // Ajouté
-    phone: "+237 677 123 456" // Ajouté
-};
-
 export function AuthContextProvider({ children }) {
-    const [user, setUser] = useState(null); // L'utilisateur connecté, null si non connecté
-    const [loading, setLoading] = useState(true); // État de chargement initial de l'authentification
+    const [user, setUser] = useState(null); 
+    const [loading, setLoading] = useState(true); 
 
-    // Fonction pour décoder un JWT (simple, pour l'exemple)
-    // En production, utilisez une bibliothèque comme 'jwt-decode' ou vérifiez côté serveur
-    const decodeJwt = (token) => {
+    // Fonction de déconnexion
+    const logout = async (showToast = true) => { 
+        setLoading(true);
         try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
+            // Tentative de déconnexion côté serveur
+            await api.post('/auth/logout'); 
+            if (showToast) toast.success('Déconnexion réussie !');
         } catch (error) {
-            console.error("Erreur de décodage JWT:", error);
-            return null;
+            console.error("Erreur lors de la déconnexion côté serveur (ignorée pour la déconnexion locale):", error);
+            if (showToast) toast.error('Erreur lors de la déconnexion. Veuillez réessayer.');
+        } finally {
+            // Nettoyage local (essentiel)
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            setUser(null);
+            console.log("Utilisateur déconnecté.");
+            setLoading(false);
         }
     };
 
-    // Fonction pour vérifier l'état d'authentification au chargement de l'application
+    // Nouvelle fonction pour récupérer les informations complètes de l'utilisateur
+    const fetchUserInfo = async () => {
+        try {
+            const response = await api.get('/api/v1/users/infos');
+            
+            const fullUserInfo = response.data;
+            console.log(fullUserInfo)
+            // Logique pour déterminer le rôle à partir du numéro (0: Admin, 1: Client, autre: Chauffeur)
+            const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Chauffeur';
+            
+            setUser({
+                id: fullUserInfo.id,
+                email: fullUserInfo.email,
+                username: fullUserInfo.email, // Utilisation de l'email comme nom d'utilisateur par défaut
+                firstName: fullUserInfo.firstName,
+                lastName: fullUserInfo.lastName,
+                country: fullUserInfo.country,
+                role: roleName, 
+                phoneNumber: fullUserInfo.phoneNumber,
+                pictureProfileUrl: fullUserInfo.pictureProfileUrl,
+                balance: fullUserInfo.balance,
+                note: fullUserInfo.note
+            });
+            console.log("Informations utilisateur récupérées:", fullUserInfo);
+            return true;
+        } catch (error) {
+            console.error("Échec de la récupération des informations utilisateur:", error);
+            // Si l'API renvoie 401 (Non Autorisé), cela signifie que le token est invalide ou expiré.
+            if (error.response && error.response.status === 401) {
+                logout(false);
+            }
+            return false;
+        }
+    };
+
+    // Vérifie l'état d'authentification (restauration de session)
     const checkAuthStatus = async () => {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
 
         if (accessToken) {
-            const decodedToken = decodeJwt(accessToken);
-            if (decodedToken && decodedToken.exp * 1000 > Date.now()) {
-                setUser({
-                    id: decodedToken.sub,
-                    email: decodedToken.email,
-                    username: decodedToken.username || decodedToken.email,
-                    // Assurez-vous que ces champs sont présents dans votre JWT ou ajustez
-                    firstName: decodedToken.firstName,
-                    lastName: decodedToken.lastName,
-                    country: decodedToken.country,
-                });
+            // 1. Tenter de récupérer les infos directement avec l'Access Token existant
+            const userInfoSuccess = await fetchUserInfo();
+
+            if (userInfoSuccess) {
                 console.log("Utilisateur restauré via Access Token.");
             } else if (refreshToken) {
+                // 2. Si l'Access Token a échoué (401), tenter le rafraîchissement via Refresh Token
                 try {
                     const response = await api.post('/api/users/refresh-token', { refreshToken });
-                    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+                    const { accessToken: token, refreshToken: newRefreshToken } = response.data;
+                    
                     localStorage.setItem('accessToken', newAccessToken);
                     localStorage.setItem('refreshToken', newRefreshToken);
-                    const newDecodedToken = decodeJwt(newAccessToken);
-                    setUser({
-                        id: newDecodedToken.sub,
-                        email: newDecodedToken.email,
-                        username: newDecodedToken.username || newDecodedToken.email,
-                        firstName: newDecodedToken.firstName,
-                        lastName: newDecodedToken.lastName,
-                        country: newDecodedToken.country,
-                    });
+                    
+                    // Après avoir rafraîchi, réessayer de récupérer les infos complètes
+                    await fetchUserInfo(); 
                     console.log("Tokens rafraîchis et utilisateur restauré.");
                 } catch (error) {
                     console.error("Échec du rafraîchissement des tokens au démarrage:", error);
-                    logout(false); // Déconnecte l'utilisateur si le rafraîchissement échoue, sans toast
+                    logout(false); 
                 }
             } else {
-                logout(false); // Pas de tokens valides, déconnecte sans toast
+                // 3. Aucun token valide ou rafraîchissement possible
+                logout(false); 
             }
-        } else {
-            // Si aucun token n'est trouvé, utilise l'utilisateur fictif pour le développement
-            // Commenter cette ligne en production si vous ne voulez pas d'utilisateur par défaut
-            setUser(dummyUser);
-            console.log("Aucun token trouvé. Utilisateur fictif chargé pour le développement.");
         }
         setLoading(false);
     };
 
-    // Appelle checkAuthStatus au montage du composant
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    // Fonction de connexion
+    // Fonction de connexion utilisateur standard (inchangée)
     const login = async ({ email, password }) => {
         setLoading(true);
         try {
@@ -106,29 +109,75 @@ export function AuthContextProvider({ children }) {
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
 
-            const decodedToken = decodeJwt(accessToken);
-            setUser({
-                id: decodedToken.sub,
-                email: decodedToken.email,
-                username: decodedToken.username || decodedToken.email,
-                firstName: decodedToken.firstName,
-                lastName: decodedToken.lastName,
-                country: decodedToken.country,
-            });
-            toast.success('Connexion réussie !');
-            console.log("Utilisateur connecté:", decodedToken.email);
-            return true;
+            const loginSuccess = await fetchUserInfo();
+            if (loginSuccess) {
+                toast.success('Connexion réussie !');
+                return true;
+            } else {
+                logout(false);
+                return false;
+            }
         } catch (error) {
             console.error("Échec de la connexion:", error);
             toast.error(error.response?.data?.message || 'Identifiants invalides.');
-            setUser(null); // Assurez-vous que l'utilisateur est null en cas d'échec
+            setUser(null); 
             return false;
         } finally {
             setLoading(false);
         }
     };
 
-    // Fonction d'inscription
+    // Connexion Administrateur (Étape 1 : Envoi des identifiants) (inchangée)
+    const loginAdmin = async ({ email, password }) => {
+        setLoading(true);
+        try {
+            const response = await api.post('/api/v1/users/login-admin', { email, password });
+
+            const serverMessage = response.data || 'Code de confirmation envoyé. Veuillez vérifier votre email.';
+            toast.success(serverMessage);
+
+            return { success: true, twoFactorRequired: true };
+            
+        } catch (error) {
+            console.error("Échec de la connexion Administrateur:", error);
+            toast.error(error.response?.data || 'Accès refusé ou identifiants invalides.');
+            setUser(null);
+            return { success: false, twoFactorRequired: false };
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // Connexion Administrateur (Étape 2 : Confirmation du code 2FA) (inchangée)
+    const loginAdminConfirmCode = async ({ email, password, code, rememberMe = false }) => {
+        setLoading(true);
+        try {
+            const response = await api.post('/api/v1/users/login-admin-confirm-code', { email, password, code, rememberMe });
+           
+            const {token, refreshToken } = response.data;
+            localStorage.setItem('accessToken', token);
+            localStorage.setItem('refreshToken', refreshToken);
+
+            const loginSuccess = await fetchUserInfo();
+            if (loginSuccess) {
+                toast.success('Code confirmé. Connexion Administrateur réussie !');
+                return true;
+            } else {
+                logout(false);
+                return false;
+            }
+        } catch (error) {
+            console.error("Échec de la confirmation du code Admin:", error);
+            toast.error(error.response?.data?.message || 'Code invalide ou expiré.');
+            setUser(null);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // Fonction d'inscription (inchangée)
     const register = async ({ email, password, firstName, lastName, country }) => {
         setLoading(true);
         try {
@@ -137,19 +186,16 @@ export function AuthContextProvider({ children }) {
 
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('refreshToken', refreshToken);
+            
+            const loginSuccess = await fetchUserInfo();
+            if (loginSuccess) {
+                toast.success('Inscription réussie et connexion automatique !');
+                return true;
+            } else {
+                logout(false);
+                return false;
+            }
 
-            const decodedToken = decodeJwt(accessToken);
-            setUser({
-                id: decodedToken.sub,
-                email: decodedToken.email,
-                username: decodedToken.username || decodedToken.email,
-                firstName: decodedToken.firstName,
-                lastName: decodedToken.lastName,
-                country: decodedToken.country,
-            });
-            toast.success('Inscription réussie et connexion automatique !');
-            console.log("Utilisateur enregistré et connecté:", decodedToken.email);
-            return true;
         } catch (error) {
             console.error("Échec de l'inscription:", error);
             toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
@@ -160,13 +206,12 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de confirmation d'e-mail
+    // Fonctions de gestion de l'e-mail et du mot de passe (inchangées)
     const confirmEmail = async (token) => {
         setLoading(true);
         try {
             const response = await api.post('/api/users/confirm-email', { token });
             toast.success(response.data.message || 'Votre adresse e-mail a été confirmée avec succès !');
-            console.log("Confirmation d'e-mail réussie:", response.data);
             return true;
         } catch (error) {
             console.error("Échec de la confirmation d'e-mail:", error);
@@ -177,13 +222,11 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de renvoi d'e-mail de confirmation
     const resendConfirmationEmail = async (email) => {
         setLoading(true);
         try {
             const response = await api.post('/api/users/resend-confirmation-email', { email });
             toast.success(response.data.message || 'Un nouvel e-mail de confirmation a été envoyé à votre adresse.');
-            console.log("E-mail de confirmation renvoyé:", response.data);
             return true;
         } catch (error) {
             console.error("Échec du renvoi de l'e-mail de confirmation:", error);
@@ -194,13 +237,11 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de réinitialisation de mot de passe (demande)
     const forgotPassword = async (email) => {
         setLoading(true);
         try {
             const response = await api.post('/api/users/forgot-password', { email });
             toast.success(response.data.message || 'Un lien de réinitialisation de mot de passe a été envoyé à votre adresse e-mail.');
-            console.log("Demande de réinitialisation de mot de passe envoyée:", response.data);
             return true;
         } catch (error) {
             console.error("Échec de la demande de réinitialisation de mot de passe:", error);
@@ -211,13 +252,11 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de réinitialisation du mot de passe (confirmation)
     const resetPassword = async (token, newPassword) => {
         setLoading(true);
         try {
             const response = await api.post('/api/users/reset-password', { token, newPassword });
             toast.success(response.data.message || 'Votre mot de passe a été réinitialisé avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.');
-            console.log("Réinitialisation du mot de passe réussie:", response.data);
             return true;
         } catch (error) {
             console.error("Échec de la réinitialisation du mot de passe:", error);
@@ -228,13 +267,10 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de connexion externe via Google
+    // Connexion externe via Google (inchangée)
     const externalLoginGoogle = async () => {
         setLoading(true);
         try {
-            // Votre backend C# devrait rediriger vers l'URL d'authentification de Google
-            // et ensuite gérer le callback.
-            // La réponse de cette requête GET sera une redirection.
             const response = await api.get('/api/users/external-login/google');
             if (response.data && response.data.redirectUrl) {
                 window.location.href = response.data.redirectUrl;
@@ -251,27 +287,28 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Fonction de déconnexion
-    const logout = async (showToast = true) => { // Ajout d'un paramètre pour contrôler le toast
-        setLoading(true);
-        try {
-            await api.post('/auth/logout');
-            if (showToast) toast.success('Déconnexion réussie !');
-        } catch (error) {
-            console.error("Erreur lors de la déconnexion côté serveur:", error);
-            if (showToast) toast.error('Erreur lors de la déconnexion. Veuillez réessayer.');
-        } finally {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            setUser(null);
-            console.log("Utilisateur déconnecté.");
-            setLoading(false);
-        }
-    };
-
-    // Le contexte fournit l'utilisateur, les fonctions d'authentification et l'état de chargement
+    // Appelle checkAuthStatus au montage du composant
+    useEffect(() => {
+        checkAuthStatus();
+    }, []);
+    // Le contexte fournit l'utilisateur et les fonctions
     return (
-        <authContext.Provider value={{ user, loading, login, register, logout, confirmEmail, resendConfirmationEmail, forgotPassword, resetPassword, externalLoginGoogle }}>
+        <authContext.Provider 
+            value={{ 
+                user, 
+                loading, 
+                login, 
+                loginAdmin, 
+                loginAdminConfirmCode, 
+                register, 
+                logout, 
+                confirmEmail, 
+                resendConfirmationEmail, 
+                forgotPassword, 
+                resetPassword, 
+                externalLoginGoogle 
+            }}
+        >
             {children}
         </authContext.Provider>
     );

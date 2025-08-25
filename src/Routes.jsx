@@ -9,8 +9,8 @@ import Taxi from "./Pages/Taxi"
 import Results from "./Pages/Results"
 import TripDetail from "./Pages/TripDetail"
 import Profile from "./Pages/Client/Profile"
-// Importez le nouveau composant MyVehicle
-import MyVehicle from "./Pages/Client/Vehicule" // Assurez-vous que le chemin est correct
+import MyVehicle from "./Pages/Client/Vehicule" 
+import UserWallet from "./Pages/Client/UserWallet"
 
 import DashboardLayout from "./Layouts/DashboardLayout"
 import Dashboard from "./Pages/Dashboard/Dashboard"
@@ -25,113 +25,132 @@ import Wallet from "./Pages/Dashboard/Wallet"
 import Publish from "./Pages/Publish"
 import SignInAdmin from "./Pages/Auth/SignInAdmin"
 import ConfirmEmail from "./Pages/Auth/ConfirmEmail"
-import UserWallet from "./Pages/Client/UserWallet"
+
 
 const Routes = () => {
   const route = useRoutes([
     {
+      // ------------------------------------
+      // SECTION CLIENT (Layout: ClientLayout)
+      // ------------------------------------
       path:"/",
       element:<ClientLayout/>,
       children:[
+        // Chemin racine (Accueil)
         {
-          path:"/",
+          index: true, // Remplace path: "/" dans les enfants
           element:<Home/>
         },
         {
-          path:"/covoiturage",
+          path:"covoiturage",
           element:<Covoiturage/>
         },
         {
-          path:"/taxi",
+          path:"taxi",
           element:<Taxi/>
         },
         {
-          path:"/trip-detail/:tripId",
+          path:"trip-detail/:tripId",
           element:<TripDetail/>
         },
         {
-          path:"/publish-trip",
+          path:"publish-trip",
           element:<Publish/>
         },
         {
-          path:"/results",
+          path:"results",
           element:<Results/>
         },
+        // Routes du profil utilisateur (imbriquées sous ClientLayout)
         {
-          path:"/profile",
+          path:"profile",
           element:<Profile/>
         },
-        // NOUVELLE ROUTE : Pour le véhicule de l'utilisateur
         {
-          path:"/profile/car", // Route dédiée pour le véhicule de l'utilisateur
+          path:"profile/car", 
           element:<MyVehicle/>
         },
         {
-          path:"/profile/wallet", // Route dédiée pour le véhicule de l'utilisateur
+          path:"profile/wallet", 
           element:<UserWallet/>
         }
       ]
     },
     {
-      path:"/auth",
+      // ---------------------------------
+      // SECTION AUTHENTIFICATION (Layout: AuthLayout)
+      // ---------------------------------
+      path:"auth", // Chemin de base "/auth"
       element:<AuthLayout/>,
       children:[
         {
-          path:"/auth/signin",
+          // Chemin final: /auth/signin
+          path:"signin", 
           element:<Signin/>
         },
         {
-          path:"/auth/signup",
-          element:"<Signup/>"
+          // ERREUR CORRIGÉE: Le composant doit être rendu, pas une chaîne de caractères
+          // Chemin final: /auth/signup
+          path:"signup", 
+          element:<Signup/> 
         },
         {
-          path:"/auth/confirm-email",
+          // Chemin final: /auth/confirm-email
+          path:"confirm-email",
           element:<ConfirmEmail/>
         }
       ]
     },
     {
-      path:"/admin/signin",
+      // ------------------------------------
+      // SECTION ADMIN (Connexion)
+      // ------------------------------------
+      path:"/admin/signin", // Doit être une route de niveau supérieur
       element:<SignInAdmin/>
     },
     {
-      path:"/admin",
+      // ------------------------------------
+      // SECTION ADMIN (Dashboard Layout)
+      // ------------------------------------
+      path:"admin", // Chemin de base "/admin"
       element:<DashboardLayout/>,
       children:[
         {
-        path:"/admin/dashboard",
+        // Chemin final: /admin/dashboard
+        path:"dashboard",
         element:<Dashboard/>
       },
         {
-        path:"/admin/admins",
+        // Chemin final: /admin/admins
+        path:"admins",
         element:<Admins/>
       },
         {
-        path:"/admin/drivers",
+        path:"drivers",
         element:<Drivers/>
       },
         {
-        path:"/admin/users",
+        path:"users",
         element:<Utilisateurs/>
       },
       {
-        path:"/admin/trajets",
+        path:"trajets",
         element:<Trajets/>
       },
       {
-        path:"/admin/cars",
+        path:"cars",
         element:<Cars/>
       },
       {
-        path:"/admin/cars-type",
+        path:"cars-type",
         element:<CarTypes/>
       },
       {
-        path:"/admin/colors",
+        path:"colors",
         element:<Colors/>
       },
       {
-        path:"/admin/wallets",
+        path:"wallets",
         element:<Wallet/>
       },
       ]

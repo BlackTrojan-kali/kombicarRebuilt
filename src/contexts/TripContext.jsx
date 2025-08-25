@@ -126,6 +126,7 @@ export function TripContextProvider({ children }) {
 
         try {
             const response = await api.get(url, { params });
+            console.log(response)
             // --- DÉBUT : Logique pour les données fictives en cas de réponse vide ---
             if (response.data && response.data.length > 0) {
                 setTrips(response.data);

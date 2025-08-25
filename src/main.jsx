@@ -6,6 +6,7 @@ import { ColorSchemeProvider } from './contexts/ColorSchemeContext.jsx';
 import { AuthContextProvider } from './contexts/AuthContext.jsx';
 import { CarContextProvider } from './contexts/carContext.jsx';
 import { TripContextProvider } from './contexts/TripContext.jsx'; // Importation de TripContextProvider
+import { UserContextProvider } from './contexts/UserContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')).render(
       <ColorSchemeProvider>
         <CarContextProvider>
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
+            <UserContextProvider>
             <App />
+            </UserContextProvider>
           </TripContextProvider>
         </CarContextProvider>
       </ColorSchemeProvider>

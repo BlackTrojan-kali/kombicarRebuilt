@@ -8,12 +8,12 @@ import {
   faCog,
   faInbox,
   faCalendarCheck,
-  faMoon, // Import de l'icône lune
-  faSun   // Import de l'icône soleil
+  faMoon,
+  faSun
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import useColorScheme from '../../hooks/useColorScheme'; // Import du hook useColorScheme
+import useColorScheme from '../../hooks/useColorScheme';
 
 // Composant simple pour un élément de Dropdown
 const DropdownItem = ({ icon, text, to, onClick }) => (
@@ -28,8 +28,10 @@ const DropdownItem = ({ icon, text, to, onClick }) => (
 );
 
 const DashHeader = () => {
+  // Utilisation du hook `useAuth` pour accéder à l'objet `user` et à la fonction `logout`.
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useColorScheme(); // Utilisation du hook useColorScheme
+  // Utilisation du hook `useColorScheme` pour gérer le mode clair/sombre.
+  const { theme, setTheme } = useColorScheme();
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -102,19 +104,21 @@ const DashHeader = () => {
             className='flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none'
             aria-label="Menu du profil"
           >
+            {/* Utilise la photo de profil de l'utilisateur ou une image de remplacement si elle n'est pas disponible */}
             <img
-              src={user?.profilePicture || 'https://via.placeholder.com/40'}
+              src={user?.pictureProfileUrl || 'https://via.placeholder.com/40'}
               alt='Profile'
               className='w-9 h-9 rounded-full object-cover border border-gray-300 dark:border-gray-600'
             />
-            <span className='hidden md:inline font-medium'>{user?.username || 'Utilisateur'}</span>
+            {/* Affiche le prénom de l'utilisateur ou un nom générique si non disponible */}
+            <span className='hidden md:inline font-medium'>{user?.firstName || 'Utilisateur'}</span>
             <FontAwesomeIcon icon={faCaretDown} className='ml-1 text-sm' />
           </button>
 
           {isProfileOpen && (
             <div className='absolute right-0 mt-2 w-56 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-40 border border-gray-200 dark:border-gray-600'>
               <div className='px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-600'>
-                Connecté en tant que <span className='font-semibold'>{user?.username || 'Invité'}</span>
+                Connecté en tant que <span className='font-semibold'>{user?.firstName || 'Invité'}</span>
               </div>
               <DropdownItem icon={faUserCircle} text="Voir le profil" to="/profile" onClick={() => setIsProfileOpen(false)} />
               <DropdownItem icon={faCog} text="Paramètres" to="/settings" onClick={() => setIsProfileOpen(false)} />

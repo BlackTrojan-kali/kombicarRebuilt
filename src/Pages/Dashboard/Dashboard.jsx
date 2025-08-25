@@ -26,6 +26,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   // --- Données fictives (à remplacer par des données réelles de votre API) ---
+
   const stats = {
     publishedTrips: 1250,
     todayTrips: 45,

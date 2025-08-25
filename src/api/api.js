@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // URL de base de votre API C#
 // Assurez-vous que cette URL est correcte pour votre backend
-const API_BASE_URL = 'http://localhost:5000/api'; // Exemple: ajustez le port et le chemin
+const API_BASE_URL = 'https://204d5d5c406b.ngrok-free.app/'; // Exemple: ajustez le port et le chemin
 
 // Crée une instance Axios personnalisée
 const api = axios.create({
