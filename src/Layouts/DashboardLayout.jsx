@@ -7,6 +7,7 @@ import useAuth from '../hooks/useAuth';
 const DashboardLayout = () => {
    // Utilise le hook useAuth pour obtenir l'état de l'utilisateur et le statut de chargement.
     const { user, loading } = useAuth();
+    console.log(user)
     // Hook de navigation pour les redirections.
     const navigate = useNavigate();
 

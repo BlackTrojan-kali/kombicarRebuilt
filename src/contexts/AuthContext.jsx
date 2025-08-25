@@ -34,9 +34,9 @@ export function AuthContextProvider({ children }) {
             const response = await api.get('/api/v1/users/infos');
             
             const fullUserInfo = response.data;
-            console.log(fullUserInfo)
+    
             // Logique pour déterminer le rôle à partir du numéro (0: Admin, 1: Client, autre: Chauffeur)
-            const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Chauffeur';
+            const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Admin';
             
             setUser({
                 id: fullUserInfo.id,
