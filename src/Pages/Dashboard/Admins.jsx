@@ -52,7 +52,7 @@ const Admins = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false); 
   const [adminToEdit, setAdminToEdit] = useState(null); 
 
-  
+  console.log(adminList)
   // 3. REMPLACEMENT DE fetchAdmins PAR listAdmins DU CONTEXTE
   const handleFetch = async (page, size) => {
     try {
