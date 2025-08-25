@@ -52,9 +52,9 @@ const PrevArrow = (props) => {
 const Home = () => {
   // Hook pour récupérer les données de trajets
   const { trips, loading, error, fetchTrips } = useTrips();
-  
   // Hook pour la gestion du thème clair/sombre
   const { theme } = useColorScheme();
+
   // Paramètres du slider pour les trajets populaires
   const sliderSettings = {
     dots: true,
