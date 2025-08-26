@@ -8,18 +8,14 @@ export function AuthContextProvider({ children }) {
     const [user, setUser] = useState(null); 
     const [loading, setLoading] = useState(true); 
 
-    // Déconnexion
     const logout = async (showToast = true) => { 
         setLoading(true);
-       
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            setUser(null);
-            setLoading(false);
-        
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        setUser(null);
+        setLoading(false);
     };
 
-    // Récupération des infos utilisateur
     const fetchUserInfo = async () => {
         try {
             const response = await api.get('/api/v1/users/infos');
@@ -50,7 +46,6 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Vérification de la session au démarrage de l'application
     const checkAuthStatus = async () => {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
@@ -73,7 +68,6 @@ export function AuthContextProvider({ children }) {
         setLoading(false);
     };
 
-    // Inscription d'un nouvel utilisateur
     const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
         setLoading(true);
         try {
@@ -100,13 +94,12 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Connexion simple
     const login = async ({ email, password }) => {
         setLoading(true);
         try {
             const response = await api.post('/api/v1/users/login', { email, password });
-            const { accessToken, refreshToken } = response.data;
-            localStorage.setItem('accessToken', accessToken);
+            const { token, refreshToken } = response.data;
+            localStorage.setItem('accessToken', token);
             localStorage.setItem('refreshToken', refreshToken);
             await fetchUserInfo();
             toast.success('Connexion réussie !');
@@ -120,7 +113,6 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Connexion admin (Étape 1)
     const loginAdmin = async ({ email, password }) => {
         setLoading(true);
         try {
@@ -136,7 +128,6 @@ export function AuthContextProvider({ children }) {
         }
     };
     
-    // Connexion admin (Étape 2)
     const loginAdminConfirmCode = async ({ email, password, code, rememberMe = false }) => {
         setLoading(true);
         try {
@@ -156,17 +147,17 @@ export function AuthContextProvider({ children }) {
         }
     };
     
-    // Gestion des emails et mots de passe
-    const confirmEmail = async (token) => {
+    // Modification pour accepter userId et token dans l'URL
+    const confirmEmail = async (userId, token) => {
         setLoading(true);
         try {
-            const response = await api.post('/api/v1/users/confirm-email', { token });
-           
+            // Requête POST vers la nouvelle URL avec les paramètres de chemin
+            const response = await api.post(`/api/v1/users/confirm-email/${userId}/${token}`);
             toast.success(response.data.message || 'Votre adresse e-mail a été confirmée avec succès !');
             return true;
         } catch (error) {
             console.error("Échec de la confirmation d'e-mail:", error);
-            toast.error(error.response?.data?.message || 'Le lien est peut-être invalide ou expiré.');
+            toast.error(error.response?.data?.message || 'Le lien est peut-être invalide ou a expiré.');
             return false;
         } finally {
             setLoading(false);
@@ -218,7 +209,6 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    // Connexion externe
     const externalLoginGoogle = async () => {
         setLoading(true);
         try {

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from 'react-router-dom'; // Importations mises à jour pour React Router
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
-import useAuth from '../../hooks/useAuth'; // Assurez-vous que le chemin est correct
+import useAuth from '../../hooks/useAuth';
 
 export default function ConfirmEmail() {
     // Récupère les fonctions et les états nécessaires du contexte
@@ -11,34 +11,37 @@ export default function ConfirmEmail() {
     const [searchParams] = useSearchParams();
     const [message, setMessage] = useState("Vérification de votre e-mail en cours...");
     const [isConfirmed, setIsConfirmed] = useState(false);
-    const [email, setEmail] = useState(""); // Nouvel état pour l'email à renvoyer
+    const [email, setEmail] = useState("");
 
     useEffect(() => {
+        // Récupère l'ID de l'utilisateur et le jeton de l'URL
+        const userId = searchParams.get('userId');
         const token = searchParams.get('token');
 
-        if (token) {
+        if (userId && token) {
             const verifyEmail = async () => {
-                const success = await confirmEmail(token);
-                if (success) {
+                try {
+                    // Passe les deux paramètres à la fonction de confirmation
+                    await confirmEmail(userId, token);
                     setMessage("Votre adresse e-mail a été confirmée avec succès !");
                     setIsConfirmed(true);
                     toast.success("Votre e-mail est confirmé ! Vous pouvez vous connecter.", {
                         position: "top-center",
                     });
-                } else {
+                } catch (error) {
                     setMessage("La confirmation de votre e-mail a échoué. Le lien est invalide ou a expiré.");
                     setIsConfirmed(false);
                 }
             };
             verifyEmail();
         } else {
-            setMessage("Lien de confirmation invalide. Le token est manquant.");
+            setMessage("Lien de confirmation invalide. L'ID utilisateur ou le token est manquant.");
         }
     }, [])//confirmEmail, searchParams]);
 
     // Fonction de redirection vers la page de connexion
     const goToLogin = () => {
-        navigate('/login');
+        navigate('/auth/signin');
     };
 
     // Fonction pour gérer l'envoi du nouvel e-mail de confirmation
