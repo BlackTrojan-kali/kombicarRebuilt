@@ -34,7 +34,7 @@ export default function ConfirmEmail() {
         } else {
             setMessage("Lien de confirmation invalide. Le token est manquant.");
         }
-    }, [confirmEmail, searchParams]);
+    }, [])//confirmEmail, searchParams]);
 
     // Fonction de redirection vers la page de connexion
     const goToLogin = () => {

@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
-  faMoneyBillWave, faInfoCircle, faCar, faPlusCircle, faRoute
+  faMoneyBillWave, faInfoCircle, faCar, faPlusCircle, faRoute, faLuggageCart, faBoxOpen
 } from '@fortawesome/free-solid-svg-icons';
 import { Toaster, toast } from 'react-hot-toast';
 import useColorScheme from '../hooks/useColorScheme';
-import useTrips from '../hooks/useTrips';
+import  useTrips  from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
 
@@ -15,7 +15,7 @@ const Publish = () => {
   // Récupération des hooks personnalisés pour le thème, les trajets, les voitures et l'authentification.
   const { theme } = useColorScheme();
   const { createTrip } = useTrips();
-  const { cars, loading: loadingCars, error: carsError, fetchCars } = useCars();
+  const { cars, loading: loadingCars, error: carsError, fetchUserCars } = useCars();
   const { user } = useAuth();
 
   // Utilisation d'un seul objet d'état pour le formulaire pour une meilleure gestion.
@@ -26,8 +26,10 @@ const Publish = () => {
     time: '',
     availableSeats: '',
     pricePerSeat: '',
-    luggageAllowed: false,
-    description: '',
+    isLuggageAllowed: false,
+    luggageSize: '1', // Nouvelle valeur par défaut
+    luggageNumberPerPassenger: '1', // Nouvelle valeur par défaut
+    aditionalInfo: '',
     selectedVehicleId: '',
   });
 
@@ -42,11 +44,10 @@ const Publish = () => {
 
   // Chargement des véhicules de l'utilisateur au montage du composant.
   useEffect(() => {
-    // On ne charge les voitures que si la liste est vide et qu'il n'y a pas d'erreur ou de chargement en cours.
     if (cars.length === 0 && !loadingCars && !carsError) {
-      fetchCars();
+      fetchUserCars();
     }
-  }, [cars, loadingCars, carsError, fetchCars]);
+  }, [cars, loadingCars, carsError, fetchUserCars]);
 
   // Classes Tailwind conditionnelles pour le mode sombre.
   const isDarkMode = theme === 'dark';
@@ -68,26 +69,39 @@ const Publish = () => {
       return;
     }
 
-    // Récupération de l'ID de l'utilisateur.
     const publisherId = user?.id;
     if (!publisherId) {
       toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
       return;
     }
 
+    // Création de l'objet de trajet en respectant la nouvelle structure de l'API
     const newTrip = {
-      departure,
-      destination,
-      date,
-      time,
-      availableSeats: parseInt(availableSeats, 10),
-      pricePerSeat: parseFloat(pricePerSeat),
-      luggageAllowed: tripData.luggageAllowed,
-      description: tripData.description,
-      vehicleId: selectedVehicleId,
-      publisherId,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
+      startArea: {
+        homeTownName: tripData.departure,
+        name: tripData.departure,
+        latitude: 0,
+        longitude: 0,
+        order: 0,
+        type: 0
+      },
+      arivalArea: {
+        homeTownName: tripData.destination,
+        name: tripData.destination,
+        latitude: 0,
+        longitude: 0,
+        order: 0,
+        type: 0
+      },
+      departureDate: `${tripData.date}T${tripData.time}:00.000Z`,
+      vehicleId: parseInt(tripData.selectedVehicleId, 10),
+      placesLeft: parseInt(tripData.availableSeats, 10),
+      pricePerPlace: parseFloat(tripData.pricePerSeat),
+      isLuggageAllowed: tripData.isLuggageAllowed,
+      luggageSize: parseInt(tripData.luggageSize, 10),
+      luggageNumberPerPassenger: parseInt(tripData.luggageNumberPerPassenger, 10),
+      aditionalInfo: tripData.aditionalInfo,
+      stopovers: []
     };
 
     console.log('Données soumises par le formulaire :', newTrip);
@@ -112,8 +126,10 @@ const Publish = () => {
           time: '',
           availableSeats: '',
           pricePerSeat: '',
-          luggageAllowed: false,
-          description: '',
+          isLuggageAllowed: false,
+          luggageSize: '1',
+          luggageNumberPerPassenger: '1',
+          aditionalInfo: '',
           selectedVehicleId: '',
         });
       }
@@ -266,24 +282,62 @@ const Publish = () => {
                   <option value="" disabled>Erreur de chargement des véhicules</option>
                 ) : (
                   cars.map(v => (
-                    <option key={v.id} value={v.id}>{v.marque} {v.modele}</option>
+                    <option key={v.id} value={v.id}>{v.brand} {v.model}</option>
                   ))
                 )}
               </select>
+            </div>
+
+            {/* Champ Taille des Bagages */}
+            <div>
+              <label htmlFor="luggageSize" className={`block text-sm font-medium ${labelColor} mb-1`}>
+                <FontAwesomeIcon icon={faBoxOpen} className="mr-2" />
+                Taille des bagages
+              </label>
+              <select
+                id="luggageSize"
+                name="luggageSize"
+                value={tripData.luggageSize}
+                onChange={handleChange}
+                className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+              >
+                <option value="0">Aucun</option>
+                <option value="1">Petit</option>
+                <option value="2">Moyen</option>
+                <option value="3">Grand</option>
+              </select>
+            </div>
+
+            {/* Champ Nombre de bagages par passager */}
+            <div>
+              <label htmlFor="luggageNumberPerPassenger" className={`block text-sm font-medium ${labelColor} mb-1`}>
+                <FontAwesomeIcon icon={faLuggageCart} className="mr-2" />
+                Bagages par personne
+              </label>
+              <input
+                type="number"
+                id="luggageNumberPerPassenger"
+                name="luggageNumberPerPassenger"
+                value={tripData.luggageNumberPerPassenger}
+                onChange={handleChange}
+                min="0"
+                className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                placeholder="Ex: 1"
+              />
             </div>
 
             {/* Checkbox Bagages Autorisé */}
             <div className="md:col-span-2 flex items-center mt-2">
               <input
                 type="checkbox"
-                id="luggageAllowed"
-                name="luggageAllowed"
-                checked={tripData.luggageAllowed}
+                id="isLuggageAllowed"
+                name="isLuggageAllowed"
+                checked={tripData.isLuggageAllowed}
                 onChange={handleChange}
                 className={`mr-2 h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500
                   ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
               />
-              <label htmlFor="luggageAllowed" className={`text-sm font-medium ${labelColor}`}>
+              <label htmlFor="isLuggageAllowed" className={`text-sm font-medium ${labelColor}`}>
                 <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
                 Bagages acceptés
               </label>
@@ -291,15 +345,15 @@ const Publish = () => {
 
             {/* Champ Description (textarea) */}
             <div className="md:col-span-2">
-              <label htmlFor="description" className={`block text-sm font-medium ${labelColor} mb-1`}>
+              <label htmlFor="aditionalInfo" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
                 Informations supplémentaires (facultatif)
               </label>
               <textarea
-                id="description"
-                name="description"
+                id="aditionalInfo"
+                name="aditionalInfo"
                 rows="3"
-                value={tripData.description}
+                value={tripData.aditionalInfo}
                 onChange={handleChange}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 placeholder="Ex: Je peux vous déposer près du stade..."

@@ -3,20 +3,21 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlusCircle, faEdit, faFileUpload, faCarSide, faTag,
   faChair, faPalette, faIdCard, faShieldAlt, faSpinner,
-  faTrashAlt, faCheckCircle, faTimesCircle
+  faTrashAlt, faCheckCircle, faTimesCircle, faList, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 import useColorScheme from '../../hooks/useColorScheme';
-import useAuth from '../../hooks/useAuth'; // Assurez-vous d'importer useAuth
+import useAuth from '../../hooks/useAuth';
 import useCars from '../../hooks/useCar';
 import CarForm from '../../Components/form/CarForm';
 import Modal from '../../Components/Modals/Modal';
+import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
 
 const MyVehicle = () => {
   const { theme } = useColorScheme();
-  const { user } = useAuth(); // Accès aux informations de l'utilisateur, y compris le statut d'administrateur
-
-  // Utilisez VOTRE useCars hook pour accéder directement au CarContext
+  const { user } = useAuth();
+  
   const { 
     cars, 
     loading, 
@@ -26,20 +27,19 @@ const MyVehicle = () => {
     updateCar, 
     deleteCar, 
     uploadVehicleDocument,
-    updateVehicleVerificationState // Ajoutez la nouvelle fonction d'administration
+    updateVehicleVerificationState
   } = useCars();
-
-  const userCar = cars && cars.length > 0 ? cars[0] : null;
 
   const [documentFile, setDocumentFile] = useState(null);
   const [documentType, setDocumentType] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCarData, setEditingCarData] = useState(null);
+  const [selectedCarId, setSelectedCarId] = useState(null);
 
   useEffect(() => {
     fetchUserCars();
-  }, [])//fetchUserCars]);
+  }, [user])//fetchUserCars]);
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -48,14 +48,16 @@ const MyVehicle = () => {
   const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50';
   const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
+  const swalBg = theme === 'dark' ? '#1F2937' : '#FFFFFF';
+  const swalColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
 
   const openCreateModal = () => {
     setEditingCarData(null);
     setIsModalOpen(true);
   };
 
-  const openEditModal = () => {
-    setEditingCarData(userCar);
+  const openEditModal = (car) => {
+    setEditingCarData(car);
     setIsModalOpen(true);
   };
 
@@ -65,37 +67,32 @@ const MyVehicle = () => {
   };
 
   const handleSaveCar = async (carDataToSave, isEditingMode) => {
-    let success = false;
     if (isEditingMode) {
-      success = await updateCar(carDataToSave.id, carDataToSave);
-      if (success) {
-        toast.success("Véhicule modifié avec succès !");
-      } else {
-        toast.error("Échec de la modification du véhicule.");
-      }
+      await updateCar(carDataToSave.id, carDataToSave);
     } else {
-      success = await createCar(carDataToSave);
-      if (success) {
-        toast.success("Véhicule créé avec succès !");
-      } else {
-        toast.error("Échec de la création du véhicule.");
-      }
+      await createCar(carDataToSave);
     }
-    fetchUserCars();
     closeCarModal();
   };
 
-  const handleDeleteCar = async () => {
-    if (userCar && window.confirm("Êtes-vous sûr de vouloir supprimer votre véhicule ? Cette action est irréversible.")) {
-      const success = await deleteCar(userCar.id);
-      if (success) {
-        toast.success("Véhicule supprimé avec succès !");
-      } else {
-        toast.error("Échec de la suppression du véhicule.");
+  const handleDeleteCar = (carId) => {
+    Swal.fire({
+      title: 'Êtes-vous sûr ?',
+      text: `Vous êtes sur le point de supprimer ce véhicule. Cette action est irréversible !`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DC2626',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Oui, supprimer !',
+      cancelButtonText: 'Annuler',
+      background: swalBg,
+      color: swalColor,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await deleteCar(carId);
       }
-    }
+    });
   };
-
 
   const handleDocumentFileChange = (e) => {
     setDocumentFile(e.target.files[0]);
@@ -107,9 +104,9 @@ const MyVehicle = () => {
 
   const handleUploadDocument = async (e) => {
     e.preventDefault();
-    if (!userCar) {
-      toast.error('Veuillez d\'abord enregistrer votre véhicule.');
-      return;
+    if (!selectedCarId) {
+        toast.error('Veuillez sélectionner un véhicule pour télécharger le document.');
+        return;
     }
     if (!documentFile || !documentType) {
       toast.error('Veuillez sélectionner un type de document et un fichier.');
@@ -117,38 +114,39 @@ const MyVehicle = () => {
     }
 
     setIsUploading(true);
-    const success = await uploadVehicleDocument(documentType, userCar.id, documentFile);
-    if (success) {
-      setDocumentFile(null);
-      setDocumentType('');
-      toast.success("Document téléversé avec succès !");
-    } else {
-      toast.error("Échec du téléversement du document.");
-    }
+    await uploadVehicleDocument(documentType, selectedCarId, documentFile);
     setIsUploading(false);
+    setDocumentFile(null);
+    setDocumentType('');
+    setSelectedCarId(null);
   };
 
-  // Nouvelle fonction pour l'administration
-  const handleUpdateVerificationState = async () => {
-    if (!userCar) return;
-    const isConfirmed = window.confirm(`Êtes-vous sûr de vouloir ${userCar.isVerified ? 'annuler la vérification de' : 'vérifier'} ce véhicule ?`);
-    if (isConfirmed) {
-      await updateVehicleVerificationState(userCar.id, !userCar.isVerified);
-    }
+  const handleUpdateVerificationState = (carId, isVerified) => {
+    Swal.fire({
+      title: 'Confirmer l\'action',
+      text: `Êtes-vous sûr de vouloir ${isVerified ? 'annuler la vérification de' : 'vérifier'} ce véhicule ?`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: isVerified ? '#DC2626' : '#22C55E',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: isVerified ? 'Oui, annuler' : 'Oui, vérifier',
+      cancelButtonText: 'Annuler',
+      background: swalBg,
+      color: swalColor,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await updateVehicleVerificationState(carId, !isVerified);
+      }
+    });
   };
 
-  if (loading) {
+  if (loading && cars.length === 0) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
-        <p className="text-xl">Chargement de votre véhicule...</p>
-      </div>
-    );
-  }
-
-  if (error && !userCar) {
-    return (
-      <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
-        <p className="text-xl text-red-500">Erreur: {error.message || "Impossible de charger votre véhicule."}</p>
+        <p className="text-xl">
+          <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+          Chargement de vos véhicules...
+        </p>
       </div>
     );
   }
@@ -156,173 +154,208 @@ const MyVehicle = () => {
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
       <Toaster />
-      <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <h1 className={`text-4xl font-extrabold ${textColorPrimary} text-center mb-8`}>
-          Gérer Mon Véhicule 🚗
-        </h1>
-
-        {!userCar ? (
-          <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor} text-center`}>
-            <p className={`${textColorSecondary} text-lg mb-6`}>
-              Vous n'avez pas encore de véhicule enregistré. Ajoutez-en un maintenant !
-            </p>
+      <main className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className="flex justify-between items-center mb-8">
+            <h1 className={`text-4xl font-extrabold ${textColorPrimary}`}>
+            Gérer Mes Véhicules 🚗
+            </h1>
             <button
-              onClick={openCreateModal}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center mx-auto"
+                onClick={openCreateModal}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center"
             >
-              <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
-              Ajouter Mon Véhicule
+                <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
+                Ajouter un Véhicule
             </button>
-          </div>
-        ) : (
-          <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-              <h2 className={`text-3xl font-bold ${textColorPrimary}`}>
-                <FontAwesomeIcon icon={faCarSide} className="mr-3 text-blue-500" />
-                {userCar.brand} {userCar.model}
-              </h2>
-              <div className="flex space-x-3">
-                <button
-                  onClick={openEditModal}
-                  className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center"
-                  title="Modifier le véhicule"
-                >
-                  <FontAwesomeIcon icon={faEdit} className="mr-2 hidden sm:inline" /> Modifier
-                </button>
-                <button
-                  onClick={handleDeleteCar}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center"
-                  title="Supprimer le véhicule"
-                >
-                  <FontAwesomeIcon icon={faTrashAlt} className="mr-2 hidden sm:inline" /> Supprimer
-                </button>
-              </div>
-            </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faTag} className={`mr-3 ${textColorSecondary}`} />
-                <p><strong className={textColorPrimary}>Marque:</strong> {userCar.brand}</p>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faCarSide} className={`mr-3 ${textColorSecondary}`} />
-                <p><strong className={textColorPrimary}>Modèle:</strong> {userCar.model}</p>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faChair} className={`mr-3 ${textColorSecondary}`} />
-                <p><strong className={textColorPrimary}>Places:</strong> {userCar.numberPlaces}</p>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faPalette} className={`mr-3 ${textColorSecondary}`} />
-                <p><strong className={textColorPrimary}>Couleur:</strong> {userCar.color}</p>
-              </div>
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faIdCard} className={`mr-3 ${textColorSecondary}`} />
-                <p><strong className={textColorPrimary}>Immatriculation:</strong> {userCar.registrationCode}</p>
-              </div>
-              <div className="flex items-center">
-                {userCar.isVerified ? (
-                  <FontAwesomeIcon icon={faCheckCircle} className="mr-3 text-green-500" />
-                ) : (
-                  <FontAwesomeIcon icon={faTimesCircle} className="mr-3 text-red-500" />
-                )}
-                <p><strong className={textColorPrimary}>Statut:</strong> {userCar.isVerified ? 'Vérifié' : 'Non Vérifié'}</p>
-              </div>
+        {cars.length === 0 ? (
+            <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor} text-center`}>
+                <p className={`${textColorSecondary} text-lg mb-4`}>
+                Vous n'avez pas encore de véhicule enregistré.
+                </p>
+                <button
+                onClick={openCreateModal}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center mx-auto"
+                >
+                <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
+                Ajouter Mon Premier Véhicule
+                </button>
             </div>
-          </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {cars.map(car => (
+                    <div key={car.id} className={`${cardBg} rounded-2xl shadow-xl p-6 border ${borderColor}`}>
+                        <div className="flex justify-between items-start mb-4">
+                            <h2 className={`text-2xl font-bold ${textColorPrimary}`}>
+                                <FontAwesomeIcon icon={faCarSide} className="mr-3 text-blue-500" />
+                                {car.brand} {car.model}
+                            </h2>
+                            <div className="flex space-x-2">
+                                <Link
+                                    to={`/my-vehicles/documents/${car.id}`}
+                                    className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow-sm transition-colors duration-200"
+                                    title="Voir les documents"
+                                >
+                                    <FontAwesomeIcon icon={faFileAlt} />
+                                </Link>
+                                <button
+                                    onClick={() => openEditModal(car)}
+                                    className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md shadow-sm transition-colors duration-200"
+                                    title="Modifier"
+                                >
+                                    <FontAwesomeIcon icon={faEdit} />
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteCar(car.id)}
+                                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-sm transition-colors duration-200"
+                                    title="Supprimer"
+                                >
+                                    <FontAwesomeIcon icon={faTrashAlt} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="text-sm">
+                            <p className="flex items-center mb-1">
+                                <FontAwesomeIcon icon={faIdCard} className={`mr-2 ${textColorSecondary}`} />
+                                <strong className={textColorPrimary}>Immatriculation:</strong> {car.registrationCode}
+                            </p>
+                            <p className="flex items-center mb-1">
+                                <FontAwesomeIcon icon={faPalette} className={`mr-2 ${textColorSecondary}`} />
+                                <strong className={textColorPrimary}>Couleur:</strong> {car.color}
+                            </p>
+                            <p className="flex items-center mb-1">
+                                <FontAwesomeIcon icon={faChair} className={`mr-2 ${textColorSecondary}`} />
+                                <strong className={textColorPrimary}>Places:</strong> {car.numberPlaces}
+                            </p>
+                            <p className="flex items-center mb-1">
+                                <FontAwesomeIcon icon={faList} className={`mr-2 ${textColorSecondary}`} />
+                                <strong className={textColorPrimary}>Type:</strong> {car.vehiculeType}
+                            </p>
+                            <div className="flex items-center mb-1">
+                                {car.airConditionned ? (
+                                    <FontAwesomeIcon icon={faCheckCircle} className="mr-2 text-green-500" />
+                                ) : (
+                                    <FontAwesomeIcon icon={faTimesCircle} className="mr-2 text-red-500" />
+                                )}
+                                <p><strong className={textColorPrimary}>Climatisation:</strong> {car.airConditionned ? 'Oui' : 'Non'}</p>
+                            </div>
+                            <div className="flex items-center">
+                                {car.isVerified ? (
+                                    <FontAwesomeIcon icon={faCheckCircle} className="mr-2 text-green-500" />
+                                ) : (
+                                    <FontAwesomeIcon icon={faTimesCircle} className="mr-2 text-red-500" />
+                                )}
+                                <p><strong className={textColorPrimary}>Statut:</strong> {car.isVerified ? 'Vérifié' : 'Non Vérifié'}</p>
+                            </div>
+                            
+                            {/* --- Section Admin par véhicule --- */}
+                            {user?.isAdmin && (
+                                <div className="mt-4 pt-4 border-t border-dashed border-gray-600">
+                                    <h3 className={`text-base font-semibold ${textColorPrimary} mb-2 flex items-center`}>
+                                        <FontAwesomeIcon icon={faShieldAlt} className='mr-2 text-red-500' />
+                                        Admin
+                                    </h3>
+                                    <button
+                                        onClick={() => handleUpdateVerificationState(car.id, car.isVerified)}
+                                        className={`w-full py-2 font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center justify-center text-sm ${
+                                        car.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
+                                        } text-white`}
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                        <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                                        ) : (
+                                        <>
+                                            <FontAwesomeIcon icon={car.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
+                                            {car.isVerified ? 'Annuler la Vérification' : 'Marquer comme Vérifié'}
+                                        </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         )}
 
-        {/* --- Section Panneau d'Administration (Visible uniquement pour les admins) --- */}
-        {user?.isAdmin && userCar && (
+        {/* --- Section Téléchargement de Documents (référencée à un véhicule sélectionné) --- */}
+        {cars.length > 0 && (
           <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
             <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-              <FontAwesomeIcon icon={faShieldAlt} className='mr-2 text-red-500' />
-              Panneau d'Administration
+              <FontAwesomeIcon icon={faFileUpload} className='mr-2 text-green-500' />
+              Télécharger les Documents du Véhicule
             </h2>
-            <div className="flex items-center space-x-4">
-              <p className={`${textColorSecondary} text-lg font-semibold`}>
-                Statut de Vérification du Véhicule :
-              </p>
-              <button
-                onClick={handleUpdateVerificationState}
-                className={`px-4 py-2 font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center ${
-                  userCar.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-                disabled={loading}
-              >
-                {loading ? (
-                  <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={userCar.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
-                    {userCar.isVerified ? 'Annuler la Vérification' : 'Marquer comme Vérifié'}
-                  </>
-                )}
-              </button>
-            </div>
+            <form onSubmit={handleUploadDocument} className="space-y-4">
+                <div>
+                    <label htmlFor="selectCar" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>
+                        Sélectionner un Véhicule :
+                    </label>
+                    <select
+                        id="selectCar"
+                        value={selectedCarId || ''}
+                        onChange={(e) => setSelectedCarId(e.target.value)}
+                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        required
+                    >
+                        <option value="">Sélectionner un véhicule</option>
+                        {cars.map(car => (
+                            <option key={car.id} value={car.id}>
+                                {car.brand} {car.model} ({car.registrationCode})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="documentType" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Type de Document :</label>
+                    <select
+                        id="documentType"
+                        value={documentType}
+                        onChange={handleDocumentTypeChange}
+                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        required
+                    >
+                        <option value="">Sélectionner un type</option>
+                        <option value="CarteGrise">Carte Grise</option>
+                        <option value="Assurance">Attestation d'Assurance</option>
+                        <option value="ControleTechnique">Contrôle Technique</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="documentFile" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Fichier :</label>
+                    <input
+                        type="file"
+                        id="documentFile"
+                        onChange={handleDocumentFileChange}
+                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100`}
+                        required
+                    />
+                </div>
+                <button
+                    type="submit"
+                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200 ${
+                        isUploading || !selectedCarId || !documentFile || !documentType
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white shadow-md'
+                    } flex items-center justify-center`}
+                    disabled={isUploading || !selectedCarId || !documentFile || !documentType}
+                >
+                    {isUploading ? (
+                        <>
+                            <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                            Téléchargement...
+                        </>
+                    ) : (
+                        <>
+                            <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
+                            Télécharger le Document
+                        </>
+                    )}
+                </button>
+            </form>
           </div>
         )}
-
-        {/* --- Section Téléchargement de Documents --- */}
-        <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-          <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-            <FontAwesomeIcon icon={faFileUpload} className='mr-2 text-green-500' />
-            Télécharger les Documents du Véhicule
-          </h2>
-          {!userCar && (
-            <p className={`${textColorSecondary} mb-4`}>Veuillez enregistrer votre véhicule avant de pouvoir télécharger des documents.</p>
-          )}
-          <form onSubmit={handleUploadDocument} className="space-y-4" disabled={!userCar}>
-            <div>
-              <label htmlFor="documentType" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Type de Document :</label>
-              <select
-                id="documentType"
-                value={documentType}
-                onChange={handleDocumentTypeChange}
-                className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                required
-                disabled={!userCar || isUploading}
-              >
-                <option value="">Sélectionner un type</option>
-                <option value="CarteGrise">Carte Grise</option>
-                <option value="Assurance">Attestation d'Assurance</option>
-                <option value="ControleTechnique">Contrôle Technique</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="documentFile" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Fichier :</label>
-              <input
-                type="file"
-                id="documentFile"
-                onChange={handleDocumentFileChange}
-                className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100`}
-                required
-                disabled={!userCar || isUploading}
-              />
-            </div>
-            <button
-              type="submit"
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200 ${
-                !userCar || isUploading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700 text-white shadow-md'
-              } flex items-center justify-center`}
-              disabled={!userCar || isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
-                  Téléchargement...
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                  Télécharger le Document
-                </>
-              )}
-            </button>
-          </form>
-        </div>
       </main>
 
       {/* La Modal qui contient le CarForm */}
@@ -342,9 +375,9 @@ const MyVehicle = () => {
             </button>
             <button
               type="submit"
-              form="car-form" // Lier au formulaire par son ID
+              form="car-form"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              disabled={loading} // Utilisez le loading directement du useCars hook
+              disabled={loading}
             >
               {loading ? (
                 <>

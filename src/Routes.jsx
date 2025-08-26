@@ -11,6 +11,7 @@ import TripDetail from "./Pages/TripDetail"
 import Profile from "./Pages/Client/Profile"
 import MyVehicle from "./Pages/Client/Vehicule" 
 import UserWallet from "./Pages/Client/UserWallet"
+import VehiculeDoc from "./Pages/Client/VehiculeDoc" // Import du nouveau composant
 
 import DashboardLayout from "./Layouts/DashboardLayout"
 import Dashboard from "./Pages/Dashboard/Dashboard"
@@ -69,6 +70,11 @@ const Routes = () => {
         {
           path:"profile/car", 
           element:<MyVehicle/>
+        },
+        // Ajout de la nouvelle route pour les documents de véhicule
+        {
+          path:"profile/car/documents/:carId",
+          element:<VehiculeDoc/>
         },
         {
           path:"profile/wallet", 

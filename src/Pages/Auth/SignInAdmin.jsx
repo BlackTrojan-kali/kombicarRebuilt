@@ -7,10 +7,9 @@ import { Toaster } from 'react-hot-toast'; // Importez Toaster pour afficher les
 const SignInAdmin = () => {
   // Hook pour la navigation après connexion
   const navigate = useNavigate();
-
   // Utilisation du hook useAuth pour accéder aux fonctions du contexte
-  const { loginAdmin, loginAdminConfirmCode, loading } = useAuth();
-  
+  const { user,loginAdmin, loginAdminConfirmCode, loading } = useAuth();
+ 
   // États pour les champs du formulaire.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

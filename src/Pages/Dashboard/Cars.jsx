@@ -10,7 +10,6 @@ import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
 
-// Importez votre composant CarFormModal
 import CarFormModal from '../../Components/Modals/CreateCarModal';
 import useCars from '../../hooks/useCar';
 
@@ -37,22 +36,42 @@ createTheme('darkTheme', {
 const Cars = () => {
   const { theme } = useColorScheme();
    
-  // Utilisation du contexte pour récupérer les données et les fonctions
   const { 
-    cars, 
-    loading, 
-    fetchCars, 
+    adminCars, 
+    adminCarPagination,
+    isLoadingAdminCars,
+    adminCarListError,
+    fetchAdminCars,
     deleteCar, 
     createCar, 
     updateCar,
-    updateVehicleVerificationState // Ajout de la nouvelle fonction
+    updateVehicleVerificationState
   } = useCars();
+
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(10); // L'API ne gère pas perPage pour le moment, mais on garde l'état
+
+  // Charge les véhicules de l'admin au montage et au changement de page
+  useEffect(() => {
+    fetchAdminCars(currentPage);
+  }, [])//currentPage, fetchAdminCars]);
 
   useEffect(() => {
-    fetchCars();
-  }, [])//fetchCars]);
+    if (adminCarListError) {
+      toast.error(adminCarListError);
+    }
+  }, [])//adminCarListError]);
+
+  const handlePageChange = page => {
+    setCurrentPage(page);
+  };
+
+  const handlePerRowsChange = (newPerPage, page) => {
+    setPerPage(newPerPage);
+    setCurrentPage(page);
+  };
 
   const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => {
     Swal.fire({
@@ -78,7 +97,6 @@ const Cars = () => {
     });
   };
 
-  // --- Nouvelle fonction pour gérer la vérification ---
   const handleToggleVerification = (vehicle) => {
     const newVerificationState = !vehicle.isVerified;
     const confirmText = newVerificationState 
@@ -240,7 +258,6 @@ const Cars = () => {
       },
       minWidth: '120px',
     },
-    // Nouvelle colonne pour la gestion de la vérification
     {
       name: 'Vérification',
       cell: row => (
@@ -317,9 +334,13 @@ const Cars = () => {
         <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Parc Automobile</h2>
         <DataTable
           columns={columns}
-          data={cars}
-          progressPending={loading}
+          data={adminCars}
+          progressPending={isLoadingAdminCars}
           pagination
+          paginationServer
+          paginationTotalRows={adminCarPagination.totalCount}
+          onChangeRowsPerPage={handlePerRowsChange}
+          onChangePage={handlePageChange}
           highlightOnHover
           pointerOnHover
           responsive
@@ -344,12 +365,7 @@ const Cars = () => {
         />
       </div>
 
-      <CarFormModal
-        isOpen={isFormModalOpen}
-        onClose={handleCloseFormModal}
-        onSaveCar={handleSaveCar}
-        initialCarData={carToEdit}
-      />
+    
     </div>
   );
 };

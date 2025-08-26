@@ -7,9 +7,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
 export default function Signup() {
-  // We've added externalLoginGoogle to the destructured object from useAuth
   const { register, externalLoginGoogle, loading } = useAuth();
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -142,7 +140,6 @@ export default function Signup() {
     }));
   };
   
-  // This function handles the Google sign-up process
   const handleGoogleLogin = async () => {
     const googleLoginPromise = externalLoginGoogle();
     
@@ -156,7 +153,6 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation des champs requis
     if (!formData.firstName || !formData.lastName || !formData.password || !formData.country) {
       toast.error("Veuillez remplir tous les champs obligatoires.", {
         position: "top-right",
@@ -171,18 +167,18 @@ export default function Signup() {
         return;
       }
 
-    // Création de l'objet de données à envoyer, correspondant à la structure demandée
+    // Mise à jour de l'objet pour inclure phoneNumber
     const dataToSend = {
       email: formData.email,
       password: formData.password,
       firstName: formData.firstName,
       lastName: formData.lastName,
+      phoneNumber: formData.phoneNumber, // Ajout du numéro de téléphone
       country: parseInt(formData.country, 10),
     };
 
     console.log("Données de l'utilisateur à envoyer :", dataToSend);
 
-    // Appel de la fonction register du hook useAuth
     await register(dataToSend);
   };
 
@@ -194,8 +190,6 @@ export default function Signup() {
         <div></div>
         <div className="flex justify-center mt-2 extra-linear-gradient-yellow">
           <div className="w-[90vw] md:w-[500px] ">
-
-            {/* This is the new Google signup button */}
             <div className="flex items-center justify-center mb-6">
               <button
                 onClick={handleGoogleLogin}

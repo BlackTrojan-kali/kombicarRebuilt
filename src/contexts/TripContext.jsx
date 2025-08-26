@@ -143,6 +143,7 @@ export function TripContextProvider({ children }) {
         setLoading(true);
         setError(null);
         const { pageIndex, status } = params;
+        console.log(params)
         let url = '/api/trips';
         if (pageIndex !== undefined && status !== undefined) {
             url = `/api/v1/trips/${pageIndex}/${status}`;
@@ -150,8 +151,8 @@ export function TripContextProvider({ children }) {
 
         try {
             const response = await api.get(url, { params });
+        
             const data = response.data;
-
             // Vérifie si la réponse contient une clé 'items' qui est un tableau non vide
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
@@ -173,9 +174,27 @@ export function TripContextProvider({ children }) {
         }
     };
     
-    // Les autres fonctions comme fetchPublicTrips, createTrip, etc., ont été omises pour la clarté,
-    // mais leur logique devrait être mise à jour de manière similaire pour gérer la nouvelle structure.
-    
+    // Ajout de la fonction `createTrip`
+    const createTrip = async (tripData) => {
+        if (authLoading) return;
+        setLoading(true);
+        setError(null);
+        console.log(tripData)
+        try {
+            const response = await api.post('/api/v1/trips', tripData);
+            // Si la publication réussit, vous pouvez rafraîchir la liste des trajets ou gérer la réponse
+            toast.success('Trajet publié avec succès!');
+            return response.data;
+        } catch (err) {
+            console.error("Erreur lors de la création du trajet:", err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de la publication du trajet.');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Exemple d'une autre fonction mise à jour
     const getTripById = async (id) => {
         if (authLoading) return;
@@ -203,7 +222,7 @@ export function TripContextProvider({ children }) {
         error,
         fetchTrips,
         getTripById,
-        // ... autres fonctions
+        createTrip,
         userId: user?.id || null
     };
 
@@ -213,3 +232,4 @@ export function TripContextProvider({ children }) {
         </tripContext.Provider>
     );
 }
+
