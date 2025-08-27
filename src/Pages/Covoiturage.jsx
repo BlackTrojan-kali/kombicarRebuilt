@@ -8,17 +8,15 @@ import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
 
 const Covoiturage = () => {
-  // Hook pour récupérer les données de trajets
-  const { trips, loading, error, fetchTrips } = useTrips();
-  // Hook pour la gestion du thème clair/sombre
+  // 🔄 Remplacement de `fetchTrips` par `listPublicTrips`
+  const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
 
-  // Charger les trajets au montage du composant
+  // 🔄 Appel à listPublicTrips avec un objet vide pour récupérer tous les trajets
   useEffect(() => {
-    fetchTrips();
-  }, []);
+    listPublicTrips({});
+  }, [])//listPublicTrips]);
 
-  // Définition des couleurs dynamiques pour le thème
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
@@ -67,13 +65,12 @@ const Covoiturage = () => {
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
               trips.slice(0, 8).map((tripData) => (
-                <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
+                // 🔄 Correction: Utilisation de la bonne propriété pour le lien et les noms des villes
+                <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
                   <div className={`flex items-center gap-4 ${textColorPrimary}`}>
-                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville de départ */}
-                    <p className='font-semibold'>{tripData.startAreaPointCreateDto?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
                     <FontAwesomeIcon icon={faArrowRight} className={`text-lg ${textColorSecondary} group-hover:translate-x-1 transition-transform`} />
-                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville d'arrivée */}
-                    <p className='font-semibold'>{tripData.arivalAreaPointCreateDto?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{tripData.arrivalArea?.homeTownName || 'N/A'}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className={`text-xl ${textColorSecondary} group-hover:text-green-500 transition-colors`} />
                 </Link>

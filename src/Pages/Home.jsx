@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import HeroSection from '../Components/page-components/HeroSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBoltLightning, faCoins, faNewspaper, faChevronLeft, faChevronRight, faMapLocationDot } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBoltLightning, faCoins, faNewspaper, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import Button from '../Components/ui/Button';
 import TripCard from '../Components/Cards/TripCard';
 import Slider from "react-slick";
@@ -11,7 +11,6 @@ import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
 
-// Composant de flèche personnalisée pour le slider (flèche suivante)
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();
@@ -30,7 +29,6 @@ const NextArrow = (props) => {
   );
 };
 
-// Composant de flèche personnalisée pour le slider (flèche précédente)
 const PrevArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();
@@ -50,12 +48,8 @@ const PrevArrow = (props) => {
 };
 
 const Home = () => {
-  // Hook pour récupérer les données de trajets
-  const { trips, loading, error, fetchTrips } = useTrips();
-  // Hook pour la gestion du thème clair/sombre
+  const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
-
-  // Paramètres du slider pour les trajets populaires
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -69,21 +63,21 @@ const Home = () => {
     autoplaySpeed: 3000,
     responsive: [
       {
-        breakpoint: 1280, // xl breakpoint
+        breakpoint: 1280,
         settings: {
           slidesToShow: 3,
           slidesToScroll: 1,
         }
       },
       {
-        breakpoint: 1024, // lg breakpoint
+        breakpoint: 1024,
         settings: {
           slidesToShow: 2,
           slidesToScroll: 1,
         }
       },
       {
-        breakpoint: 768, // md breakpoint
+        breakpoint: 768,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
@@ -94,21 +88,21 @@ const Home = () => {
     ]
   };
 
-  // Charger les trajets au montage du composant
   useEffect(() => {
-    fetchTrips();
-  }, []);
+    listPublicTrips({
+      page: 1,
+      tripStatus: 3, // "Published" status
+        });
+  }, [])//listPublicTrips]);
 
-  // Définition des couleurs dynamiques pour la page
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const paragraphColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
 
-
   return (
     <div className={`${pageBgColor} ${textColor} transition-colors duration-300`}>
-      <HeroSection label={"bienvenue sur kombicar"}/>
+      <HeroSection label={"bienvenue sur kombicar"} />
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 mt-[250px] lg:mt-[100px]'>
         {/* ==================================== */}
@@ -194,36 +188,25 @@ const Home = () => {
         <div className='max-w-7xl mx-auto'>
           <h3 className='text-white font-bold text-3xl sm:text-4xl mb-10'>Découvrez les Trajets Fréquents</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-            { loading ? (
+            {loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
             ) : trips.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
-              // Affiche les 8 premiers trajets
-              trips.slice(0, 8).map((tripData) => (
-                <Link to={`/trip-detail/${tripData.id}`} key={tripData.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
+              // Utilise la bonne structure de données
+              trips.map((tripData) => (
+                <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
                   <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
-                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville de départ */}
-                    <p className='font-semibold'>{tripData.startAreaPointCreateDto?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
                     <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform dark:text-gray-400 group-hover:text-white' />
-                    {/* Correction: Utilisation de la bonne propriété pour le nom de la ville d'arrivée */}
-                    <p className='font-semibold'>{tripData.arivalAreaPointCreateDto?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{tripData.arrivalArea?.homeTownName || 'N/A'}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors dark:text-gray-400' />
                 </Link>
               ))
             )}
           </div>
-          {/* Bouton "Afficher plus" conditionnel */}
-          {!loading && !error && trips.length > 8 && (
-            <div className="text-center mt-10">
-              <Link to="/results">
-                <Button className='px-8 py-3 rounded-full bg-white text-emerald-800 font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600'>
-                  Afficher plus de trajets
-                </Button>
-              </Link>
-            </div>
-          )}
+          {/* Le bouton "Afficher plus" n'est plus nécessaire car la liste affichera tous les résultats de la requête. */}
         </div>
       </section>
 
@@ -235,15 +218,14 @@ const Home = () => {
           Explorez nos itinéraires les plus recherchés
         </h2>
         <div className='relative max-w-7xl mx-auto'>
-          { loading ? (
+          {loading ? (
             <p className="text-gray-600 dark:text-gray-400">Chargement des trajets...</p>
           ) : trips.length === 0 ? (
             <p className="text-gray-600 dark:text-gray-400">Aucune donnée trouvée.</p>
           ) : (
-            // Le Slider ne s'affiche que s'il y a des trajets
             <Slider {...sliderSettings}>
               {trips.map((tripData) => (
-                <div key={tripData.id} className="px-3">
+                <div key={tripData.trip.id} className="px-3">
                   <TripCard trip={tripData} />
                 </div>
               ))}

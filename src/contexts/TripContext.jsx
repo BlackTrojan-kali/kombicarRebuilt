@@ -6,12 +6,11 @@ import useAuth from "../hooks/useAuth";
 export const tripContext = createContext({});
 
 export function TripContextProvider({ children }) {
+    const { user, loading: authLoading } = useAuth();
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { user, loading: authLoading } = useAuth();
 
-    // Données de trajets fictives mises à jour pour correspondre à la nouvelle structure de l'API
     const mockApiResponse = {
         items: [
             {
@@ -24,7 +23,7 @@ export function TripContextProvider({ children }) {
                     placesLeft: 3,
                     pricePerPlace: 5000,
                     authorizedLuggages: true,
-                    luggageSize: 1, // small
+                    luggageSize: 1,
                     luggageNumberPerPassenger: 1,
                     publishingDate: "2024-08-07T10:00:00Z",
                     aditionalInfos: "Trajet avec une pause de 30 minutes à mi-chemin.",
@@ -39,7 +38,7 @@ export function TripContextProvider({ children }) {
                     isVerified: true,
                     airConditionned: true,
                     registrationCode: "CM-123-ABC",
-                    type: 0 // Sedan
+                    type: 0
                 },
                 departureArea: {
                     id: 1,
@@ -87,7 +86,7 @@ export function TripContextProvider({ children }) {
                     placesLeft: 1,
                     pricePerPlace: 7500,
                     authorizedLuggages: true,
-                    luggageSize: 0, // none
+                    luggageSize: 0,
                     luggageNumberPerPassenger: 0,
                     publishingDate: "2024-08-07T11:00:00Z",
                     aditionalInfos: "Départ matinal, parfait pour les lève-tôt.",
@@ -102,7 +101,7 @@ export function TripContextProvider({ children }) {
                     isVerified: true,
                     airConditionned: true,
                     registrationCode: "CM-456-DEF",
-                    type: 1 // SUV
+                    type: 1
                 },
                 departureArea: {
                     id: 4,
@@ -137,14 +136,13 @@ export function TripContextProvider({ children }) {
         hasPreviousPage: false,
     };
 
-    // Fonction pour récupérer tous les trajets d'un utilisateur
     const fetchTrips = async (params = {}) => {
         if (authLoading) return;
         setLoading(true);
         setError(null);
         const { pageIndex, status } = params;
         console.log(params)
-        let url = '/api/trips';
+        let url = '/api/v1/trips';
         if (pageIndex !== undefined && status !== undefined) {
             url = `/api/v1/trips/${pageIndex}/${status}`;
         }
@@ -153,7 +151,6 @@ export function TripContextProvider({ children }) {
             const response = await api.get(url, { params });
         
             const data = response.data;
-            // Vérifie si la réponse contient une clé 'items' qui est un tableau non vide
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
                 toast.success('Trajets chargés avec succès !');
@@ -165,7 +162,6 @@ export function TripContextProvider({ children }) {
         } catch (err) {
             console.error("Erreur lors de la récupération des trajets:", err);
             setError(err);
-            // Utilise les données fictives en cas d'erreur
             setTrips(mockApiResponse.items);
             toast.error(err.response?.data?.message || 'Échec du chargement des trajets. Utilisation de données fictives.');
             return mockApiResponse;
@@ -174,48 +170,101 @@ export function TripContextProvider({ children }) {
         }
     };
     
-    // Ajout de la fonction `createTrip`
-    const createTrip = async (tripData) => {
-        if (authLoading) return;
+    const listPublicTrips = async (searchCriteria) => {
         setLoading(true);
         setError(null);
-        console.log(tripData)
         try {
-            const response = await api.post('/api/v1/trips', tripData);
-            // Si la publication réussit, vous pouvez rafraîchir la liste des trajets ou gérer la réponse
+            const response = await api.post('/api/v1/trips/list-public', searchCriteria);
+            console.log(response.data)
+            const data = response.data;
+            if (data && Array.isArray(data.items) && data.items.length > 0) {
+                setTrips(data);
+                toast.success('Trajets publics trouvés avec succès !');
+            } else {
+                setTrips([]);
+                toast.error('Aucun trajet public ne correspond à vos critères.');
+            }
+            return data;
+        } catch (err) {
+            console.error("Erreur lors de la recherche des trajets publics:", err);
+            setError(err);
+            setTrips([]);
+            toast.error(err.response?.data?.message || 'Échec de la recherche des trajets publics.');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const createTrip = async (tripData) => {
+        if (authLoading) return;
+        if (!user || !user.id) {
+            toast.error("Veuillez vous connecter pour publier un trajet.");
+            return null;
+        }
+
+        setLoading(true);
+        setError(null);
+        
+        const newTripData = { ...tripData, userId: user.id };
+        console.log("Données du trajet à envoyer:", newTripData);
+
+        try {
+            const response = await api.post('/api/v1/trips', newTripData);
             toast.success('Trajet publié avec succès!');
             return response.data;
         } catch (err) {
             console.error("Erreur lors de la création du trajet:", err);
             setError(err);
-            toast.error(err.response?.data?.message || 'Échec de la publication du trajet.');
+            toast.error(err.response?.data?.description || 'Échec de la publication du trajet.');
             throw err;
         } finally {
             setLoading(false);
         }
     };
 
-    // Exemple d'une autre fonction mise à jour
     const getTripById = async (id) => {
-        if (authLoading) return;
         setLoading(true);
         setError(null);
         try {
             const response = await api.get(`/api/v1/trips/${id}`);
+         console.log(response)
             toast.success('Trajet trouvé !');
             return response.data;
         } catch (err) {
             console.error(`Erreur lors de la récupération du trajet ${id}:`, err);
             setError(err);
-            // Recherche le trajet dans les données fictives
-            const tripItem = mockApiResponse.items.find(item => item.trip.id === parseInt(id));
-            return tripItem;
         } finally {
             setLoading(false);
         }
     };
 
-    // Les valeurs fournies par le contexte
+    // 🆕 Nouvelle fonction pour supprimer un trajet
+    const deleteTrip = async (id) => {
+        if (authLoading) return;
+        if (!user || !user.id) {
+            toast.error("Veuillez vous connecter pour supprimer un trajet.");
+            return null;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await api.delete(`/api/v1/trips/${id}`);
+            
+            toast.success('Trajet supprimé avec succès!');
+            return response.data;
+        } catch (err) {
+            console.error(`Erreur lors de la suppression du trajet ${id}:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de la suppression du trajet.');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const contextValue = {
         trips,
         loading,
@@ -223,6 +272,8 @@ export function TripContextProvider({ children }) {
         fetchTrips,
         getTripById,
         createTrip,
+        listPublicTrips, 
+        deleteTrip, // 🆕 Ajout de la nouvelle fonction
         userId: user?.id || null
     };
 
@@ -232,4 +283,3 @@ export function TripContextProvider({ children }) {
         </tripContext.Provider>
     );
 }
-

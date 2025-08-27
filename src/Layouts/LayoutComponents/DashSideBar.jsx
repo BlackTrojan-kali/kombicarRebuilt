@@ -132,9 +132,9 @@ const DashSideBar = () => {
         icon={faRoad}
         title="Trajets"
         sublinks={[
-          { icon: faHourglassHalf, title: "En cours", link: "/admin/trajets" },
-          { icon: faCalendarDay, title: "À venir", link: "/admin/trajets" },
-          { icon: faCheckCircle, title: "Effectuées", link: "/admin/trajets" },
+          { icon: faHourglassHalf, title: "En cours", link: `/admin/trajets/${1}` },
+          { icon: faCalendarDay, title: "À venir", link: `/admin/trajets/${2}` },
+          { icon: faCheckCircle, title: "Effectuées", link: `/admin/trajets/${3}` },
         ]}
       />
 

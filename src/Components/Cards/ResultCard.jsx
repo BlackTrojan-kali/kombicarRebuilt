@@ -1,13 +1,19 @@
-import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faCircle, faStar, faCar, faUsers, faWifi, faTemperatureHigh, faLuggageCart, faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useColorScheme from '../../hooks/useColorScheme';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import 'dayjs/locale/fr';
+
+dayjs.extend(localizedFormat);
+dayjs.locale('fr');
 
 const ResultCard = ({ trip }) => {
   const { theme } = useColorScheme();
-
-  // Fonction utilitaire pour extraire l'heure d'un string ISO 8601
+  console.log(trip)
+  // Fonction utilitaire pour formater l'heure
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -23,68 +29,106 @@ const ResultCard = ({ trip }) => {
   const shadowHover = theme === 'dark' ? 'hover:shadow-lg' : 'hover:shadow-xl';
   const hoverBorderColor = theme === 'dark' ? 'hover:border-green-400' : 'hover:border-green-500';
 
+  // Condition de garde pour s'assurer que les données nécessaires existent
+  if (!trip || !trip.trip || !trip.departureArea || !trip.arrivalArea || !trip.driver || !trip.vehicule) {
+    return null;
+  }
+
+  const { driver, vehicule, trip: tripData } = trip;
+  const driverFullName = `${driver.firstName} ${driver.lastName}`;
+  const driverPhoto = driver.photoUrl || '/default/user-placeholder.jpg';
+  const driverRating = 4; // La notation n'est pas dans le modèle fourni, on utilise un placeholder
+  const vehicleName = `${vehicule.brand} ${vehicule.model}`;
+
   return (
-    // Utilise un lien dynamique pour naviguer vers la page de détails du trajet
-    <Link to={`/trip-detail/${trip.id}`} className="block">
+    <Link to={`/trip-detail/${tripData.id}`} className="block">
       <div className={`relative w-full rounded-xl ${cardBg} ${shadowHover} border ${borderColor}
                       ${hoverBorderColor} transition-all duration-300`}>
 
-        {/* Section Trajet et Heures */}
+        {/* Section 1: Itinéraire et prix */}
         <div className='p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6'>
           <div className='flex items-center w-full sm:w-2/3'>
-            {/* Heure de départ et ville */}
             <div className='flex flex-col items-center mr-4'>
-              <p className={`font-semibold text-lg ${textColorPrimary}`}>
-                {formatTime(trip.departureDate)}
-              </p>
-              <p className={`text-sm ${textColorSecondary}`}>
-                {/* On suppose que le hook useTrips ou la logique parente a simplifié l'objet de trajet */}
-                {trip.startAreaPointCreateDto?.homeTownName || 'N/A'}
-              </p>
+              <p className={`font-semibold text-lg ${textColorPrimary}`}>{formatTime(tripData.departureDate)}</p>
+              <p className={`text-sm ${textColorSecondary}`}>{trip.departureArea.homeTownName || 'N/A'}</p>
             </div>
-
-            {/* Ligne de progression avec cercles */}
             <div className='relative flex-1 h-px bg-gray-300 mx-2 dark:bg-gray-600'>
-              <FontAwesomeIcon
-                icon={faCircle}
-                className='absolute -left-1.5 top-1/2 -translate-y-1/2 text-sm text-green-500 dark:text-green-400'
-              />
-              <FontAwesomeIcon
-                icon={faCircle}
-                className='absolute -right-1.5 top-1/2 -translate-y-1/2 text-sm text-red-500 dark:text-red-400'
-              />
+              <FontAwesomeIcon icon={faCircle} className='absolute -left-1.5 top-1/2 -translate-y-1/2 text-sm text-green-500 dark:text-green-400' />
+              <FontAwesomeIcon icon={faCircle} className='absolute -right-1.5 top-1/2 -translate-y-1/2 text-sm text-red-500 dark:text-red-400' />
             </div>
-
-            {/* Heure d'arrivée et ville */}
             <div className='flex flex-col items-center ml-4'>
-              <p className={`font-semibold text-lg ${textColorPrimary}`}>
-                {/* L'heure d'arrivée n'est pas dans les données, on affiche un placeholder */}
-                {'Heure arrivée'}
-              </p>
-              <p className={`text-sm ${textColorSecondary}`}>
-                {trip.arivalAreaPointCreateDto?.homeTownName || 'N/A'}
-              </p>
+              <p className={`font-semibold text-lg ${textColorPrimary}`}>{'--:--'}</p>
+              <p className={`text-sm ${textColorSecondary}`}>{trip.arrivalArea.homeTownName || 'N/A'}</p>
             </div>
           </div>
-
-          {/* Prix par place */}
           <div className='flex-shrink-0 ml-auto'>
             <h2 className='font-extrabold text-3xl text-green-600 dark:text-green-400'>
-              {trip.pricePerPlace} XAF
+              {tripData.pricePerPlace} XAF
             </h2>
           </div>
         </div>
 
         <hr className={`w-full ${hrColor}`} />
 
-        {/* Section Infos supplémentaires */}
-        {trip.aditionalInfos && (
-          <div className='p-6'>
-            <p className={`text-sm italic ${textColorSecondary}`}>
-              {trip.aditionalInfos}
-            </p>
+        {/* Section 2: Infos du conducteur et du véhicule */}
+        <div className='p-6 flex justify-between items-center flex-wrap gap-4'>
+            {/* Infos du conducteur */}
+            <div className='flex items-center gap-4'>
+                <img src={driverPhoto} alt={driverFullName} className='w-12 h-12 rounded-full object-cover' />
+                <div className='flex flex-col'>
+                    <p className={`font-semibold ${textColorPrimary}`}>{driverFullName}</p>
+                    <div className='flex items-center text-yellow-500 text-xs'>
+                        {/* Rating du conducteur */}
+                        {Array.from({ length: 5 }, (_, i) => (
+                            <FontAwesomeIcon key={i} icon={faStar} className={i < driverRating ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'} />
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Détails du véhicule et places */}
+            <div className='flex items-center gap-4 text-sm'>
+                <div className='flex items-center gap-2'>
+                    <FontAwesomeIcon icon={faCar} className={textColorSecondary} />
+                    <span className={textColorSecondary}>{vehicleName}</span>
+                </div>
+                <div className='flex items-center gap-2'>
+                    <FontAwesomeIcon icon={faUsers} className={textColorSecondary} />
+                    <span className={`font-semibold ${textColorPrimary}`}>{tripData.placesLeft} <span className={textColorSecondary}>places</span></span>
+                </div>
+            </div>
+        </div>
+
+        <hr className={`w-full ${hrColor}`} />
+
+        {/* Section 3: Caractéristiques du trajet */}
+        <div className='p-6 flex flex-wrap justify-between items-center gap-4'>
+          {vehicule.airConditionned && (
+            <div className='flex items-center gap-2 text-sm'>
+              <FontAwesomeIcon icon={faTemperatureHigh} className={`text-blue-500`} />
+              <span className={textColorSecondary}>Climatisé</span>
+            </div>
+          )}
+          {tripData.authorizedLuggages && (
+            <div className='flex items-center gap-2 text-sm'>
+              <FontAwesomeIcon icon={faLuggageCart} className={`text-brown-500`} />
+              <span className={textColorSecondary}>Bagages autorisés</span>
+            </div>
+          )}
+          <div className='flex items-center gap-2 text-sm'>
+            <FontAwesomeIcon icon={faClock} className={`text-purple-500`} />
+            <span className={textColorSecondary}>
+              Publié le {dayjs(tripData.publishingDate).format('L')}
+            </span>
           </div>
-        )}
+          {/* Si vous avez une notation ou d'autres infos sur le véhicule, ajoutez-les ici */}
+          {vehicule.isVerified && (
+            <div className='flex items-center gap-2 text-sm'>
+              <FontAwesomeIcon icon={faStar} className={`text-yellow-500`} />
+              <span className={textColorSecondary}>Véhicule vérifié</span>
+            </div>
+          )}
+        </div>
 
       </div>
     </Link>

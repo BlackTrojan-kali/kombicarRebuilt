@@ -47,7 +47,7 @@ const Publish = () => {
     if (cars.length === 0 && !loadingCars && !carsError) {
       fetchUserCars();
     }
-  }, [cars, loadingCars, carsError, fetchUserCars]);
+  }, [user])//cars, loadingCars, carsError, fetchUserCars]);
 
   // Classes Tailwind conditionnelles pour le mode sombre.
   const isDarkMode = theme === 'dark';

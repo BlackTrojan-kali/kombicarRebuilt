@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import ResultCard from '../Components/Cards/ResultCard'; // Vérifiez le chemin d'accès si nécessaire
+import ResultCard from '../Components/Cards/ResultCard';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarDays, faLocationDot, faUserGroup } from '@fortawesome/free-solid-svg-icons';
-import useTrips from '../hooks/useTrips'; // Utilise le hook pour le contexte de trajets
-import useColorScheme from '../hooks/useColorScheme'; // Utilise le hook pour le thème
+import useTrips from '../hooks/useTrips';
+import useColorScheme from '../hooks/useColorScheme';
+import Button from '../Components/ui/Button';
 
-
+// Composant pour les sections de filtres
 const FilterSection = ({ title, children }) => {
   const { theme } = useColorScheme();
   const sectionBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
@@ -24,10 +25,11 @@ const FilterSection = ({ title, children }) => {
   );
 };
 
+// Barre de recherche intégrée mise à jour pour l'API
 const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
   const [searchForm, setSearchForm] = useState({
-    departure: initialSearchCriteria.departure || '',
-    destination: initialSearchCriteria.destination || '',
+    startAreaCity: initialSearchCriteria.startAreaCity || '',
+    endAreaCity: initialSearchCriteria.endAreaCity || '',
     date: initialSearchCriteria.date ? dayjs(initialSearchCriteria.date) : dayjs(),
     passengers: initialSearchCriteria.passengers || 1,
   });
@@ -36,6 +38,10 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setSearchForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (newValue) => {
+    setSearchForm(prev => ({ ...prev, date: newValue }));
   };
 
   const handleSubmit = (e) => {
@@ -67,9 +73,9 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
             <FontAwesomeIcon icon={faLocationDot} className='text-xl text-blue-500 mr-3' />
             <input
               type="text"
-              name="departure"
+              name="startAreaCity"
               placeholder='Départ'
-              value={searchForm.departure}
+              value={searchForm.startAreaCity}
               onChange={handleInputChange}
               className={`flex-grow outline-none bg-transparent ${placeholderColor} text-lg py-1 ${inputTextColor}`}
               aria-label="Lieu de départ"
@@ -81,9 +87,9 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
             <FontAwesomeIcon icon={faLocationDot} className='text-xl text-green-500 mr-3' />
             <input
               type="text"
-              name="destination"
+              name="endAreaCity"
               placeholder='Destination'
-              value={searchForm.destination}
+              value={searchForm.endAreaCity}
               onChange={handleInputChange}
               className={`flex-grow outline-none bg-transparent ${placeholderColor} text-lg py-1 ${inputTextColor}`}
               aria-label="Lieu de destination"
@@ -96,7 +102,7 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
             <DatePicker
               label="Date"
               value={searchForm.date}
-              onChange={(newValue) => setSearchForm(prev => ({ ...prev, date: newValue }))}
+              onChange={handleDateChange}
               className='flex-grow w-full'
               slotProps={{
                 textField: {
@@ -132,8 +138,6 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
             />
           </div>
         </div>
-
-        {/* Bouton de recherche */}
         <button
           type="submit"
           className='w-full lg:w-32 bg-green-500 hover:bg-green-600 text-white font-bold
@@ -149,91 +153,84 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
 };
 
 
-/**
- * Composant principal de la page de résultats.
- * Récupère les données de trajets via le hook useTrips et gère le filtrage côté client.
- */
 const Results = () => {
-  // Consomme le contexte de trajets pour obtenir les données et l'état
-  const { trips, loading, error, fetchTrips } = useTrips();
-  // Consomme le contexte de thème pour le style dynamique
+  const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
 
-  // État local pour les filtres et les critères de recherche
-  const [filterState, setFilterState] = useState({
-    departure: '',
-    destination: '',
-    date: dayjs().format('YYYY-MM-DD'),
-    passengers: 1,
+  // État local pour les critères de recherche et les filtres, tous unifiés
+  const [searchCriteria, setSearchCriteria] = useState({
+    page: 1,
+    tripStatus: 3, // Par défaut, "Published"
     maxPrice: 10000,
-    departureTimeFilter: '',
-    isClimatise: false,
-    isLuggageIncluded: false,
-    isDriverRated4Plus: false,
-    vehicleType: '',
+    tripDepartureHour: {
+      acceptAllHour: true,
+      startHour: 0,
+      endHour: 0
+    },
+    airConditionned: false,
+    luggageAllowed: false,
+    vehiculeType: 0,
+    notationOfCondutor: 0,
+    startAreaCity: "",
+    endAreaCity: ""
   });
 
-  // Effet pour déclencher la récupération des données au premier chargement du composant
+  // Utilisation de useMemo pour la valeur des champs de recherche
+  const initialSearchCriteria = useMemo(() => ({
+    startAreaCity: searchCriteria.startAreaCity,
+    endAreaCity: searchCriteria.endAreaCity,
+    date: dayjs(),
+    passengers: 1, // Le nombre de passagers n'est pas dans le modèle de l'API, donc on le gère localement si nécessaire.
+  }), []);
+
+  // Effect pour le premier chargement et chaque fois que les critères changent
   useEffect(() => {
-    // Appelle la fonction de contexte pour charger les trajets avec les critères initiaux
-    fetchTrips({
-      departure: filterState.departure,
-      destination: filterState.destination,
-      date: filterState.date,
-      passengers: filterState.passengers
-    });
-  }, []); // Dépend de fetchTrips pour s'assurer qu'il est bien disponible
+    // La fonction listPublicTrips est déjà déja prête à utiliser le modèle de données que vous avez fourni
+    listPublicTrips({page:1,tripStatus:3});
+  }, []);
 
   // Gère la soumission d'une nouvelle recherche depuis la barre de recherche
-  const handleNewSearch = (newSearchCriteria) => {
-    // Met à jour l'état et déclenche une nouvelle récupération des données via le contexte
-    setFilterState(prev => ({
+  const handleNewSearch = (newSearchData) => {
+    setSearchCriteria(prev => ({
       ...prev,
-      ...newSearchCriteria,
+      startAreaCity: newSearchData.startAreaCity,
+      endAreaCity: newSearchData.endAreaCity,
+      // Le back-end gère la date, si la recherche se fait par date, il faudra adapter l'API
     }));
-    fetchTrips(newSearchCriteria);
   };
 
   // Gère le changement des filtres de la barre latérale
   const handleFilterChange = (filterName, value) => {
-    setFilterState(prev => ({
-      ...prev,
-      [filterName]: value,
-    }));
-  };
-
-  // Filtre les trajets en mémoire en fonction des filtres de la barre latérale
-  // useMemo est utilisé pour optimiser le re-filtrage uniquement si les trajets ou les filtres changent
-  const filteredTrips = useMemo(() => {
-    if (!trips) {
-      return [];
+    // Mettre à jour l'état de manière unifiée
+    if (filterName === 'maxPrice') {
+      setSearchCriteria(prev => ({ ...prev, maxPrice: value }));
+    } else if (filterName === 'departureTimeFilter') {
+      let start = 0, end = 0;
+      if (value === 'matin') { start = 6; end = 12; }
+      if (value === 'apres-midi') { start = 12; end = 18; }
+      if (value === 'soir') { start = 18; end = 24; }
+      setSearchCriteria(prev => ({
+        ...prev,
+        tripDepartureHour: {
+          acceptAllHour: value === '',
+          startHour: start,
+          endHour: end
+        }
+      }));
+    } else if (filterName === 'isClimatise') {
+      setSearchCriteria(prev => ({ ...prev, airConditionned: value }));
+    } else if (filterName === 'isLuggageIncluded') {
+      setSearchCriteria(prev => ({ ...prev, luggageAllowed: value }));
+    } else if (filterName === 'isDriverRated4Plus') {
+      setSearchCriteria(prev => ({ ...prev, notationOfCondutor: value ? 4 : 0 }));
+    } else if (filterName === 'vehicleType') {
+      let vehiculeTypeValue = 0;
+      if (value === 'sedan') vehiculeTypeValue = 1;
+      if (value === 'suv') vehiculeTypeValue = 2;
+      if (value === 'van') vehiculeTypeValue = 3;
+      setSearchCriteria(prev => ({ ...prev, vehiculeType: vehiculeTypeValue }));
     }
-
-    return trips.filter(trip => {
-      if (trip.pricePerPlace > filterState.maxPrice) {
-        return false;
-      }
-      if (filterState.departureTimeFilter) {
-        const departureHour = new Date(trip.departureDate).getHours();
-        if (filterState.departureTimeFilter === 'matin' && departureHour >= 12) return false;
-        if (filterState.departureTimeFilter === 'apres-midi' && (departureHour < 12 || departureHour >= 18)) return false;
-        if (filterState.departureTimeFilter === 'soir' && departureHour < 18) return false;
-      }
-      if (filterState.isClimatise && !trip.climatise) {
-        return false;
-      }
-      if (filterState.isLuggageIncluded && !trip.luggageAllowed) {
-        return false;
-      }
-      if (filterState.isDriverRated4Plus && (!trip.chauffeur || trip.chauffeur.stars < 4)) {
-        return false;
-      }
-      if (filterState.vehicleType && (!trip.vehicle || trip.vehicle.type !== filterState.vehicleType)) {
-        return false;
-      }
-      return true;
-    });
-  }, [trips, filterState]);
+  };
 
   // Couleurs dynamiques pour la page
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
@@ -242,22 +239,18 @@ const Results = () => {
   const filterLabelColor = theme === 'dark' ? 'text-gray-200' : 'text-gray-700';
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-white';
   const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
+  const buttonColor = theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600';
 
   return (
     <div className={`${pageBgColor} ${textColorPrimary} transition-colors duration-300 min-h-screen`}>
-
       <div className="mb-12">
-        <IntegratedSearchBar
-          onSearch={handleNewSearch}
-          initialSearchCriteria={filterState}
-        />
+        <IntegratedSearchBar onSearch={handleNewSearch} initialSearchCriteria={initialSearchCriteria} />
       </div>
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-10 max-w-7xl mx-auto'>
         <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center mb-12 ${textColorPrimary}`}>
           Résultats de votre recherche
         </h1>
-
         <div className='flex flex-col md:flex-row gap-8'>
           {/* Barre latérale des filtres */}
           <aside className='w-full md:w-1/4 lg:w-1/5 flex-shrink-0'>
@@ -266,29 +259,30 @@ const Results = () => {
                 <h4 className={`font-semibold ${filterLabelColor} mb-2`}>Prix Max.</h4>
                 <input
                   type="range"
-                  min="1000"
-                  max="10000"
-                  value={filterState.maxPrice}
+                  min="0"
+                  max="50000" // Plage de prix élargie pour plus de flexibilité
+                  step="500"
+                  value={searchCriteria.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-green-500"
                 />
                 <div className={`flex justify-between text-xs ${textColorSecondary} mt-1`}>
-                  <span>1000 XAF</span>
-                  <span>{filterState.maxPrice} XAF</span>
+                  <span>0 XAF</span>
+                  <span>{searchCriteria.maxPrice} XAF</span>
                 </div>
               </div>
 
               <div className="mb-4">
                 <h4 className={`font-semibold ${filterLabelColor} mb-2`}>Heure de Départ</h4>
                 <select
-                  value={filterState.departureTimeFilter}
+                  value={searchCriteria.tripDepartureHour.acceptAllHour ? '' : (searchCriteria.tripDepartureHour.startHour === 6 ? 'matin' : searchCriteria.tripDepartureHour.startHour === 12 ? 'apres-midi' : 'soir')}
                   onChange={(e) => handleFilterChange('departureTimeFilter', e.target.value)}
                   className={`w-full p-2 border ${inputBorder} rounded-md ${inputBg} ${textColorPrimary}`}
                 >
                   <option value="">Toutes</option>
-                  <option value="matin">Matin (avant 12h)</option>
+                  <option value="matin">Matin (6h-12h)</option>
                   <option value="apres-midi">Après-midi (12h-18h)</option>
-                  <option value="soir">Soir (après 18h)</option>
+                  <option value="soir">Soir (18h-24h)</option>
                 </select>
               </div>
 
@@ -297,7 +291,7 @@ const Results = () => {
                 <label className="flex items-center mb-2">
                   <input
                     type="checkbox"
-                    checked={filterState.isClimatise}
+                    checked={searchCriteria.airConditionned}
                     onChange={(e) => handleFilterChange('isClimatise', e.target.checked)}
                     className={`form-checkbox text-green-500 rounded ${inputBg} ${inputBorder}`}
                   />
@@ -306,7 +300,7 @@ const Results = () => {
                 <label className="flex items-center mb-2">
                   <input
                     type="checkbox"
-                    checked={filterState.isLuggageIncluded}
+                    checked={searchCriteria.luggageAllowed}
                     onChange={(e) => handleFilterChange('isLuggageIncluded', e.target.checked)}
                     className={`form-checkbox text-green-500 rounded ${inputBg} ${inputBorder}`}
                   />
@@ -315,7 +309,7 @@ const Results = () => {
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={filterState.isDriverRated4Plus}
+                    checked={searchCriteria.notationOfCondutor >= 4}
                     onChange={(e) => handleFilterChange('isDriverRated4Plus', e.target.checked)}
                     className={`form-checkbox text-green-500 rounded ${inputBg} ${inputBorder}`}
                   />
@@ -325,39 +319,39 @@ const Results = () => {
             </FilterSection>
 
             <FilterSection title="Type de Véhicule">
-                <label className="flex items-center mb-2">
-                    <input
-                      type="radio"
-                      name="vehicle_type"
-                      value="sedan"
-                      checked={filterState.vehicleType === 'sedan'}
-                      onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
-                      className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
-                    />
-                    <span className={`ml-2 ${filterLabelColor}`}>Berline</span>
-                </label>
-                <label className="flex items-center mb-2">
-                    <input
-                      type="radio"
-                      name="vehicle_type"
-                      value="suv"
-                      checked={filterState.vehicleType === 'suv'}
-                      onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
-                      className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
-                    />
-                    <span className={`ml-2 ${filterLabelColor}`}>SUV</span>
-                </label>
-                <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="vehicle_type"
-                      value="van"
-                      checked={filterState.vehicleType === 'van'}
-                      onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
-                      className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
-                    />
-                    <span className={`ml-2 ${filterLabelColor}`}>Van / Minibus</span>
-                </label>
+              <label className="flex items-center mb-2">
+                <input
+                  type="radio"
+                  name="vehicle_type"
+                  value="1" // Correspond à la valeur 1 dans l'API pour Berline
+                  checked={searchCriteria.vehiculeType === 1}
+                  onChange={(e) => handleFilterChange('vehicleType', 'sedan')}
+                  className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
+                />
+                <span className={`ml-2 ${filterLabelColor}`}>Berline</span>
+              </label>
+              <label className="flex items-center mb-2">
+                <input
+                  type="radio"
+                  name="vehicle_type"
+                  value="2" // Correspond à 2 pour SUV
+                  checked={searchCriteria.vehiculeType === 2}
+                  onChange={(e) => handleFilterChange('vehicleType', 'suv')}
+                  className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
+                />
+                <span className={`ml-2 ${filterLabelColor}`}>SUV</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="vehicle_type"
+                  value="3" // Correspond à 3 pour Van
+                  checked={searchCriteria.vehiculeType === 3}
+                  onChange={(e) => handleFilterChange('vehicleType', 'van')}
+                  className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
+                />
+                <span className={`ml-2 ${filterLabelColor}`}>Van / Minibus</span>
+              </label>
             </FilterSection>
           </aside>
 
@@ -367,10 +361,10 @@ const Results = () => {
               <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                 <p className={`${textColorSecondary}`}>Chargement des trajets...</p>
               </div>
-            ) : filteredTrips.length > 0 ? (
+            ) : trips? (
               <div className='flex flex-col gap-6'>
-                {filteredTrips.map((trip) => (
-                  <ResultCard key={trip.id} trip={trip} />
+                {trips.map((trip) => (
+                  <ResultCard key={trip.trip.id} trip={trip} />
                 ))}
               </div>
             ) : (

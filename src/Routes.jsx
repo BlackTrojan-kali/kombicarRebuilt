@@ -140,7 +140,7 @@ const Routes = () => {
         element:<Utilisateurs/>
       },
       {
-        path:"trajets",
+        path:"trajets/:type",
         element:<Trajets/>
       },
       {

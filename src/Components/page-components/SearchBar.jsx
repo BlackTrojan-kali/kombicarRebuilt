@@ -1,9 +1,9 @@
 import { faCalendarDays, faLocationDot, faUserGroup } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importez useNavigate
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useTrips from '../../hooks/useTrips';
-import toast from 'react-hot-toast'; // Pour les notifications
+import toast from 'react-hot-toast';
 
 // Importations pour DatePicker de MUI
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -12,82 +12,85 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
 const SearchBar = () => {
-  // Utilisez le contexte pour accéder aux trajets et à l'état de chargement
-  const { trips, loading, error, fetchTrips, setSearchResults } = useTrips();
-  const navigate = useNavigate(); // Hook pour la navigation
+  // 🔄 Utilisation de listPublicTrips au lieu de fetchTrips
+  const { loading, error, listPublicTrips, setSearchResults } = useTrips();
+  const navigate = useNavigate();
 
   const [departure, setDeparture] = useState('');
   const [destination, setDestination] = useState('');
-  const [date, setDate] = useState(dayjs()); // Initialise avec la date actuelle
+  const [date, setDate] = useState(dayjs());
   const [passengers, setPassengers] = useState(1);
   const [availableDepartures, setAvailableDepartures] = useState([]);
   const [availableDestinations, setAvailableDestinations] = useState([]);
 
-  // Fonction pour extraire et trier les villes uniques
-  const getUniqueCities = (trips, type) => {
+  // Fonction pour extraire et trier les villes uniques à partir de la nouvelle structure de données
+  const getUniqueCities = (tripsData, type) => {
     const cities = new Set();
-    trips.forEach(trip => {
+    tripsData.forEach(tripData => {
+      // 🔄 Correction: Utilisation des nouvelles propriétés
       if (type === 'departure') {
-        cities.add(trip.depart);
+        cities.add(tripData.departureArea.homeTownName);
       } else {
-        cities.add(trip.arrive);
+        cities.add(tripData.arrivalArea.homeTownName);
       }
     });
     return Array.from(cities).sort();
   };
 
-  // Charge les trajets au premier rendu et met à jour les listes de villes
-  useEffect(() => {
-    // Si les trajets ne sont pas encore chargés, on les récupère.
-    if (trips.length === 0 && !loading && !error) {
-        fetchTrips();
-    }
-  }, [fetchTrips, trips, loading, error]);
+  // 🔄 Chargement de la liste complète pour les dropdowns une seule fois
+ /* useEffect(() => {
+    const loadAllTrips = async () => {
+      try {
+        const { data } = await listPublicTrips({});
+        if (data && data.trips) {
+          setAvailableDepartures(getUniqueCities(data.trips, 'departure'));
+          setAvailableDestinations(getUniqueCities(data.trips, 'destination'));
+        }
+      } catch (err) {
+        console.error("Failed to load all trips for dropdowns:", err);
+        // Le toast est déjà géré par le contexte en cas d'erreur
+      }
+    };
+    loadAllTrips();
+  }, [])*///listPublicTrips]);
 
-  useEffect(() => {
-    if (trips.length > 0) {
-      setAvailableDepartures(getUniqueCities(trips, 'departure'));
-      setAvailableDestinations(getUniqueCities(trips, 'destination'));
-    }
-  }, [trips]);
 
-
-  // Fonction de recherche
-  const handleSearch = (e) => {
+  // Fonction de recherche mise à jour pour utiliser l'API
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (!departure || !destination) {
       toast.error('Veuillez sélectionner un départ et une destination.');
       return;
     }
     
-    // Filtre les trajets déjà chargés en mémoire
-    const filteredTrips = trips.filter(trip => {
-      const tripDate = dayjs(trip.date_depart);
-      const isSameDate = tripDate.isSame(date, 'day');
-      // Pour les passagers, on suppose une propriété `seats` sur le trajet
-      const hasEnoughSeats = (trip.seats || 4) >= passengers;
-      
-      return (
-        trip.depart.toLowerCase() === departure.toLowerCase() &&
-        trip.arrive.toLowerCase() === destination.toLowerCase() &&
-        isSameDate &&
-        hasEnoughSeats
-      );
-    });
+    // 🔄 Construction des critères de recherche pour l'API
+    const searchCriteria = {
+      departureTown: departure,
+      arrivalTown: destination,
+      // Le format de la date peut varier, ici on prend le début de la journée
+      departureDate: date.startOf('day').toISOString(), 
+      availableSeats: passengers
+    };
 
-    if (filteredTrips.length > 0) {
-      setSearchResults(filteredTrips); // Stocke les résultats dans le contexte
-      toast.success(`${filteredTrips.length} trajet(s) trouvé(s) !`);
-      navigate('/results'); // Redirige vers la page de résultats
-    } else {
-      setSearchResults([]); // Efface les anciens résultats
-      toast.error("Aucun trajet ne correspond à votre recherche.");
+    try {
+      const { data } = await listPublicTrips(searchCriteria);
+      
+      if (data && data.trips && data.trips.length > 0) {
+        setSearchResults(data.trips); // Stocke les résultats dans le contexte
+        toast.success(`${data.trips.length} trajet(s) trouvé(s) !`);
+        navigate('/results'); // Redirige vers la page de résultats
+      } else {
+        setSearchResults([]); // Efface les anciens résultats
+        toast.error("Aucun trajet ne correspond à votre recherche.");
+      }
+    } catch (err) {
+      setSearchResults([]); // Efface les anciens résultats en cas d'échec
+      // L'erreur est gérée par le toast dans le contexte
     }
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {/* Conteneur principal du formulaire */}
       <form
         onSubmit={handleSearch}
         className='absolute -bottom-14 z-10 lg:bottom-0 left-1/2 -translate-x-1/2
