@@ -91,7 +91,7 @@ const Home = () => {
   useEffect(() => {
     listPublicTrips({
       page: 1,
-      tripStatus: 3, // "Published" status
+      tripStatus: 0, // "Published" status
         });
   }, [])//listPublicTrips]);
 

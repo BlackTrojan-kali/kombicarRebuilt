@@ -136,27 +136,23 @@ export function TripContextProvider({ children }) {
         hasPreviousPage: false,
     };
 
-    const fetchTrips = async (params = {}) => {
+    const fetchTrips = async ({pageIndex,status}) => {
         if (authLoading) return;
         setLoading(true);
         setError(null);
-        const { pageIndex, status } = params;
-        console.log(params)
-        let url = '/api/v1/trips';
-        if (pageIndex !== undefined && status !== undefined) {
-            url = `/api/v1/trips/${pageIndex}/${status}`;
-        }
+        const  url = `/api/v1/trips/${pageIndex}/${status}`;
+        
+         console.log(url)
 
         try {
-            const response = await api.get(url, { params });
-        
+            const response = await api.get(url);
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
                 toast.success('Trajets chargés avec succès !');
             } else {
                 setTrips(mockApiResponse.items);
-                toast.warn('La réponse du serveur est vide ou invalide. Utilisation de données fictives.');
+                toast.error('La réponse du serveur est vide ou invalide. Utilisation de données fictives.');
             }
             return data;
         } catch (err) {
@@ -264,11 +260,8 @@ export function TripContextProvider({ children }) {
         }
     };
 
-    // 🆕 Nouvelle fonction pour la suppression par un administrateur
     const deleteTripAsAdmin = async (tripId) => {
         if (authLoading) return;
-        // La vérification de l'administrateur doit être gérée ici ou via l'API.
-        // Pour cet exemple, nous supposons que l'authentification de l'admin est gérée par le `api` client.
         
         setLoading(true);
         setError(null);
@@ -276,7 +269,6 @@ export function TripContextProvider({ children }) {
         try {
             await api.delete(`/api/v1/trips/admin/${tripId}`);
             toast.success('Le trajet a été supprimé par l\'administrateur.');
-            // Recharger les trajets pour mettre à jour la liste
             fetchTrips(); 
             return true;
         } catch (err) {
@@ -289,6 +281,44 @@ export function TripContextProvider({ children }) {
         }
     };
 
+    // Nouvelle fonction pour le changement de statut par un administrateur
+    const changeTripStatusAsAdmin = async (tripId, status) => {
+        if (authLoading) return;
+        setLoading(true);
+        setError(null);
+        try {
+            await api.put(`/api/v1/trips/admin/change-status/${tripId}/${status}`);
+            toast.success('Le statut du trajet a été mis à jour avec succès.');
+            return true;
+        } catch (err) {
+            console.error(`Erreur lors de la mise à jour du statut du trajet ${tripId}:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de la mise à jour du statut du trajet.');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // 🆕 Nouvelle fonction pour la mise à jour d'un trajet par l'utilisateur
+    const updateTrip = async (updatedTripData) => {
+        if (authLoading) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await api.put(`/api/v1/trips`, updatedTripData);
+            toast.success('Trajet mis à jour avec succès !');
+            return response.data;
+        } catch (err) {
+            console.error(`Erreur lors de la mise à jour du trajet:`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de la mise à jour du trajet.');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+    
     const contextValue = {
         trips,
         loading,
@@ -298,7 +328,9 @@ export function TripContextProvider({ children }) {
         createTrip,
         listPublicTrips, 
         deleteTrip,
-        deleteTripAsAdmin, // 🆕 Ajout de la nouvelle fonction
+        deleteTripAsAdmin,
+        changeTripStatusAsAdmin, 
+        updateTrip, // 🆕 Ajout de la nouvelle fonction
         userId: user?.id || null
     };
 

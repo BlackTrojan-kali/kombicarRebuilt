@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faPhone, faUserCircle, faCarSide, faStar, faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet, faEdit, faTimesCircle, faCalendarAlt, faMoneyBillWave, faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faUserCircle, faCarSide, faStar, faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet, faEdit, faTimesCircle, faCalendarAlt, faMoneyBillWave, faArrowLeft, faArrowRight, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -9,12 +9,13 @@ import useAuth from '../../hooks/useAuth';
 import useTrips from '../../hooks/useTrips';
 import useColorScheme from '../../hooks/useColorScheme';
 import EditTripModal from '../../Components/Modals/EditTripModal';
+import Swal from 'sweetalert2';
 
 dayjs.locale('fr');
 
 const Profile = () => {
   const { user, loading: loadingUser } = useAuth();
-  const { loading: loadingTrips, error: tripsError, fetchTrips, cancelTrip } = useTrips();
+  const { trips, loading: loadingTrips, error: tripsError, fetchTrips, cancelTrip, deleteTrip } = useTrips();
   const { theme } = useColorScheme();
   const navigate = useNavigate();
 
@@ -24,26 +25,25 @@ const Profile = () => {
   const [loadingSpecificTrips, setLoadingSpecificTrips] = useState(true);
   
   // États pour la pagination des trajets publiés
-  const [publishedPage, setPublishedPage] = useState(0);
+  const [publishedPage, setPublishedPage] = useState(1);
   const [publishedTotalPages, setPublishedTotalPages] = useState(0);
 
   // États pour la pagination des trajets terminés
-  const [completedPage, setCompletedPage] = useState(0);
+  const [completedPage, setCompletedPage] = useState(1);
   const [completedTotalPages, setCompletedTotalPages] = useState(0);
   
   // États pour la modale
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState(null);
 
-  const perPage = 5; // Nombre de trajets par page
-
   // Fonction pour charger les trajets publiés
   const loadUserPublishedTrips = async () => {
     if (user && !loadingUser) {
       setLoadingSpecificTrips(true);
       try {
-        const response = await fetchTrips({ pageIndex: publishedPage, status: 0, perPage }); 
+        const response = await fetchTrips({ pageIndex: publishedPage, status: 0 }); 
         setPublishedTrips(response.items || []);
+        const perPage = response?.items?.length || 1;
         setPublishedTotalPages(Math.ceil(response.totalCount / perPage));
       } catch (err) {
         console.error("Erreur lors de la récupération des trajets publiés :", err);
@@ -58,8 +58,9 @@ const Profile = () => {
     if (user && !loadingUser) {
       setLoadingSpecificTrips(true);
       try {
-        const response = await fetchTrips({ pageIndex: completedPage, status: 2, perPage }); 
+        const response = await fetchTrips({ pageIndex: completedPage, status: 2}); 
         setCompletedTrips(response.items || []);
+        const perPage = response?.items?.length || 1;
         setCompletedTotalPages(Math.ceil(response.totalCount / perPage));
       } catch (err) {
         console.error("Erreur lors de la récupération des trajets terminés :", err);
@@ -96,6 +97,36 @@ const Profile = () => {
             loadUserPublishedTrips();
         }
     }
+  };
+
+  // 🆕 Nouvelle fonction pour la suppression d'un trajet publié
+  const handleDeleteTrip = (trip) => {
+    const tripId = trip.trip.id;
+    const tripDescription = `${trip.departureArea.homeTownName} → ${trip.arrivalArea.homeTownName} le ${new Date(trip.trip.departureDate).toLocaleDateString('fr-CM')}`;
+
+    Swal.fire({
+      title: 'Êtes-vous sûr ?',
+      text: `Vous êtes sur le point de supprimer le trajet "${tripDescription}". Cette action est irréversible !`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DC2626',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Oui, supprimer !',
+      cancelButtonText: 'Annuler',
+      background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+      color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Utilisation de la fonction deleteTrip du contexte pour l'utilisateur
+          await deleteTrip(tripId);
+          // ⚠️ Mise à jour de la liste après la suppression
+          loadUserPublishedTrips(); 
+        } catch (err) {
+          // Géré par le toast dans le contexte
+        }
+      }
+    });
   };
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
@@ -147,7 +178,7 @@ const Profile = () => {
                 {tripData.trip.status === 0 && (
                     <div className="flex gap-2 mt-4 md:mt-0 flex-shrink-0">
                         <button 
-                            onClick={() => handleEditTrip(tripData.trip)}
+                            onClick={() => handleEditTrip(tripData)}
                             className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                         >
                             <FontAwesomeIcon icon={faEdit} /> Modifier
@@ -157,6 +188,13 @@ const Profile = () => {
                             className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                         >
                             <FontAwesomeIcon icon={faTimesCircle} /> Annuler
+                        </button>
+                        {/* 🆕 Bouton de suppression ajouté ici */}
+                        <button
+                            onClick={() => handleDeleteTrip(tripData)}
+                            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faTrash} /> Supprimer
                         </button>
                     </div>
                 )}
@@ -170,18 +208,18 @@ const Profile = () => {
         <div className={`flex justify-center items-center gap-4 mt-6 text-sm`}>
           <button 
             onClick={() => setPage(page - 1)}
-            disabled={page === 0}
-            className={`px-4 py-2 rounded-lg ${page === 0 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-lg ${page === 1 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
           >
             <FontAwesomeIcon icon={faArrowLeft} /> Précédent
           </button>
           <span className={`px-3 py-1 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
-            Page {page + 1} sur {totalPages}
+            Page {page} sur {totalPages}
           </span>
           <button 
             onClick={() => setPage(page + 1)}
-            disabled={page >= totalPages - 1}
-            className={`px-4 py-2 rounded-lg ${page >= totalPages - 1 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+            disabled={page >= totalPages}
+            className={`px-4 py-2 rounded-lg ${page >= totalPages ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
           >
             Suivant <FontAwesomeIcon icon={faArrowRight} />
           </button>

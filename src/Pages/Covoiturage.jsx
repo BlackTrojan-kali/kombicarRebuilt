@@ -11,12 +11,10 @@ const Covoiturage = () => {
   // 🔄 Remplacement de `fetchTrips` par `listPublicTrips`
   const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
-
   // 🔄 Appel à listPublicTrips avec un objet vide pour récupérer tous les trajets
   useEffect(() => {
-    listPublicTrips({});
+    listPublicTrips({page:1,tripStatus:0});
   }, [])//listPublicTrips]);
-
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
@@ -61,10 +59,10 @@ const Covoiturage = () => {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
             { loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
-            ) : trips.length === 0 ? (
+            ) : trips?.items?.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
-              trips.slice(0, 8).map((tripData) => (
+              trips?.items?.slice(0, 8).map((tripData) => (
                 // 🔄 Correction: Utilisation de la bonne propriété pour le lien et les noms des villes
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
                   <div className={`flex items-center gap-4 ${textColorPrimary}`}>

@@ -16,7 +16,8 @@ const Trajets = () => {
   const { theme } = useColorScheme();
   const { type } = useParams();
   
-  const { trips, loading, error, listPublicTrips, deleteTripAsAdmin } = useTrips();
+  // 🆕 Récupération de la nouvelle fonction du hook
+  const { trips, loading, error, listPublicTrips, deleteTripAsAdmin, changeTripStatusAsAdmin } = useTrips();
 
   const [totalRows, setTotalRows] = useState(0); 
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +28,7 @@ const Trajets = () => {
       const data = await listPublicTrips({ page: page, tripStatus: parseInt(type)});
       if (data) {
         setTotalRows(data.totalCount);
-        setPerPage(data?.items.length || 6)
+        setPerPage(data?.items.length)
       }
     } catch (err) {
       // Le hook gère l'erreur
@@ -75,13 +76,41 @@ const Trajets = () => {
       if (result.isConfirmed) {
         try {
           await deleteTripAsAdmin(tripId);
-          // ⚠️ Ligne modifiée pour rafraîchir la page
-         // window.location.reload();
+          window.location.reload();
         } catch (err) {
           // Géré par le toast dans le contexte
         }
       }
     });
+  };
+
+  // 🆕 Nouvelle fonction pour valider un trajet
+  const handleValidateTrip = (trip) => {
+      const tripId = trip.trip.id;
+      const tripDescription = `${trip.departureArea.homeTownName} → ${trip.arrivalArea.homeTownName} le ${new Date(trip.trip.departureDate).toLocaleDateString('fr-CM')}`;
+  
+      Swal.fire({
+          title: 'Valider ce trajet ?',
+          text: `Voulez-vous valider le trajet "${tripDescription}" ?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#2563EB',
+          cancelButtonColor: '#6B7280',
+          confirmButtonText: 'Oui, valider !',
+          cancelButtonText: 'Annuler',
+          background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+          color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+      }).then(async (result) => {
+          if (result.isConfirmed) {
+              try {
+                  // Appel de la fonction du contexte pour changer le statut
+                  await changeTripStatusAsAdmin(tripId, 0); 
+                  window.location.reload(); // Recharger la page pour refléter le changement
+              } catch (err) {
+                  // Le hook gère déjà le toast d'erreur
+              }
+          }
+      });
   };
 
   const handleAddTrip = () => {
@@ -204,6 +233,17 @@ const Trajets = () => {
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex justify-center gap-2">
+                              {/* 🆕 Bouton de validation */}
+                              {tripData.trip.status === 3 && (
+                                <button
+                                  onClick={() => handleValidateTrip(tripData)}
+                                  className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
+                                  title="Valider le trajet"
+                                >
+                                  <FontAwesomeIcon icon={faCheckCircle} />
+                                </button>
+                              )}
+                              
                               <button
                                 onClick={() => toast(`Affichage des détails du trajet ${tripData.trip.id}`, { icon: 'ℹ️' })}
                                 className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"

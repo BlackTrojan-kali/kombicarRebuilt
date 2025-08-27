@@ -8,14 +8,15 @@ import { Toaster, toast } from 'react-hot-toast';
 import useColorScheme from '../../hooks/useColorScheme';
 import useTrips from '../../hooks/useTrips';
 import useCars from '../../hooks/useCar';
+import useAuth from '../../hooks/useAuth';
 
 // Le composant EditTripModal est une modale pour modifier un trajet existant.
 // Il reçoit des props pour contrôler sa visibilité et les données du trajet à éditer.
 const EditTripModal = ({ isOpen, onClose, tripToEdit }) => {
   const { theme } = useColorScheme();
   const { updateTrip } = useTrips(); // Utilisation de la fonction updateTrip du contexte.
-  const { cars, loading: loadingCars, error: carsError, fetchCars } = useCars();
-
+  const { cars, loading: loadingCars, error: carsError, fetchUserCars } = useCars();
+const {user} = useAuth()
   // État local pour gérer les données du formulaire de modification.
   const [tripData, setTripData] = useState({
     departure: '',
@@ -34,15 +35,16 @@ const EditTripModal = ({ isOpen, onClose, tripToEdit }) => {
   useEffect(() => {
     if (tripToEdit) {
       setTripData({
-        departure: tripToEdit.startAreaPointCreateDto?.homeTownName || '',
-        destination: tripToEdit.arivalAreaPointCreateDto?.homeTownName || '',
-        date: tripToEdit.departureDate ? new Date(tripToEdit.departureDate).toISOString().slice(0, 10) : '',
-        time: tripToEdit.departureDate ? new Date(tripToEdit.departureDate).toISOString().slice(11, 16) : '',
-        availableSeats: tripToEdit.placesLeft || '',
-        pricePerSeat: tripToEdit.pricePerPlace || '',
-        luggageAllowed: tripToEdit.luggageAllowed || false,
-        description: tripToEdit.aditionalInfos || '',
-        selectedVehicleId: tripToEdit.vehiculeId || '',
+        // Mise à jour de la logique de pré-remplissage pour les nouvelles propriétés
+        departure: tripToEdit.departureArea?.homeTownName || '',
+        destination: tripToEdit.arrivalArea?.homeTownName || '',
+        date: tripToEdit.trip?.departureDate ? new Date(tripToEdit.trip.departureDate).toISOString().slice(0, 10) : '',
+        time: tripToEdit.trip?.departureDate ? new Date(tripToEdit.trip.departureDate).toISOString().slice(11, 16) : '',
+        availableSeats: tripToEdit.trip?.placesLeft || '',
+        pricePerSeat: tripToEdit.trip?.pricePerPlace || '',
+        luggageAllowed: tripToEdit.trip?.isLuggageAllowed || false,
+        description: tripToEdit.trip?.aditionalInfo || '',
+        selectedVehicleId: tripToEdit.vehicule?.id || '',
       });
     }
   }, [tripToEdit]);
@@ -50,9 +52,9 @@ const EditTripModal = ({ isOpen, onClose, tripToEdit }) => {
   // Chargement des véhicules de l'utilisateur au montage du composant.
   useEffect(() => {
     if (isOpen && cars.length === 0 && !loadingCars && !carsError) {
-      fetchCars();
+      fetchUserCars();
     }
-  }, [isOpen, cars, loadingCars, carsError, fetchCars]);
+  }, [isOpen, cars, loadingCars, carsError, fetchUserCars]);
 
   // Ne pas afficher la modale si elle n'est pas ouverte.
   if (!isOpen) {
@@ -78,17 +80,42 @@ const EditTripModal = ({ isOpen, onClose, tripToEdit }) => {
       toast.error('Veuillez remplir tous les champs obligatoires.', { position: 'top-right' });
       return;
     }
-
-    const updatedTrip = {
-      ...tripData,
-      id: tripToEdit.id,
-      availableSeats: parseInt(availableSeats, 10),
-      pricePerSeat: parseFloat(pricePerSeat),
-      vehicleId: selectedVehicleId,
+    
+    // Création de l'objet DTO pour l'API
+    const updatedTripDto = {
+        tripId: tripToEdit.trip.id,
+        startArea: {
+            homeTownName: tripToEdit.departureArea.homeTownName,
+            name: departure,
+            latitude: tripToEdit.departureArea.latitude, 
+            longitude: tripToEdit.departureArea.longitude,
+            id: tripToEdit.departureArea.id,
+            order: tripToEdit.departureArea.order,
+            type: tripToEdit.departureArea.type
+        },
+        arivalArea: {
+            homeTownName: tripToEdit.arrivalArea.homeTownName,
+            name: destination,
+            latitude: tripToEdit.arrivalArea.latitude,
+            longitude: tripToEdit.arrivalArea.longitude,
+            id: tripToEdit.arrivalArea.id,
+            order: tripToEdit.arrivalArea.order,
+            type: tripToEdit.arrivalArea.type
+        },
+        departureDate: new Date(`${date}T${time}`).toISOString(),
+        vehiculeId: selectedVehicleId,
+        placesLeft: parseInt(availableSeats, 10),
+        pricePerPlace: parseFloat(pricePerSeat),
+        isLuggageAllowed: tripData.luggageAllowed,
+        aditionalInfo: tripData.description,
+        // Ces champs sont maintenant inclus dans l'objet DTO
+        luggageSize: tripToEdit.trip.luggageSize,
+        luggageNumberPerPassenger: tripToEdit.trip.luggageNumberPerPassenger,
+        stopovers: tripToEdit.stopOvers || []
     };
 
-    // Appel de la fonction de mise à jour du contexte.
-    const updatePromise = updateTrip(tripToEdit.id, updatedTrip);
+    // Appel de la fonction de mise à jour du contexte avec l'objet DTO
+    const updatePromise = updateTrip(updatedTripDto);
 
     toast.promise(updatePromise, {
       loading: 'Mise à jour du trajet...',
@@ -247,7 +274,7 @@ const EditTripModal = ({ isOpen, onClose, tripToEdit }) => {
                 <option value="" disabled>Erreur de chargement des véhicules</option>
               ) : (
                 cars.map(v => (
-                  <option key={v.id} value={v.id}>{v.marque} {v.modele}</option>
+                  <option key={v.id} value={v.id}>{v.brand} {v.model}</option>
                 ))
               )}
             </select>
