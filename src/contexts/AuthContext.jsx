@@ -106,7 +106,7 @@ export function AuthContextProvider({ children }) {
             return true;
         } catch (error) {
             console.error("Échec de la connexion:", error);
-            toast.error(error.response?.data?.message || 'Identifiants invalides.');
+            toast.error(error.response?.data || 'Identifiants invalides.');
             return false;
         } finally {
             setLoading(false);

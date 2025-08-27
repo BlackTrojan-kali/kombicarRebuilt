@@ -2,53 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileAlt, faSpinner, faArrowLeft, faTimesCircle, faCheckCircle, faDownload } from '@fortawesome/free-solid-svg-icons';
-import  useCars  from '../../hooks/useCar'; // Assurez-vous que le chemin est correct
+import useCars from '../../hooks/useCar'; 
 import useColorScheme from '../../hooks/useColorScheme';
 import toast, { Toaster } from 'react-hot-toast';
+import dayjs from 'dayjs';
 
 const VehiculeDoc = () => {
-  // Récupération des paramètres de l'URL pour l'ID du véhicule
   const { vehiculeId } = useParams();
-
-  // Accès aux fonctions et états du contexte de véhicules
-  const { getVehicleDocuments, getCarById, loading, error } = useCars();
+  const { fetchVehicleDocuments, fetchCarById, loading, error } = useCars();
   
-  // États locaux pour gérer les documents et les informations du véhicule
   const [documents, setDocuments] = useState([]);
   const [car, setCar] = useState(null);
-  
   const { theme } = useColorScheme();
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Définition des classes de style basées sur le thème
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
   
-  // Effet pour charger les documents et les détails du véhicule
+  const documentTypeMap = {
+    0: "Carte Grise",
+    1: "Attestation d'Assurance",
+    2: "Document d'identité",
+    3: "Photo",
+    4: "Photo d'immatriculation",
+  };
+
   useEffect(() => {
-    const fetchDocumentsAndCar = async () => {
-      if (vehiculeId) {
-        // Récupérer les documents
-        const docs = await getVehicleDocuments(vehiculeId);
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [docs, carData] = await Promise.all([
+          fetchVehicleDocuments(vehiculeId),
+          fetchCarById(vehiculeId),
+        ]);
+        
         if (docs) {
           setDocuments(docs);
         }
-
-        // Récupérer les détails du véhicule
-        const carData = await getCarById(vehiculeId);
         if (carData) {
           setCar(carData);
         }
+      } catch (err) {
+        console.error("Erreur lors du chargement des données :", err);
+        toast.error("Erreur lors du chargement des documents du véhicule.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchDocumentsAndCar();
-  }, [vehiculeId, getVehicleDocuments, getCarById]);
+    if (vehiculeId) {
+      loadData();
+    }
+  }, [vehiculeId, fetchVehicleDocuments, fetchCarById]);
 
-  // Gérer l'état de chargement initial
-  if (loading && !car && documents.length === 0) {
+  if (isLoading) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
         <p className="text-xl">
@@ -90,7 +100,7 @@ const VehiculeDoc = () => {
                       {doc.name}
                     </h3>
                     <p className={`text-sm ${textColorSecondary}`}>
-                      Type: {doc.type} - Créé le: {new Date(doc.createdAt).toLocaleDateString()}
+                      Type: {documentTypeMap[doc.type] || 'Inconnu'} - Créé le: {dayjs(doc.createdAt).format('DD MMMM YYYY')}
                     </p>
                   </div>
                 </div>

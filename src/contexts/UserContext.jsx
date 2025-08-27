@@ -150,7 +150,7 @@ export function UserContextProvider({ children }) {
     };
 
     // Nouvelle fonction pour lister les utilisateurs standards (rôle NONE)
-    const listStandardUsers = async (page = 1) => {
+    const listStandardUsers = async (page ) => {
         setIsLoadingStandardUsers(true);
         setStandardUserListError(null);
         try {

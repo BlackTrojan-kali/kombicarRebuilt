@@ -37,7 +37,6 @@ export default function Signin() {
 
     toast.promise(loginPromise, {
       loading: 'Connexion en cours...',
-      success: 'Connexion réussie !',
       error: (err) => `Erreur: ${err.message || 'Identifiants invalides.'}`,
     });
 

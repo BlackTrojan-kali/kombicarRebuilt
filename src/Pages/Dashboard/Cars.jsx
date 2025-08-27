@@ -1,44 +1,22 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
-import DataTable, { createTheme } from 'react-data-table-component';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCar, faBuilding, faCalendarAlt, faGasPump, faCog, faListAlt,
+  faCar, faBuilding, faUser, faIdCard,
   faEye, faEdit, faTrash, faPlusCircle, faCheckCircle, faTimesCircle, faCarSide,
-  faPalette, faUser, faIdCard
+  faPalette, faListAlt, faArrowLeft, faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
-import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
 
 import CarFormModal from '../../Components/Modals/CreateCarModal';
 import useCars from '../../hooks/useCar';
-
-// --- Définition des Thèmes pour DataTable ---
-createTheme('lightTheme', {
-  text: { primary: '#1F2937', secondary: '#4B5563', },
-  background: { default: '#FFFFFF', },
-  context: { background: '#E2E8F0', text: '#1F2937', },
-  divider: { default: '#D1D5DB', },
-  button: { default: '#3B82F6', hover: '#2563EB', focus: '#1D4ED8', disabled: '#9CA3AF', },
-  highlightOnHover: { default: '#F3F4F6', text: '#1F2937', },
-}, 'light');
-
-createTheme('darkTheme', {
-  text: { primary: '#F9FAFB', secondary: '#D1D5DB', },
-  background: { default: '#1F2937', },
-  context: { background: '#374151', text: '#F9FAFB', },
-  divider: { default: '#4B5563', },
-  button: { default: '#3B82F6', hover: '#60A5FA', focus: '#2563EB', disabled: '#6B7280', },
-  highlightOnHover: { default: '#374151', text: '#F9FAFB', },
-}, 'dark');
-
+import useColorScheme from '../../hooks/useColorScheme';
 
 const Cars = () => {
   const { theme } = useColorScheme();
    
   const { 
     adminCars, 
-    adminCarPagination,
     isLoadingAdminCars,
     adminCarListError,
     fetchAdminCars,
@@ -51,26 +29,35 @@ const Cars = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(10); // L'API ne gère pas perPage pour le moment, mais on garde l'état
+  const [totalRows, setTotalRows] = useState(0);
+  const perPage = 10;
 
-  // Charge les véhicules de l'admin au montage et au changement de page
   useEffect(() => {
-    fetchAdminCars(currentPage);
+    const loadCars = async () => {
+        const data = await fetchAdminCars(currentPage);
+        if (data && data.totalCount !== undefined) {
+            setTotalRows(data.totalCount);
+        }
+    };
+    loadCars();
   }, [])//currentPage, fetchAdminCars]);
 
   useEffect(() => {
     if (adminCarListError) {
       toast.error(adminCarListError);
     }
-  }, [])//adminCarListError]);
+  }, [adminCarListError]);
 
-  const handlePageChange = page => {
-    setCurrentPage(page);
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(totalRows / perPage)) {
+      setCurrentPage(prev => prev + 1);
+    }
   };
 
-  const handlePerRowsChange = (newPerPage, page) => {
-    setPerPage(newPerPage);
-    setCurrentPage(page);
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
   };
 
   const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => {
@@ -90,6 +77,10 @@ const Cars = () => {
         const success = await deleteCar(vehicleId);
         if (success) {
           toast.success(`Le véhicule "${vehicleBrand} ${vehicleModel}" a été supprimé avec succès !`);
+          const data = await fetchAdminCars(currentPage);
+          if (data && data.totalCount !== undefined) {
+            setTotalRows(data.totalCount);
+          }
         } else {
           toast.error(`Échec de la suppression du véhicule "${vehicleBrand} ${vehicleModel}".`);
         }
@@ -141,6 +132,8 @@ const Cars = () => {
       const result = await updateCar(carData.id, carData);
       if (result) {
         toast.success(`Le véhicule "${carData.brand} ${carData.model}" a été mis à jour avec succès !`);
+        fetchAdminCars(currentPage);
+        handleCloseFormModal();
       } else {
         toast.error(`Échec de la mise à jour du véhicule "${carData.brand} ${carData.model}".`);
       }
@@ -148,170 +141,15 @@ const Cars = () => {
       const result = await createCar(carData);
       if (result) {
         toast.success(`Le véhicule "${result.brand} ${result.model}" a été ajouté avec succès !`);
+        fetchAdminCars(currentPage);
+        handleCloseFormModal();
       } else {
         toast.error(`Échec de l'ajout du véhicule "${carData.brand} ${carData.model}".`);
       }
     }
   };
 
-  // Define columns for the vehicles table
-  const columns = useMemo(() => [
-    {
-      name: 'ID',
-      selector: row => row.id,
-      sortable: true,
-      width: '80px',
-    },
-    {
-        name: 'Conducteur ID',
-        selector: row => row.userId,
-        sortable: true,
-        cell: row => (
-            <span className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faUser} className="text-gray-400" />
-                {row.userId}
-            </span>
-        ),
-        minWidth: '250px',
-    },
-    {
-      name: 'Marque',
-      selector: row => row.brand,
-      sortable: true,
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faBuilding} className="text-gray-400" />
-          {row.brand}
-        </span>
-      ),
-      minWidth: '150px',
-    },
-    {
-      name: 'Modèle',
-      selector: row => row.model,
-      sortable: true,
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faCar} className="text-gray-400" />
-          {row.model}
-        </span>
-      ),
-      minWidth: '150px',
-    },
-    {
-        name: 'Places',
-        selector: row => row.numberPlaces,
-        sortable: true,
-        width: '100px',
-        cell: row => (
-            <span className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faListAlt} className="text-gray-400" />
-              {row.numberPlaces}
-            </span>
-          ),
-    },
-    {
-      name: 'Couleur',
-      selector: row => row.color,
-      sortable: true,
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faPalette} className="text-gray-400" />
-          {row.color}
-        </span>
-      ),
-      minWidth: '120px',
-    },
-    {
-        name: 'Immatriculation',
-        selector: row => row.registrationCode,
-        sortable: true,
-        cell: row => (
-            <span className="flex items-center gap-2 font-semibold text-blue-600 dark:text-blue-400">
-                <FontAwesomeIcon icon={faIdCard} className="text-gray-400" />
-                {row.registrationCode}
-            </span>
-        ),
-        minWidth: '180px',
-    },
-    {
-      name: 'Vérifié',
-      selector: row => row.isVerified,
-      sortable: true,
-      cell: row => {
-        const isVerified = row.isVerified;
-        let statusClasses = '';
-        let statusIcon = null;
-        if (isVerified) {
-          statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-          statusIcon = faCheckCircle;
-        } else {
-          statusClasses = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-          statusIcon = faTimesCircle;
-        }
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusClasses}`}>
-            <FontAwesomeIcon icon={statusIcon} />
-            {isVerified ? 'Oui' : 'Non'}
-          </span>
-        );
-      },
-      minWidth: '120px',
-    },
-    {
-      name: 'Vérification',
-      cell: row => (
-        <div className="flex">
-          <button
-            onClick={() => handleToggleVerification(row)}
-            className={`px-3 py-1 rounded-md text-white font-semibold transition-colors duration-200 ${
-              row.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
-            }`}
-            title={row.isVerified ? 'Annuler la vérification' : 'Marquer comme vérifié'}
-          >
-            <FontAwesomeIcon icon={row.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
-            {row.isVerified ? 'Annuler' : 'Vérifier'}
-          </button>
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      width: '150px',
-    },
-    {
-      name: 'Actions',
-      cell: row => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => toast(`Affichage des détails de ${row.brand} ${row.model}`, { icon: 'ℹ️' })}
-            className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-            title="Voir les détails"
-          >
-            <FontAwesomeIcon icon={faEye} />
-          </button>
-          <button
-            onClick={() => handleEditVehicle(row)}
-            className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
-            title="Modifier"
-          >
-            <FontAwesomeIcon icon={faEdit} />
-          </button>
-          <button
-            onClick={() => handleDeleteVehicle(row.id, row.brand, row.model)}
-            className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
-            title="Supprimer"
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </button>
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      width: '180px',
-    },
-  ], [handleDeleteVehicle, handleEditVehicle, handleToggleVerification, theme]);
+  const totalPages = Math.ceil(totalRows / perPage);
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
@@ -332,39 +170,174 @@ const Cars = () => {
 
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
         <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Parc Automobile</h2>
-        <DataTable
-          columns={columns}
-          data={adminCars}
-          progressPending={isLoadingAdminCars}
-          pagination
-          paginationServer
-          paginationTotalRows={adminCarPagination.totalCount}
-          onChangeRowsPerPage={handlePerRowsChange}
-          onChangePage={handlePageChange}
-          highlightOnHover
-          pointerOnHover
-          responsive
-          theme={theme === 'dark' ? 'darkTheme' : 'lightTheme'}
-          noDataComponent={<div className="p-4 text-gray-500 dark:text-gray-400">Aucun véhicule à afficher.</div>}
-          customStyles={{
-            headCells: {
-              style: {
-                fontWeight: 'bold',
-                fontSize: '14px',
-                backgroundColor: theme === 'dark' ? '#374151' : '#F9FAFB',
-                color: theme === 'dark' ? '#D1D5DB' : '#4B5563',
-              },
-            },
-            cells: {
-              style: {
-                paddingTop: '8px',
-                paddingBottom: '8px',
-              },
-            },
-          }}
-        />
+        {isLoadingAdminCars ? (
+          <div className="p-4 text-center text-blue-500 dark:text-blue-400">
+            Chargement des véhicules...
+          </div>
+        ) : adminCarListError ? (
+          <div className="p-4 text-center text-red-500 dark:text-red-400">
+            Une erreur est survenue lors du chargement des véhicules : {adminCarListError}
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-lg">
+              <table className={`w-full table-auto ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                <thead>
+                  <tr className={`uppercase text-sm font-semibold text-left ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                    <th className="py-3 px-4 rounded-tl-lg">ID</th>
+                    <th className="py-3 px-4">Conducteur ID</th>
+                    <th className="py-3 px-4">Marque</th>
+                    <th className="py-3 px-4">Modèle</th>
+                    <th className="py-3 px-4">Places</th>
+                    <th className="py-3 px-4">Couleur</th>
+                    <th className="py-3 px-4">Immatriculation</th>
+                    <th className="py-3 px-4">Vérifié</th>
+                    <th className="py-3 px-4 text-center">Vérification</th>
+                    <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminCars && adminCars.length > 0 ? (
+                    adminCars.map(car => (
+                      <tr key={car.id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}>
+                        <td className="py-4 px-4">{car.id}</td>
+                        <td className="py-4 px-4">
+                            <span className="flex items-center gap-2">
+                                <FontAwesomeIcon icon={faUser} className="text-gray-400" />
+                                {car.userId}
+                            </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="flex items-center gap-2">
+                            <FontAwesomeIcon icon={faBuilding} className="text-gray-400" />
+                            {car.brand}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="flex items-center gap-2">
+                            <FontAwesomeIcon icon={faCar} className="text-gray-400" />
+                            {car.model}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                            <span className="flex items-center gap-2">
+                              <FontAwesomeIcon icon={faListAlt} className="text-gray-400" />
+                              {car.numberPlaces}
+                            </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="flex items-center gap-2">
+                            <FontAwesomeIcon icon={faPalette} className="text-gray-400" />
+                            {car.color}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                            <span className="flex items-center gap-2 font-semibold text-blue-600 dark:text-blue-400">
+                                <FontAwesomeIcon icon={faIdCard} className="text-gray-400" />
+                                {car.registrationCode}
+                            </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          {(() => {
+                            const isVerified = car.isVerified;
+                            let statusClasses = '';
+                            let statusIcon = null;
+                            if (isVerified) {
+                              statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+                              statusIcon = faCheckCircle;
+                            } else {
+                              statusClasses = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+                              statusIcon = faTimesCircle;
+                            }
+                            return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusClasses}`}>
+                                <FontAwesomeIcon icon={statusIcon} />
+                                {isVerified ? 'Oui' : 'Non'}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <button
+                            onClick={() => handleToggleVerification(car)}
+                            className={`px-3 py-1 rounded-md text-white font-semibold transition-colors duration-200 ${
+                              car.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
+                            }`}
+                            title={car.isVerified ? 'Annuler la vérification' : 'Marquer comme vérifié'}
+                          >
+                            <FontAwesomeIcon icon={car.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
+                            {car.isVerified ? 'Annuler' : 'Vérifier'}
+                          </button>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => toast(`Affichage des détails de ${car.brand} ${car.model}`, { icon: 'ℹ️' })}
+                              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+                              title="Voir les détails"
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                            </button>
+                            <button
+                              onClick={() => handleEditVehicle(car)}
+                              className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
+                              title="Modifier"
+                            >
+                              <FontAwesomeIcon icon={faEdit} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteVehicle(car.id, car.brand, car.model)}
+                              className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                              title="Supprimer"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="10" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                        <div className="flex flex-col items-center">
+                          <FontAwesomeIcon icon={faCarSide} className="text-4xl mb-2" />
+                          <p>Aucun véhicule à afficher pour le moment.</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+              <div className="mb-2 sm:mb-0">
+                Affichage de {Math.min(totalRows, (currentPage - 1) * perPage + 1)} à {Math.min(totalRows, currentPage * perPage)} sur {totalRows} véhicules.
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1 || isLoadingAdminCars}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage === 1 || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                  Précédent
+                </button>
+                <span className={`px-4 py-2 rounded-md font-bold ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`}>
+                  Page {currentPage} sur {totalPages || 1}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage >= totalPages || isLoadingAdminCars}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage >= totalPages || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                >
+                  Suivant
+                  <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-
     
     </div>
   );

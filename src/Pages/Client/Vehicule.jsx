@@ -38,8 +38,10 @@ const MyVehicle = () => {
   const [selectedCarId, setSelectedCarId] = useState(null);
 
   useEffect(() => {
-    fetchUserCars();
-  }, [user])//fetchUserCars]);
+    if (user) {
+      fetchUserCars();
+    }
+  }, [user]);
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -50,6 +52,20 @@ const MyVehicle = () => {
   const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
   const swalBg = theme === 'dark' ? '#1F2937' : '#FFFFFF';
   const swalColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
+
+  const vehicleTypeMap = {
+    0: 'Voiture',
+    1: 'Camionnette',
+    2: 'Moto',
+  };
+
+  const documentTypeMap = {
+    0: "Carte Grise",
+    1: "Attestation d'Assurance",
+    2: "Document d'identité",
+    3: "Photo",
+    4: "Photo d'immatriculation",
+  };
 
   const openCreateModal = () => {
     setEditingCarData(null);
@@ -114,7 +130,7 @@ const MyVehicle = () => {
     }
 
     setIsUploading(true);
-    await uploadVehicleDocument(documentType, selectedCarId, documentFile);
+    await uploadVehicleDocument(parseInt(documentType), selectedCarId, documentFile);
     setIsUploading(false);
     setDocumentFile(null);
     setDocumentType('');
@@ -140,7 +156,15 @@ const MyVehicle = () => {
     });
   };
 
-  if (loading && cars.length === 0) {
+  if (!user) {
+    return (
+      <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
+        <p className="text-xl">Veuillez vous connecter pour voir vos véhicules.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
     return (
       <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
         <p className="text-xl">
@@ -192,7 +216,7 @@ const MyVehicle = () => {
                             </h2>
                             <div className="flex space-x-2">
                                 <Link
-                                    to={`/my-vehicles/documents/${car.id}`}
+                                    to={`/profile/car/documents/${car.id}`}
                                     className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow-sm transition-colors duration-200"
                                     title="Voir les documents"
                                 >
@@ -230,7 +254,7 @@ const MyVehicle = () => {
                             </p>
                             <p className="flex items-center mb-1">
                                 <FontAwesomeIcon icon={faList} className={`mr-2 ${textColorSecondary}`} />
-                                <strong className={textColorPrimary}>Type:</strong> {car.vehiculeType}
+                                <strong className={textColorPrimary}>Type:</strong> {vehicleTypeMap[car.vehiculeType] || 'Inconnu'}
                             </p>
                             <div className="flex items-center mb-1">
                                 {car.airConditionned ? (
@@ -317,9 +341,11 @@ const MyVehicle = () => {
                         required
                     >
                         <option value="">Sélectionner un type</option>
-                        <option value="CarteGrise">Carte Grise</option>
-                        <option value="Assurance">Attestation d'Assurance</option>
-                        <option value="ControleTechnique">Contrôle Technique</option>
+                        {Object.entries(documentTypeMap).map(([value, label]) => (
+                            <option key={value} value={value}>
+                                {label}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div>

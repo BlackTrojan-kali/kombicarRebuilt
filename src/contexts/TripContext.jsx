@@ -162,9 +162,9 @@ export function TripContextProvider({ children }) {
         } catch (err) {
             console.error("Erreur lors de la récupération des trajets:", err);
             setError(err);
-            setTrips(mockApiResponse.items);
+         //   setTrips(mockApiResponse.items);
             toast.error(err.response?.data?.message || 'Échec du chargement des trajets. Utilisation de données fictives.');
-            return mockApiResponse;
+           // return mockApiResponse;
         } finally {
             setLoading(false);
         }
@@ -239,7 +239,6 @@ export function TripContextProvider({ children }) {
         }
     };
 
-    // 🆕 Nouvelle fonction pour supprimer un trajet
     const deleteTrip = async (id) => {
         if (authLoading) return;
         if (!user || !user.id) {
@@ -258,8 +257,33 @@ export function TripContextProvider({ children }) {
         } catch (err) {
             console.error(`Erreur lors de la suppression du trajet ${id}:`, err);
             setError(err);
-            toast.error(err.response?.data?.message || 'Échec de la suppression du trajet.');
+            toast.error(err.response?.data?.description  || 'Échec de la suppression du trajet.');
             throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 🆕 Nouvelle fonction pour la suppression par un administrateur
+    const deleteTripAsAdmin = async (tripId) => {
+        if (authLoading) return;
+        // La vérification de l'administrateur doit être gérée ici ou via l'API.
+        // Pour cet exemple, nous supposons que l'authentification de l'admin est gérée par le `api` client.
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            await api.delete(`/api/v1/trips/admin/${tripId}`);
+            toast.success('Le trajet a été supprimé par l\'administrateur.');
+            // Recharger les trajets pour mettre à jour la liste
+            fetchTrips(); 
+            return true;
+        } catch (err) {
+            console.error(`Erreur lors de la suppression du trajet ${tripId} par l'admin :`, err);
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec de la suppression du trajet par l\'administrateur.');
+            return false;
         } finally {
             setLoading(false);
         }
@@ -273,7 +297,8 @@ export function TripContextProvider({ children }) {
         getTripById,
         createTrip,
         listPublicTrips, 
-        deleteTrip, // 🆕 Ajout de la nouvelle fonction
+        deleteTrip,
+        deleteTripAsAdmin, // 🆕 Ajout de la nouvelle fonction
         userId: user?.id || null
     };
 

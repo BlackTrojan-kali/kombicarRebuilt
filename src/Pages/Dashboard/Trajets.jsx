@@ -16,7 +16,7 @@ const Trajets = () => {
   const { theme } = useColorScheme();
   const { type } = useParams();
   
-  const { trips, loading, error, listPublicTrips, deleteTrip } = useTrips();
+  const { trips, loading, error, listPublicTrips, deleteTripAsAdmin } = useTrips();
 
   const [totalRows, setTotalRows] = useState(0); 
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,8 +24,7 @@ const Trajets = () => {
 
   const fetchTrips = async (page, status) => {
     try {
-      const data = await listPublicTrips({ page: page, perPage: perPage, tripStatus: status });
-   
+      const data = await listPublicTrips({ page: page, tripStatus: parseInt(type)});
       if (data) {
         setTotalRows(data.totalCount);
         setPerPage(data?.items.length || 6)
@@ -36,12 +35,12 @@ const Trajets = () => {
   };
 
   useEffect(() => {
-    fetchTrips(1, parseInt(type) || 4);
+    fetchTrips(1, parseInt(type));
     setCurrentPage(1); 
-  }, [type, perPage]);
+  }, [type]);
 
   useEffect(() => {
-    fetchTrips(currentPage, parseInt(type) || 4);
+    fetchTrips(currentPage, parseInt(type));
   }, [currentPage]);
   
   const totalPages = Math.ceil(totalRows / perPage);
@@ -75,9 +74,9 @@ const Trajets = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteTrip(tripId);
+          await deleteTripAsAdmin(tripId);
           // ⚠️ Ligne modifiée pour rafraîchir la page
-          window.location.reload();
+         // window.location.reload();
         } catch (err) {
           // Géré par le toast dans le contexte
         }

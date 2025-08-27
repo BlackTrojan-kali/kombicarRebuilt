@@ -194,7 +194,7 @@ const Home = () => {
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
               // Utilise la bonne structure de données
-              trips.map((tripData) => (
+              trips?.items.map((tripData) => (
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
                   <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
                     <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
@@ -224,7 +224,7 @@ const Home = () => {
             <p className="text-gray-600 dark:text-gray-400">Aucune donnée trouvée.</p>
           ) : (
             <Slider {...sliderSettings}>
-              {trips.map((tripData) => (
+              {trips?.items.map((tripData) => (
                 <div key={tripData.trip.id} className="px-3">
                   <TripCard trip={tripData} />
                 </div>

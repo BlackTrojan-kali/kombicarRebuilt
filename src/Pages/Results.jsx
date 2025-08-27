@@ -5,7 +5,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDays, faLocationDot, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faLocationDot, faUserGroup, faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import Button from '../Components/ui/Button';
@@ -156,83 +156,101 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
 const Results = () => {
   const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
-
-  // État local pour les critères de recherche et les filtres, tous unifiés
+  
+  // État local pour les critères de recherche, y compris la pagination
   const [searchCriteria, setSearchCriteria] = useState({
     page: 1,
-    tripStatus: 3, // Par défaut, "Published"
-    maxPrice: 10000,
+    tripStatus: 3,
+    maxPrice: null,
     tripDepartureHour: {
-      acceptAllHour: true,
-      startHour: 0,
-      endHour: 0
+      acceptAllHour:null,
+      startHour:null,
+      endHour: null
     },
-    airConditionned: false,
-    luggageAllowed: false,
-    vehiculeType: 0,
-    notationOfCondutor: 0,
-    startAreaCity: "",
-    endAreaCity: ""
+    airConditionned: null,
+    luggageAllowed: null,
+    vehiculeType: null,
+    notationOfCondutor:null,
+    startAreaCity:null,
+    endAreaCity:null
   });
+  
+  const [totalRows, setTotalRows] = useState(0);
 
-  // Utilisation de useMemo pour la valeur des champs de recherche
-  const initialSearchCriteria = useMemo(() => ({
-    startAreaCity: searchCriteria.startAreaCity,
-    endAreaCity: searchCriteria.endAreaCity,
-    date: dayjs(),
-    passengers: 1, // Le nombre de passagers n'est pas dans le modèle de l'API, donc on le gère localement si nécessaire.
-  }), []);
+  // Fonction unifiée pour lancer la recherche
+  const handleSearch = async (criteria) => {
+    try {
+      const data = await listPublicTrips(criteria);
+      if (data && data.totalCount !== undefined) {
+        setTotalRows(data.totalCount);
+      }
+    } catch (err) {
+      // Le hook gère les toasts, donc on peut ignorer
+    }
+  };
 
-  // Effect pour le premier chargement et chaque fois que les critères changent
+  // Effet pour le premier chargement et chaque fois que les critères changent
   useEffect(() => {
-    // La fonction listPublicTrips est déjà déja prête à utiliser le modèle de données que vous avez fourni
-    listPublicTrips({page:1,tripStatus:3});
-  }, []);
+    handleSearch(searchCriteria);
+  }, [searchCriteria]);
 
   // Gère la soumission d'une nouvelle recherche depuis la barre de recherche
   const handleNewSearch = (newSearchData) => {
     setSearchCriteria(prev => ({
       ...prev,
-      startAreaCity: newSearchData.startAreaCity,
-      endAreaCity: newSearchData.endAreaCity,
-      // Le back-end gère la date, si la recherche se fait par date, il faudra adapter l'API
+      ...newSearchData,
+      date: newSearchData.date.format('YYYY-MM-DD'),
+      page: 1, // On retourne à la première page
     }));
   };
 
   // Gère le changement des filtres de la barre latérale
   const handleFilterChange = (filterName, value) => {
-    // Mettre à jour l'état de manière unifiée
+    let newCriteria = { ...searchCriteria };
+    newCriteria.page = 1; // On revient toujours à la première page avec un nouveau filtre
+    
     if (filterName === 'maxPrice') {
-      setSearchCriteria(prev => ({ ...prev, maxPrice: value }));
+      newCriteria.maxPrice = Number(value);
     } else if (filterName === 'departureTimeFilter') {
       let start = 0, end = 0;
       if (value === 'matin') { start = 6; end = 12; }
       if (value === 'apres-midi') { start = 12; end = 18; }
       if (value === 'soir') { start = 18; end = 24; }
-      setSearchCriteria(prev => ({
-        ...prev,
-        tripDepartureHour: {
-          acceptAllHour: value === '',
-          startHour: start,
-          endHour: end
-        }
-      }));
+      newCriteria.tripDepartureHour = {
+        acceptAllHour: value === '',
+        startHour: start,
+        endHour: end
+      };
     } else if (filterName === 'isClimatise') {
-      setSearchCriteria(prev => ({ ...prev, airConditionned: value }));
+      newCriteria.airConditionned = value;
     } else if (filterName === 'isLuggageIncluded') {
-      setSearchCriteria(prev => ({ ...prev, luggageAllowed: value }));
+      newCriteria.luggageAllowed = value;
     } else if (filterName === 'isDriverRated4Plus') {
-      setSearchCriteria(prev => ({ ...prev, notationOfCondutor: value ? 4 : 0 }));
+      newCriteria.notationOfCondutor = value ? 4 : 0;
     } else if (filterName === 'vehicleType') {
       let vehiculeTypeValue = 0;
       if (value === 'sedan') vehiculeTypeValue = 1;
       if (value === 'suv') vehiculeTypeValue = 2;
       if (value === 'van') vehiculeTypeValue = 3;
-      setSearchCriteria(prev => ({ ...prev, vehiculeType: vehiculeTypeValue }));
+      newCriteria.vehiculeType = vehiculeTypeValue;
+    }
+    setSearchCriteria(newCriteria);
+  };
+  
+  const totalPages = Math.ceil(totalRows / searchCriteria.perPage);
+  
+  const handleNextPage = () => {
+    if (searchCriteria.page < totalPages) {
+      setSearchCriteria(prev => ({ ...prev, page: prev.page + 1 }));
+    }
+  };
+  
+  const handlePreviousPage = () => {
+    if (searchCriteria.page > 1) {
+      setSearchCriteria(prev => ({ ...prev, page: prev.page - 1 }));
     }
   };
 
-  // Couleurs dynamiques pour la page
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
@@ -244,7 +262,7 @@ const Results = () => {
   return (
     <div className={`${pageBgColor} ${textColorPrimary} transition-colors duration-300 min-h-screen`}>
       <div className="mb-12">
-        <IntegratedSearchBar onSearch={handleNewSearch} initialSearchCriteria={initialSearchCriteria} />
+        <IntegratedSearchBar onSearch={handleNewSearch} initialSearchCriteria={searchCriteria} />
       </div>
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-10 max-w-7xl mx-auto'>
@@ -323,7 +341,6 @@ const Results = () => {
                 <input
                   type="radio"
                   name="vehicle_type"
-                  value="1" // Correspond à la valeur 1 dans l'API pour Berline
                   checked={searchCriteria.vehiculeType === 1}
                   onChange={(e) => handleFilterChange('vehicleType', 'sedan')}
                   className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
@@ -334,7 +351,6 @@ const Results = () => {
                 <input
                   type="radio"
                   name="vehicle_type"
-                  value="2" // Correspond à 2 pour SUV
                   checked={searchCriteria.vehiculeType === 2}
                   onChange={(e) => handleFilterChange('vehicleType', 'suv')}
                   className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
@@ -345,7 +361,6 @@ const Results = () => {
                 <input
                   type="radio"
                   name="vehicle_type"
-                  value="3" // Correspond à 3 pour Van
                   checked={searchCriteria.vehiculeType === 3}
                   onChange={(e) => handleFilterChange('vehicleType', 'van')}
                   className={`form-radio text-blue-500 ${inputBg} ${inputBorder}`}
@@ -361,12 +376,41 @@ const Results = () => {
               <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                 <p className={`${textColorSecondary}`}>Chargement des trajets...</p>
               </div>
-            ) : trips? (
-              <div className='flex flex-col gap-6'>
-                {trips.map((trip) => (
-                  <ResultCard key={trip.trip.id} trip={trip} />
-                ))}
-              </div>
+            ) : trips && trips.length > 0 ? (
+              <>
+                <div className='flex flex-col gap-6'>
+                  {trips.map((trip) => (
+                    <ResultCard key={trip.trip.id} trip={trip} />
+                  ))}
+                </div>
+                {/* Pagination */}
+                <div className={`mt-8 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${theme === 'dark' ? 'bg-gray-800 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                  <div className="mb-2 sm:mb-0">
+                    Affichage de {Math.min(totalRows, (searchCriteria.page - 1) * searchCriteria.perPage + 1)} à {Math.min(totalRows, searchCriteria.page * searchCriteria.perPage)} sur {totalRows} trajets.
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePreviousPage}
+                      disabled={searchCriteria.page === 1 || loading}
+                      className={`px-4 py-2 rounded-md transition-colors duration-200 ${searchCriteria.page === 1 || loading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                      Précédent
+                    </button>
+                    <span className={`px-4 py-2 rounded-md font-bold ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      Page {searchCriteria.page} sur {totalPages || 1}
+                    </span>
+                    <button
+                      onClick={handleNextPage}
+                      disabled={searchCriteria.page >= totalPages || loading}
+                      className={`px-4 py-2 rounded-md transition-colors duration-200 ${searchCriteria.page >= totalPages || loading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                    >
+                      Suivant
+                      <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                 <p className="text-xl text-gray-700 dark:text-gray-300">Aucun résultat trouvé pour votre recherche.</p>
