@@ -46,7 +46,7 @@ export function TripContextProvider({ children }) {
         setError(null);
         try {
             const response = await api.post('/api/v1/trips/list-public', searchCriteria);
-            console.log(response.data)
+           
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data);

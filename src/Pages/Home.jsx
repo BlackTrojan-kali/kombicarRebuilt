@@ -93,12 +93,14 @@ const Home = () => {
       page: 1,
       tripStatus: 0, // "Published" status
         });
-  }, [])//listPublicTrips]);
+  }, []);
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const paragraphColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
+
+  const tripItems = trips?.items || [];
 
   return (
     <div className={`${pageBgColor} ${textColor} transition-colors duration-300`}>
@@ -190,11 +192,10 @@ const Home = () => {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
             {loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
-            ) : trips.length === 0 ? (
+            ) : tripItems.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
-              // Utilise la bonne structure de données
-              trips?.items.map((tripData) => (
+              tripItems.map((tripData) => (
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
                   <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
                     <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
@@ -206,7 +207,6 @@ const Home = () => {
               ))
             )}
           </div>
-          {/* Le bouton "Afficher plus" n'est plus nécessaire car la liste affichera tous les résultats de la requête. */}
         </div>
       </section>
 
@@ -220,16 +220,24 @@ const Home = () => {
         <div className='relative max-w-7xl mx-auto'>
           {loading ? (
             <p className="text-gray-600 dark:text-gray-400">Chargement des trajets...</p>
-          ) : trips.length === 0 ? (
+          ) : tripItems.length === 0 ? (
             <p className="text-gray-600 dark:text-gray-400">Aucune donnée trouvée.</p>
           ) : (
-            <Slider {...sliderSettings}>
-              {trips?.items.map((tripData) => (
-                <div key={tripData.trip.id} className="px-3">
-                  <TripCard trip={tripData} />
+            tripItems.length > 1 ? (
+              <Slider {...sliderSettings}>
+                {tripItems.map((tripData) => (
+                  <div key={tripData.trip.id} className="px-3">
+                    <TripCard trip={tripData} />
+                  </div>
+                ))}
+              </Slider>
+            ) : (
+              <div className="flex justify-center">
+                <div key={tripItems[0].trip.id} className="px-3">
+                  <TripCard trip={tripItems[0]} />
                 </div>
-              ))}
-            </Slider>
+              </div>
+            )
           )}
         </div>
       </section>
