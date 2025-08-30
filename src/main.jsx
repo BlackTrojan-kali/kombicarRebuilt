@@ -9,6 +9,7 @@ import { TripContextProvider } from './contexts/TripContext.jsx'; // Importation
 import { UserContextProvider } from './contexts/UserContext.jsx';
 import { DrivingLicenceProvider } from './contexts/DrivingLicenceContext.jsx';
 import { PromoCodeContextProvider } from './contexts/PromoCodeCotext.jsx';
+import { ReservationContextProvider } from './contexts/ReservationContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,8 +19,10 @@ createRoot(document.getElementById('root')).render(
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
             <UserContextProvider>
               <DrivingLicenceProvider>
-              <PromoCodeContextProvider>  
+              <PromoCodeContextProvider> 
+              <ReservationContextProvider> 
                <App />
+               </ReservationContextProvider>
             </PromoCodeContextProvider>
             </DrivingLicenceProvider>
             </UserContextProvider>
