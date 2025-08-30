@@ -214,7 +214,8 @@ export function CarContextProvider({ children, authLoading }) {
                 {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 }
-            );
+            )
+            console.log(response)
             toast.success('Document téléchargé avec succès !');
             return response.data;
         } catch (err) {
@@ -229,10 +230,12 @@ export function CarContextProvider({ children, authLoading }) {
 
     // 📜 Récupère les documents d'un véhicule
     const getVehicleDocuments = async (vehiculeId) => {
+        console.log("test")
         setLoading(true);
         setError(null);
         try {
             const response = await api.get(`/api/v1/vehicules/${vehiculeId}/documents`);
+          
             return response.data;
         } catch (err) {
             console.error(`Erreur lors de la récupération des documents du véhicule ${vehiculeId}:`, err);

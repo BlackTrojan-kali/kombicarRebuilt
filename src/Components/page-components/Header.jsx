@@ -37,10 +37,10 @@ const Header = () => {
           <FontAwesomeIcon icon={faCar} />
           Covoiturage
         </Link>
-        <Link to="/taxi" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
+     {/*   <Link to="/taxi" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
           <FontAwesomeIcon icon={faTaxi} />
           Taxi
-        </Link>
+        </Link>*/}
         {/* Bouton "Publier un Trajet" pour Desktop - visible si l'utilisateur est connecté */}
         {user ? (
           <Link 
@@ -105,10 +105,10 @@ const Header = () => {
           <FontAwesomeIcon icon={faCar} />
           Covoiturage
         </Link>
-        <Link to="/taxi" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+        {/*<Link to="/taxi" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
           <FontAwesomeIcon icon={faTaxi} />
           Taxi
-        </Link>
+        </Link>*/}
         <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
 
         {/* Bouton "Publier un Trajet" pour Mobile - visible si l'utilisateur est connecté */}

@@ -7,6 +7,7 @@ import { AuthContextProvider } from './contexts/AuthContext.jsx';
 import { CarContextProvider } from './contexts/carContext.jsx';
 import { TripContextProvider } from './contexts/TripContext.jsx'; // Importation de TripContextProvider
 import { UserContextProvider } from './contexts/UserContext.jsx';
+import { DrivingLicenceProvider } from './contexts/DrivingLicenceContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')).render(
         <CarContextProvider>
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
             <UserContextProvider>
+              <DrivingLicenceProvider>
             <App />
+            </DrivingLicenceProvider>
             </UserContextProvider>
           </TripContextProvider>
         </CarContextProvider>
