@@ -156,7 +156,7 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
 const Results = () => {
     const { trips, loading, error, listPublicTrips } = useTrips();
     const { theme } = useColorScheme();
-
+   
     // État local pour les critères de recherche, y compris la pagination
     const [searchCriteria, setSearchCriteria] = useState({
         page: 1,
@@ -180,7 +180,6 @@ const Results = () => {
     const [totalRows, setTotalRows] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const [hasPrevious, setHasPrevious] = useState(false);
-
     // Fonction unifiée pour lancer la recherche
     const handleSearch = async (criteria) => {
         try {
@@ -409,7 +408,7 @@ const Results = () => {
                             <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                                 <p className={`${textColorSecondary}`}>Chargement des trajets...</p>
                             </div>
-                        ) : trips && trips.length > 0 ? (
+                        ) : trips?.items && trips?.items?.length > 0 ? (
                             <>
                                 <div className='flex flex-col gap-6'>
                                     {trips?.items.map((tripData) => (
