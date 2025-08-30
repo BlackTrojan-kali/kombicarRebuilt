@@ -8,6 +8,7 @@ import { CarContextProvider } from './contexts/carContext.jsx';
 import { TripContextProvider } from './contexts/TripContext.jsx'; // Importation de TripContextProvider
 import { UserContextProvider } from './contexts/UserContext.jsx';
 import { DrivingLicenceProvider } from './contexts/DrivingLicenceContext.jsx';
+import { PromoCodeContextProvider } from './contexts/PromoCodeCotext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')).render(
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
             <UserContextProvider>
               <DrivingLicenceProvider>
-            <App />
+              <PromoCodeContextProvider>  
+               <App />
+            </PromoCodeContextProvider>
             </DrivingLicenceProvider>
             </UserContextProvider>
           </TripContextProvider>

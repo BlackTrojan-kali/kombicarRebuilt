@@ -19,6 +19,9 @@ import {
   faWallet,
   faHandHoldingUsd,
   faChevronDown,
+  faGift, // Ajouté pour un usage potentiel
+  faTicket, // Ajouté pour la gestion des codes promo
+  faPlus, // Ajouté pour les liens "Créer"
 } from '@fortawesome/free-solid-svg-icons';
 import useAuth from '../../hooks/useAuth';
 
@@ -146,6 +149,17 @@ const DashSideBar = () => {
           { icon: faTags, title: "Marques", link: "/admin/cars" },
           { icon: faShapes, title: "Types", link: "/admin/cars-type" },
           { icon: faPalette, title: "Couleurs", link: "/admin/colors" },
+        ]}
+      />
+
+      {/* Nouveau Dropdown pour les Codes Promo */}
+      <DropDown
+        icon={faTicket}
+        title="Codes Promo"
+        sublinks={[
+          { icon: faCheckCircle, title: "Codes Actifs", link: `/admin/promocodes/list/active` },
+          { icon: faHourglassHalf, title: "Codes Expirés", link: `/admin/promocodes/list/expired` },
+          { icon: faTicket, title: "Tous les Codes", link: `/admin/promocodes/list/all` },
         ]}
       />
 

@@ -12,7 +12,7 @@ import Profile from "./Pages/Client/Profile"
 import MyVehicle from "./Pages/Client/Vehicule" 
 import UserWallet from "./Pages/Client/UserWallet"
 import VehiculeDoc from "./Pages/Client/VehiculeDoc" 
-import MyDrivingLicence from "./Pages/Client/MyDrivingLicence" // 🆕 Import du nouveau composant
+import MyDrivingLicence from "./Pages/Client/MyDrivingLicence"
 
 import DashboardLayout from "./Layouts/DashboardLayout"
 import Dashboard from "./Pages/Dashboard/Dashboard"
@@ -27,6 +27,11 @@ import Wallet from "./Pages/Dashboard/Wallet"
 import Publish from "./Pages/Publish"
 import SignInAdmin from "./Pages/Auth/SignInAdmin"
 import ConfirmEmail from "./Pages/Auth/ConfirmEmail"
+import { StatsContextProvider } from "./contexts/StatsContext"
+
+// 🆕 Nouveaux imports pour les pages des codes promo
+import PromoCode from "./Pages/Dashboard/PromoCode/PromoCode"
+import PromoCodeDetails from "./Pages/Dashboard/PromoCode/PromoCodeDetails"
 
 
 const Routes = () => {
@@ -124,7 +129,7 @@ const Routes = () => {
       // SECTION ADMIN (Dashboard Layout)
       // ------------------------------------
       path:"admin", // Chemin de base "/admin"
-      element:<DashboardLayout/>,
+      element:<StatsContextProvider><DashboardLayout/></StatsContextProvider>,
       children:[
         {
         // Chemin final: /admin/dashboard
@@ -164,6 +169,20 @@ const Routes = () => {
         path:"wallets",
         element:<Wallet/>
       },
+      // 🆕 Routes pour la gestion des codes promo
+      {
+        path:"promocodes", // Chemin de base pour la section "promocodes"
+        children: [
+          {
+            path: "list/:type", // Chemin pour la liste complète
+            element: <PromoCode />
+          },
+          {
+            path: "details/:id", // Chemin pour les détails d'un code
+            element: <PromoCodeDetails />
+          }
+        ]
+      },
       ]
     }
   ])
