@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import useAuth from "../hooks/useAuth";
 
 export const tripContext = createContext({});
-
 export function TripContextProvider({ children }) {
     const { user, loading: authLoading } = useAuth();
     const [trips, setTrips] = useState([]);
