@@ -68,31 +68,24 @@ export function AuthContextProvider({ children }) {
         setLoading(false);
     };
 
-    const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
-        setLoading(true);
-        try {
-            const response = await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
-            const { accessToken, refreshToken } = response.data;
+   const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
+    setLoading(true);
+    try {
+        await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
 
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-            
-            const loginSuccess = await fetchUserInfo();
-            if (loginSuccess) {
-                toast.success('Inscription réussie et connexion automatique !');
-                return true;
-            } else {
-                logout(false);
-                return false;
-            }
-        } catch (error) {
-            console.error("Échec de l'inscription:", error);
-            toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
+        // Display success messages to the user
+        toast.success('Inscription réussie !');
+        toast('Veuillez vérifier votre email pour confirmer votre compte.', { icon: '📧' });
+
+        return true;
+    } catch (error) {
+        console.error("Échec de l'inscription:", error);
+        toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
+        return false;
+    } finally {
+        setLoading(false);
+    }
+};
 
     const login = async ({ email, password }) => {
         setLoading(true);

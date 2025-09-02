@@ -1,103 +1,117 @@
 import { createContext, useState } from "react";
+import api from "../api/api";
+import toast from "react-hot-toast";
 
 export const ReservationContext = createContext({});
 
 export function ReservationContextProvider({ children }) {
-  const [reservations, setReservations] = useState([]);
-  const [reservationDetails, setReservationDetails] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const [reservations, setReservations] = useState([]);
+    const [reservationDetails, setReservationDetails] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-  // Completed function to get the price from your API
-  async function getPrice(tripId, numberPlaces, promoCode) {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(
-        `/api/v1/reservations/get-price/${tripId}/${numberPlaces}/${promoCode || ''}`
-      );
+    async function getPrice(tripId, numberPlaces, promoCode) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(
+                `/api/v1/reservations/get-price/${tripId}/${numberPlaces}/${promoCode || ''}`
+            );
+            return response.data.price;
+        } catch (err) {
+            setError(err.response?.data?.message || err.message || "Failed to fetch price. Please try again.");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch price. Please try again.");
-      }
+    async function addReservation(reservationData) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.post(
+                "/api/v1/reservations/add-reservation",
+                reservationData
+            );
+            setReservationDetails(response.data);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.description || err.message || "Failed to add reservation.");
+            console.error(err);
+            toast.error(err.response?.data?.description || err.message || "Échec de la réservation.");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-      const data = await response.json();
-      return data.price; // Assuming the API returns a JSON object with a 'price' key
-    } catch (err) {
-      setError(err.message);
-      throw err; // Re-throw the error so the calling component can handle it
-    } finally {
-      setIsLoading(false);
-    }
-  }
+    async function getAllReservations() {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get("/api/v1/reservations");
+            setReservations(response.data);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message || err.message || "Failed to fetch reservations.");
+            toast.error(err.response?.data?.message || err.message || "Échec de la récupération des réservations.");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-  async function addReservation(reservationData) {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/v1/reservations/add-reservation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // You may also need to add an 'Authorization' header here if your API requires a token
-        },
-        body: JSON.stringify(reservationData),
-      });
+    async function getReservationStatus(reservationId) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(`/api/v1/reservations/${reservationId}/status`);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message || err.message || "Impossible de vérifier le statut de la réservation.");
+            console.error(err);
+            toast.error(err.response?.data?.message || err.message || "Échec de la vérification du statut.");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-      const data = await response.json();
+    async function confirmReservationAsDriver(reservationId) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.post(`/api/v1/reservations/confirm/${reservationId}`);
+            toast.success("Réservation confirmée avec succès !");
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message || err.message || "Échec de la confirmation de la réservation.");
+            console.error(err);
+            toast.error(err.response?.data?.message || err.message || "Échec de la confirmation de la réservation.");
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to add reservation.");
-      }
+    const value = {
+        reservations,
+        setReservations,
+        reservationDetails,
+        setReservationDetails,
+        getPrice,
+        addReservation,
+        getAllReservations,
+        getReservationStatus,
+        confirmReservationAsDriver,
+        isLoading,
+        error,
+    };
 
-      setReservationDetails(data);
-      return data;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  
-  // New function to fetch all reservations
-  async function getAllReservations() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/v1/reservations");
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch reservations.");
-      }
-      
-      const data = await response.json();
-      setReservations(data);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  const value = {
-    reservations,
-    setReservations,
-    reservationDetails,
-    setReservationDetails,
-    getPrice,
-    addReservation,
-    getAllReservations,
-    isLoading,
-    error,
-  };
-
-  return (
-    <ReservationContext.Provider value={value}>
-      {children}
-    </ReservationContext.Provider>
-  );
+    return (
+        <ReservationContext.Provider value={value}>
+            {children}
+        </ReservationContext.Provider>
+    );
 }

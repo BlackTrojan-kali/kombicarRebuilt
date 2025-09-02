@@ -177,8 +177,8 @@ const Trajets = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {trips?.items?.length > 0 ? (
-                    trips?.items?.map(tripData => {
+                  {trips?.length > 0 ? (
+                    trips?.map(tripData => {
                       const statusInfo = getStatusInfo(tripData.trip.status);
                       return (
                         <tr key={tripData.trip.id} className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}>

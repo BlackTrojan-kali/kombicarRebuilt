@@ -49,6 +49,7 @@ const PrevArrow = (props) => {
 
 const Home = () => {
   const { trips, loading, error, listPublicTrips } = useTrips();
+
   const { theme } = useColorScheme();
   const sliderSettings = {
     dots: true,
@@ -100,7 +101,7 @@ const Home = () => {
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const paragraphColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
 
-  const tripItems = trips?.items || [];
+  const tripItems = trips || [];
 
   return (
     <div className={`${pageBgColor} ${textColor} transition-colors duration-300`}>

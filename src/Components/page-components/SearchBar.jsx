@@ -13,47 +13,15 @@ import dayjs from 'dayjs';
 
 const SearchBar = () => {
   // 🔄 Utilisation de listPublicTrips au lieu de fetchTrips
-  const { loading, error, listPublicTrips, setSearchResults } = useTrips();
+  const { loading, error, listPublicTrips, setTrips } = useTrips();
   const navigate = useNavigate();
 
   const [departure, setDeparture] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(dayjs());
   const [passengers, setPassengers] = useState(1);
-  const [availableDepartures, setAvailableDepartures] = useState([]);
-  const [availableDestinations, setAvailableDestinations] = useState([]);
 
-  // Fonction pour extraire et trier les villes uniques à partir de la nouvelle structure de données
-  const getUniqueCities = (tripsData, type) => {
-    const cities = new Set();
-    tripsData.forEach(tripData => {
-      // 🔄 Correction: Utilisation des nouvelles propriétés
-      if (type === 'departure') {
-        cities.add(tripData.departureArea.homeTownName);
-      } else {
-        cities.add(tripData.arrivalArea.homeTownName);
-      }
-    });
-    return Array.from(cities).sort();
-  };
-
-  // 🔄 Chargement de la liste complète pour les dropdowns une seule fois
- /* useEffect(() => {
-    const loadAllTrips = async () => {
-      try {
-        const { data } = await listPublicTrips({});
-        if (data && data.trips) {
-          setAvailableDepartures(getUniqueCities(data.trips, 'departure'));
-          setAvailableDestinations(getUniqueCities(data.trips, 'destination'));
-        }
-      } catch (err) {
-        console.error("Failed to load all trips for dropdowns:", err);
-        // Le toast est déjà géré par le contexte en cas d'erreur
-      }
-    };
-    loadAllTrips();
-  }, [])*///listPublicTrips]);
-
+  
 
   // Fonction de recherche mise à jour pour utiliser l'API
   const handleSearch = async (e) => {
@@ -65,10 +33,11 @@ const SearchBar = () => {
     
     // 🔄 Construction des critères de recherche pour l'API
     const searchCriteria = {
+      page:1,
       departureTown: departure,
       arrivalTown: destination,
       // Le format de la date peut varier, ici on prend le début de la journée
-      departureDate: date.startOf('day').toISOString(), 
+   //   departureDate: date.startOf('day').toISOString(), 
       availableSeats: passengers
     };
 
@@ -76,15 +45,15 @@ const SearchBar = () => {
       const { data } = await listPublicTrips(searchCriteria);
       
       if (data && data.trips && data.trips.length > 0) {
-        setSearchResults(data.trips); // Stocke les résultats dans le contexte
+        setTrips(data.trips); // Stocke les résultats dans le contexte
         toast.success(`${data.trips.length} trajet(s) trouvé(s) !`);
         navigate('/results'); // Redirige vers la page de résultats
       } else {
-        setSearchResults([]); // Efface les anciens résultats
+        setTrips([]); // Efface les anciens résultats
         toast.error("Aucun trajet ne correspond à votre recherche.");
       }
     } catch (err) {
-      setSearchResults([]); // Efface les anciens résultats en cas d'échec
+      setTrips([]); // Efface les anciens résultats en cas d'échec
       // L'erreur est gérée par le toast dans le contexte
     }
   };
@@ -104,33 +73,27 @@ const SearchBar = () => {
           {/* Champ Départ */}
           <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
             <FontAwesomeIcon icon={faLocationDot} className='text-xl text-blue-500 mr-3' />
-            <select
+            <input
+            type="text"
               value={departure}
               onChange={(e) => setDeparture(e.target.value)}
+              placeholder='depart'
               className='flex-grow outline-none bg-transparent text-lg py-1'
               aria-label="Lieu de départ"
-            >
-              <option value="" disabled>Départ</option>
-              {availableDepartures.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Champ Destination */}
           <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
             <FontAwesomeIcon icon={faLocationDot} className='text-xl text-green-500 mr-3' />
-            <select
+              <input
+            type="text"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
+              placeholder='depart'
               className='flex-grow outline-none bg-transparent text-lg py-1'
-              aria-label="Lieu de destination"
-            >
-              <option value="" disabled>Destination</option>
-              {availableDestinations.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+              aria-label="Lieu de départ"
+            />
           </div>
 
           {/* Champ Date */}
