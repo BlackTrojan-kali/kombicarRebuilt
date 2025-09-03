@@ -21,10 +21,8 @@ export function TripContextProvider({ children }) {
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
-                toast.success('Trajets chargés avec succès !');
             } else {
                 setTrips([]);
-                toast.error('Aucun trajet trouvé.');
             }
             return data;
         } catch (err) {
