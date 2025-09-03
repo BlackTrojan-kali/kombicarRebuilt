@@ -32,6 +32,7 @@ import { StatsContextProvider } from "./contexts/StatsContext"
 // 🆕 Nouveaux imports pour les pages des codes promo
 import PromoCode from "./Pages/Dashboard/PromoCode/PromoCode"
 import PromoCodeDetails from "./Pages/Dashboard/PromoCode/PromoCodeDetails"
+import MyReservations from "./Pages/Client/MyReservations"
 
 
 const Routes = () => {
@@ -85,6 +86,10 @@ const Routes = () => {
         {
           path:"profile/wallet", 
           element:<UserWallet/>
+        },
+        {
+          path:"profile/reservations", 
+          element:<MyReservations/>
         },
         {
           path:"profile/licence", // 🆕 Nouvelle route pour la page du permis de conduire

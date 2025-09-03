@@ -13,7 +13,7 @@ const VehiculeDoc = () => {
   const [documents, setDocuments] = useState([]);
   const [car, setCar] = useState(null);
   const { theme } = useColorScheme();
-  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
+  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';

@@ -12,7 +12,6 @@ dayjs.locale('fr');
 
 const ResultCard = ({ trip }) => {
   const { theme } = useColorScheme();
-  console.log(trip)
   // Fonction utilitaire pour formater l'heure
   const formatTime = (dateString) => {
     if (!dateString) return '';

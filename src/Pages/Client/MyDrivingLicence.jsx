@@ -109,7 +109,7 @@ const MyDrivingLicence = () => {
     }
   };
 
-  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50';
+  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';

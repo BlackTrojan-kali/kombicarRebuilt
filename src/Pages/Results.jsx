@@ -156,7 +156,6 @@ const IntegratedSearchBar = ({ onSearch, initialSearchCriteria }) => {
 const Results = () => {
     const { trips, loading, error, listPublicTrips } = useTrips();
     const { theme } = useColorScheme();
-   
     // État local pour les critères de recherche, y compris la pagination
     const [searchCriteria, setSearchCriteria] = useState({
         page: 1,
@@ -176,12 +175,12 @@ const Results = () => {
         endAreaCity: '',
         date: dayjs()
     });
-
     const [totalRows, setTotalRows] = useState(0);
     const [hasNext, setHasNext] = useState(false);
     const [hasPrevious, setHasPrevious] = useState(false);
     // Fonction unifiée pour lancer la recherche
     const handleSearch = async (criteria) => {
+      
         try {
             // Build the payload with only non-null or non-empty criteria
             const payload = {
@@ -196,16 +195,17 @@ const Results = () => {
                 ...(criteria.vehiculeType > 0 && { vehiculeType: criteria.vehiculeType }),
                 ...(criteria.notationOfCondutor > 0 && { notationOfCondutor: criteria.notationOfCondutor }),
                 ...(criteria.tripDepartureHour.acceptAllHour === false && { tripDepartureHour: criteria.tripDepartureHour }),
-                ...(criteria.date && { date: criteria.date.format('YYYY-MM-DD') }) // Add the date to the payload
+                ...(criteria.date && { date: criteria.date }) // Add the date to the payload
             };
-
             const data = await listPublicTrips(payload);
+               
             if (data) {
                 setTotalRows(data.totalCount);
                 setHasNext(data.hasNextPage);
                 setHasPrevious(data.hasPreviousPage);
             }
         } catch (err) {
+            console.log(err);
             // The hook handles toasts, so we can ignore
         }
     };
@@ -408,10 +408,10 @@ const Results = () => {
                             <div className="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
                                 <p className={`${textColorSecondary}`}>Chargement des trajets...</p>
                             </div>
-                        ) : trips?.items && trips?.items?.length > 0 ? (
+                        ) : trips && trips?.length > 0 ? (
                             <>
                                 <div className='flex flex-col gap-6'>
-                                    {trips?.items.map((tripData) => (
+                                    {trips.map((tripData) => (
                                         <ResultCard key={tripData.trip.id} trip={tripData} />
                                     ))}
                                 </div>

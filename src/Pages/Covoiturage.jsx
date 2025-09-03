@@ -59,10 +59,10 @@ const Covoiturage = () => {
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
             { loading ? (
               <p className="text-gray-300">Chargement des itinéraires...</p>
-            ) : trips?.items?.length === 0 ? (
+            ) : trips?.length === 0 ? (
               <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
             ) : (
-              trips?.items?.slice(0, 8).map((tripData) => (
+              trips?.slice(0, 8).map((tripData) => (
                 // 🔄 Correction: Utilisation de la bonne propriété pour le lien et les noms des villes
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
                   <div className={`flex items-center gap-4 ${textColorPrimary}`}>
