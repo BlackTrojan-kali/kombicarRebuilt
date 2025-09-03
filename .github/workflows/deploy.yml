@@ -1,3 +1,4 @@
+
 name: Deploy Kombicar React to Production
 
 on:
@@ -40,7 +41,11 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "Deployment finished for kombicarRebuilt."
+            # Copie les fichiers du dossier dist vers le répertoire parent
             cp -a /var/www/kombicarRebuilt/dist/. /var/www/kombicarRebuilt/
+
+            # Supprime le dossier dist qui a été copié
             sudo rm -rf /var/www/kombicarRebuilt/dist
-	
+
+            # Affiche un message de fin de déploiement
+            echo "Deployment finished for kombicarRebuilt."
