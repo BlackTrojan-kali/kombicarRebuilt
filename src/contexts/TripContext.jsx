@@ -95,6 +95,7 @@ export function TripContextProvider({ children }) {
             toast.error(err.response?.data?.message || `Échec de la récupération du trajet ${id}.`);
             throw err;
         } finally {
+            //building
             setLoading(false);
         }
     };
