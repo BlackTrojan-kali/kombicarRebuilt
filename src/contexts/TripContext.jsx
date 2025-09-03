@@ -43,7 +43,6 @@ export function TripContextProvider({ children }) {
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
-                toast.success('Trajets publics trouvés avec succès !');
             } else {
                 setTrips([]);
                 toast.error('Aucun trajet public ne correspond à vos critères.');
@@ -89,7 +88,6 @@ export function TripContextProvider({ children }) {
         setError(null);
         try {
             const response = await api.get(`/api/v1/trips/${id}`);
-            toast.success('Trajet trouvé !');
             return response.data;
         } catch (err) {
             setError(err);
