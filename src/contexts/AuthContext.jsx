@@ -33,7 +33,8 @@ export function AuthContextProvider({ children }) {
                 phoneNumber: fullUserInfo.phoneNumber,
                 pictureProfileUrl: fullUserInfo.pictureProfileUrl,
                 balance: fullUserInfo.balance,
-                note: fullUserInfo.note
+                note: fullUserInfo.note,
+                createdAt: fullUserInfo.createdAt
             });
             return true;
         } catch (error) {

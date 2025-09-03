@@ -261,7 +261,7 @@ const Profile = () => {
                             </h1>
                             <p className={`text-lg ${textColorSecondary} mb-2`}>
                                 <FontAwesomeIcon icon={faUserCircle} className='mr-2 text-blue-500' />
-                                Membre depuis le {user.memberSince || 'N/A'}
+                                Membre depuis le {dayjs(user.createdAt).format('DD MMMM YYYY à HH:mm') || 'N/A'}
                             </p>
                             <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-3 ${textColorSecondary}`}>
                                 {user.email && (
