@@ -72,7 +72,12 @@ const Profile = () => {
             }
         }
     };
-
+ useEffect(() => {
+        // Redirige si l'utilisateur n'est pas connecté une fois le chargement terminé
+        if (!user && !loadingUser) {
+            navigate('/auth/signin');
+        }
+    }, [user, loadingUser, navigate]);
     // --- Effets de bord pour le chargement des données ---
     useEffect(() => {
         loadUserTrips(publishedPage, 0, setPublishedTrips, setPublishedTotalPages);
