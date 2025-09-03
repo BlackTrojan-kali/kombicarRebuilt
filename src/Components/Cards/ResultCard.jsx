@@ -35,7 +35,7 @@ const ResultCard = ({ trip }) => {
 
   const { driver, vehicule, trip: tripData } = trip;
   const driverFullName = `${driver.firstName} ${driver.lastName}`;
-  const driverPhoto = driver.photoUrl || '/default/user-placeholder.jpg';
+  const driverPhoto = driver.photoUrl;
   const driverRating = 4; // La notation n'est pas dans le modèle fourni, on utilise un placeholder
   const vehicleName = `${vehicule.brand} ${vehicule.model}`;
 
@@ -73,7 +73,13 @@ const ResultCard = ({ trip }) => {
         <div className='p-6 flex justify-between items-center flex-wrap gap-4'>
             {/* Infos du conducteur */}
             <div className='flex items-center gap-4'>
-                <img src={driverPhoto} alt={driverFullName} className='w-12 h-12 rounded-full object-cover' />
+                {driverPhoto ? (
+                    <img src={driverPhoto} alt={driverFullName} className='w-12 h-12 rounded-full object-cover' />
+                ) : (
+                    <div className='w-12 h-12 rounded-full flex items-center justify-center bg-gray-300 dark:bg-gray-700'>
+                        <FontAwesomeIcon icon={faCar} className='text-gray-500 text-xl' />
+                    </div>
+                )}
                 <div className='flex flex-col'>
                     <p className={`font-semibold ${textColorPrimary}`}>{driverFullName}</p>
                     <div className='flex items-center text-yellow-500 text-xs'>
