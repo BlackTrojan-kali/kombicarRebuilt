@@ -30,7 +30,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "dist/*" # C'est ici que l'on copie tous les fichiers du dossier build
+          source: "dist/"
           target: "/var/www/kombicarRebuilt" # C'est le chemin de destination sur votre serveur
 
       - name: Clean up old build files on server
