@@ -3,6 +3,7 @@ import api from '../api/api';
 import toast from 'react-hot-toast'; 
 
 export const authContext = createContext({})
+
 export function AuthContextProvider({ children }) {
     const [user, setUser] = useState(null); 
     const [loading, setLoading] = useState(true); 
@@ -13,7 +14,7 @@ export function AuthContextProvider({ children }) {
         localStorage.removeItem('refreshToken');
         setUser(null);
         setLoading(false);
-        toast.success('deconnexion reussie')
+        toast.success('déconnexion réussie')
     };
 
     const fetchUserInfo = async () => {
@@ -69,24 +70,21 @@ export function AuthContextProvider({ children }) {
         setLoading(false);
     };
 
-   const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
-    setLoading(true);
-    try {
-        await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
-
-        // Display success messages to the user
-        toast.success('Inscription réussie !');
-        toast('Veuillez vérifier votre email pour confirmer votre compte.', { icon: '📧' });
-
-        return true;
-    } catch (error) {
-        console.error("Échec de l'inscription:", error);
-        toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
-        return false;
-    } finally {
-        setLoading(false);
-    }
-};
+    const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
+        setLoading(true);
+        try {
+            await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
+            toast.success('Inscription réussie !');
+            toast('Veuillez vérifier votre email pour confirmer votre compte.', { icon: '📧' });
+            return true;
+        } catch (error) {
+            console.error("Échec de l'inscription:", error);
+            toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const login = async ({ email, password }) => {
         setLoading(true);
@@ -141,11 +139,9 @@ export function AuthContextProvider({ children }) {
         }
     };
     
-    // Modification pour accepter userId et token dans l'URL
     const confirmEmail = async (userId, token) => {
         setLoading(true);
         try {
-            // Requête POST vers la nouvelle URL avec les paramètres de chemin
             const response = await api.post(`/api/v1/users/confirm-email/${userId}/${token}`);
             toast.success(response.data.message || 'Votre adresse e-mail a été confirmée avec succès !');
             return true;
@@ -222,6 +218,27 @@ export function AuthContextProvider({ children }) {
         }
     };
 
+    const loginGoogle = async (token) => {
+        setLoading(true);
+        try {
+            const response = await api.post('/api/v1/users/login-google', { token });
+            const { accessToken, refreshToken } = response.data;
+            if (accessToken && refreshToken) {
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
+                await fetchUserInfo();
+                toast.success('Connexion Google réussie !');
+                return true;
+            }
+        } catch (error) {
+            console.error("Échec de la connexion/inscription via Google:", error);
+            toast.error(error.response?.data?.message || 'Échec de la connexion/inscription via Google.');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         checkAuthStatus();
     }, []);
@@ -238,7 +255,8 @@ export function AuthContextProvider({ children }) {
         resendConfirmationEmail, 
         forgotPassword, 
         resetPassword, 
-        externalLoginGoogle 
+        externalLoginGoogle,
+        loginGoogle
     };
 
     return (

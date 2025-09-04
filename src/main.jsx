@@ -10,12 +10,11 @@ import { UserContextProvider } from './contexts/UserContext.jsx';
 import { DrivingLicenceProvider } from './contexts/DrivingLicenceContext.jsx';
 import { PromoCodeContextProvider } from './contexts/PromoCodeCotext.jsx';
 import { ReservationContextProvider } from './contexts/ReservationContext.jsx';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    
     <AuthContextProvider>
-      <GoogleOAuthProvider clientId="246979621166-sah339sh5nge2n3epsdbj1kegv60htqb.apps.googleusercontent.com">
     
       <ColorSchemeProvider>
         <CarContextProvider>
@@ -32,7 +31,6 @@ createRoot(document.getElementById('root')).render(
           </TripContextProvider>
         </CarContextProvider>
       </ColorSchemeProvider>
-      </GoogleOAuthProvider>
     </AuthContextProvider>
   </StrictMode>,
 );
