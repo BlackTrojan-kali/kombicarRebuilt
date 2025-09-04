@@ -220,8 +220,8 @@ export function AuthContextProvider({ children }) {
 
     const loginGoogle = async (token) => {
         setLoading(true);
-        try {
             console.log(token);
+        try {
             const response = await api.post('/api/v1/users/login-google', { token });
             const { token, refreshToken } = response.data;
             if (token && refreshToken) {

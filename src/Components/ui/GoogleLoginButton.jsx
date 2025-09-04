@@ -16,11 +16,10 @@ const {loginGoogle} = useAuth();
     );
   }, []);
 
-  const handleCredentialResponse = async(response) => {
+  const handleCredentialResponse = (response) => {
     // Envoie le token à ton backend
         
-    console.log(response.credential)
-        await loginGoogle( response.credential )
+         loginGoogle( response.credential )
    
   };
 
