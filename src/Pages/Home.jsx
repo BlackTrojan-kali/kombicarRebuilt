@@ -260,9 +260,12 @@ const Home = () => {
             Que vous voyagiez pour le travail, les études ou les loisirs, Kombicar vous connecte aux villes clés du Cameroun. Découvrez de nouvelles régions et vivez des expériences authentiques grâce à notre réseau de covoiturage fiable et étendu.
           </p>
           <div className='text-center md:text-left'>
+            
+              <Link to="/results">
             <Button className='px-8 py-3 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75'>
               Voir toutes nos destinations
             </Button>
+            </Link>
           </div>
         </div>
       </section>

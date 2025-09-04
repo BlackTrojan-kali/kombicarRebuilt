@@ -13,7 +13,7 @@ import useAuth from "../../hooks/useAuth";
 const Header = () => {
   const { theme, setTheme } = useColorScheme();
   const [showNav, setShowNav] = useState(false);
-  const { user } = useAuth();
+  const { user,logout } = useAuth();
 
   const toggleDarkMode = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -23,6 +23,9 @@ const Header = () => {
     setShowNav(!showNav);
   };
 
+  const handleLogout=()=>{
+    logout()
+  }
   return (
     <header className="fixed top-0 left-0 w-full z-50 py-3 px-4 sm:px-6 lg:px-12 xl:px-24 bg-white shadow-md flex items-center justify-between dark:bg-gray-800 dark:shadow-lg transition-colors duration-300">
       {/* Logo et Nom de l'application */}
@@ -127,7 +130,7 @@ const Header = () => {
               <FontAwesomeIcon icon={faUserCircle} />
               Mon Profil
             </Link>
-            <button className="flex items-center gap-2 w-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-md transition-colors duration-200">
+            <button onClick={handleLogout} className="flex items-center gap-2 w-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-md transition-colors duration-200">
               <FontAwesomeIcon icon={faRightFromBracket} />
               Déconnexion
             </button>

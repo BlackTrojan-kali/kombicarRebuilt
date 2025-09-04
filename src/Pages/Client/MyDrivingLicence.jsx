@@ -19,7 +19,7 @@ const MyDrivingLicence = () => {
   } = useDrivingLicence();
 
   const [licenceData, setLicenceData] = useState({
-    licenceNumber: '',
+    licenseNumber: '',
     dateOfBirth: '',
     issueDate: '',
     expirationDate: '',
@@ -48,7 +48,7 @@ const MyDrivingLicence = () => {
   useEffect(() => {
     if (licenceInfo) {
       setLicenceData({
-        licenceNumber: licenceInfo.licenceNumber || '',
+        licenseNumber: licenceInfo.licenseNumber || '',
         dateOfBirth: licenceInfo.dateOfBirth ? dayjs(licenceInfo.dateOfBirth).format('YYYY-MM-DD') : '',
         issueDate: licenceInfo.issueDate ? dayjs(licenceInfo.issueDate).format('YYYY-MM-DD') : '',
         expirationDate: licenceInfo.expirationDate ? dayjs(licenceInfo.expirationDate).format('YYYY-MM-DD') : '',
@@ -78,7 +78,6 @@ const MyDrivingLicence = () => {
 
     try {
       await updateLicenceInfo(formattedData);
-      toast.success('Informations de permis mises à jour avec succès.');
     } catch (err) {
       toast.error('Échec de la mise à jour des informations.');
     }
@@ -170,12 +169,12 @@ const MyDrivingLicence = () => {
           </h2>
           <form onSubmit={handleUpdateInfoSubmit} className='space-y-4'>
             <div>
-              <label htmlFor="licenceNumber" className="block text-sm font-medium">Numéro de permis</label>
+              <label htmlFor="licenseNumber" className="block text-sm font-medium">Numéro de permis</label>
               <input 
                 type="text"
-                id="licenceNumber"
-                name="licenceNumber"
-                value={licenceData.licenceNumber}
+                id="licenseNumber"
+                name="licenseNumber"
+                value={licenceData.licenseNumber}
                 onChange={handleInputChange}
                 required
                 className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 ${inputBg} ${textColor}`}

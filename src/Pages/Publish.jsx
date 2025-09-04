@@ -6,9 +6,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Toaster, toast } from 'react-hot-toast';
 import useColorScheme from '../hooks/useColorScheme';
-import  useTrips  from '../hooks/useTrips';
+import useTrips from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
+// 🎯 Importation du hook de navigation
+import { useNavigate } from 'react-router-dom';
 
 // Le composant Publish permet à l'utilisateur de créer et de publier un nouveau trajet.
 const Publish = () => {
@@ -17,6 +19,20 @@ const Publish = () => {
   const { createTrip } = useTrips();
   const { cars, loading: loadingCars, error: carsError, fetchUserCars } = useCars();
   const { user } = useAuth();
+  // 🎯 Appel du hook de navigation
+  const navigate = useNavigate();
+
+  // 🎯 LOGIQUE DE REDIRECTION SI L'UTILISATEUR N'EST PAS AUTHENTIFIÉ
+  useEffect(() => {
+    // Si l'objet user est null ou undefined, rediriger vers la page de connexion
+    if (!user) {
+      toast.error('Veuillez vous connecter pour publier un trajet.', { position: 'top-right' });
+      navigate('/auth/signin');
+    } else {
+      // Si l'utilisateur est connecté, charger ses véhicules
+      fetchUserCars();
+    }
+  }, [user, navigate]);
 
   // Utilisation d'un seul objet d'état pour le formulaire pour une meilleure gestion.
   const [tripData, setTripData] = useState({
@@ -43,11 +59,12 @@ const Publish = () => {
   };
 
   // Chargement des véhicules de l'utilisateur au montage du composant.
-  useEffect(() => {
-    if (cars.length === 0 && !loadingCars && !carsError) {
-      fetchUserCars();
-    }
-  }, [user])//cars, loadingCars, carsError, fetchUserCars]);
+  // L'appel a été déplacé dans le premier useEffect pour éviter les chargements superflus.
+  // useEffect(() => {
+  //   if (cars.length === 0 && !loadingCars && !carsError) {
+  //     fetchUserCars();
+  //   }
+  // }, [user])//cars, loadingCars, carsError, fetchUserCars]);
 
   // Classes Tailwind conditionnelles pour le mode sombre.
   const isDarkMode = theme === 'dark';
@@ -72,6 +89,7 @@ const Publish = () => {
     const publisherId = user?.id;
     if (!publisherId) {
       toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
+      // Cette vérification est redondante grâce à la logique du useEffect, mais peut être conservée pour des raisons de robustesse.
       return;
     }
 
@@ -135,6 +153,11 @@ const Publish = () => {
       }
     });
   };
+
+  // Si l'utilisateur n'est pas encore chargé (état initial), ne rien afficher pour éviter un rendu instantané
+  if (user === undefined) {
+    return null;
+  }
 
   return (
     <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : ''}`}>
@@ -365,8 +388,8 @@ const Publish = () => {
               <button
                 type="submit"
                 className="flex items-center gap-2 px-8 py-3 bg-kombigreen-500 text-white font-semibold rounded-lg shadow-md
-                           hover:bg-kombigreen-600 focus:outline-none focus:ring-2 focus:ring-kombigreen-500 focus:ring-offset-2
-                           dark:focus:ring-offset-gray-900 transition-colors duration-300 text-lg"
+                  hover:bg-kombigreen-600 focus:outline-none focus:ring-2 focus:ring-kombigreen-500 focus:ring-offset-2
+                  dark:focus:ring-offset-gray-900 transition-colors duration-300 text-lg"
               >
                 <FontAwesomeIcon icon={faPlusCircle} />
                 Publier le Trajet

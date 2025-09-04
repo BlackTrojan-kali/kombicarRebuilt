@@ -13,6 +13,7 @@ export function AuthContextProvider({ children }) {
         localStorage.removeItem('refreshToken');
         setUser(null);
         setLoading(false);
+        toast.success('deconnexion reussie')
     };
 
     const fetchUserInfo = async () => {

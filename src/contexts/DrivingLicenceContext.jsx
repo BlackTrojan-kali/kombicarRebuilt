@@ -1,5 +1,6 @@
 import { createContext, useState } from "react";
 import api from "../api/api";
+import toast from "react-hot-toast";
 
 export const DrivingLicenceContext = createContext({});
 
@@ -14,12 +15,13 @@ export function DrivingLicenceProvider({ children }) {
     setError(null);
     console.log(licenceData)
     try {
-       await api.put('/v1/licence-driving/update-infos', licenceData);
-        
-      //setLicenceInfo(response.data);
+      const response = await api.put('/api/v1/licence-driving/update-infos', licenceData);
+      
+      setLicenceInfo(response.data);
+      toast.success("licence mise a jour avec success")
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;
-      setError(errorMessage);
+      toast.error("echec de la mise a jour du permis veillez verifiez vos champs")
       console.error("Échec de la mise à jour des informations du permis de conduire:", err);
     } finally {
       setLoading(false);
@@ -32,7 +34,7 @@ export function DrivingLicenceProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/v1/licence-driving/upload', formData);
+      const response = await api.post('/api/v1/licence-driving/upload', formData);
       setLicenceInfo(response.data); 
       return response.data;
     } catch (err) {
@@ -50,7 +52,7 @@ export function DrivingLicenceProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/v1/licence-driving/details');
+      const response = await api.get('/api/v1/licence-driving/details');
       console.log(response);
       setLicenceInfo(response.data);
       
@@ -70,7 +72,7 @@ export function DrivingLicenceProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.put(`/v1/licence-driving/change-verification-state`, { 
+      const response = await api.put(`/api/v1/licence-driving/change-verification-state`, { 
         licenceId, 
         verificationState, 
         rejectionReason 
