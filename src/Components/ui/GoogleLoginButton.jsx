@@ -17,12 +17,9 @@ function GoogleLoginButton() {
 
   const handleCredentialResponse = (response) => {
     // Envoie le token à ton backend
-    api.post("/api/v1/users/login-google", { token: response.credential })
-    .then(res => res.json())
-    .then(data => {
-      // le JWT et le refresh token sont dans 'data'
-      console.log("JWT + refresh token backend:", data);
-    });
+    console.log(response)
+    const res = api.post("/api/v1/users/login-google", { token: response.credential })
+    console.log(res)
   };
 
   return <div id="google-btn"></div>;
