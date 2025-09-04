@@ -45,7 +45,6 @@ export function TripContextProvider({ children }) {
                 setTrips(data.items);
             } else {
                 setTrips([]);
-                toast.error('Aucun trajet public ne correspond à vos critères.');
             }
             return data;
         } catch (err) {

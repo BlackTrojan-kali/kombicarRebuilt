@@ -105,7 +105,7 @@ const Home = () => {
 
   return (
     <div className={`${pageBgColor} ${textColor} transition-colors duration-300`}>
-      <HeroSection label={"bienvenue sur kombicar"} />
+      <HeroSection label={"BIENVENUE sur kombicar"} />
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 mt-[250px] lg:mt-[100px]'>
         {/* ==================================== */}

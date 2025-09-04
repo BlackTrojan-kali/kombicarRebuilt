@@ -78,7 +78,7 @@ const SearchBar = () => {
                             type="text"
                             value={departure}
                             onChange={(e) => setDeparture(e.target.value)}
-                            placeholder='depart'
+                            placeholder='Depart'
                             className='flex-grow outline-none bg-transparent text-lg py-1'
                             aria-label="Lieu de départ"
                         />
