@@ -18,9 +18,9 @@ const {loginGoogle} = useAuth();
 
   const handleCredentialResponse = async(response) => {
     // Envoie le token à ton backend
-        console.log(response)
+        
     
-        await loginGoogle("/api/v1/users/login-google", { token: response.credential })
+        await loginGoogle( response.credential )
    
   };
 
