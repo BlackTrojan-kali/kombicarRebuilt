@@ -245,6 +245,7 @@ export function AuthContextProvider({ children }) {
 
     const value = {
         user, 
+        setUser,
         loading, 
         login, 
         loginAdmin, 
