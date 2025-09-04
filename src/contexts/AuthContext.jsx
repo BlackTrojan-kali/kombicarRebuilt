@@ -218,10 +218,11 @@ export function AuthContextProvider({ children }) {
         }
     };
 
-    const loginGoogle = async (token) => {
+    const loginGoogle = async (tokeninfo) => {
         setLoading(true);
         try {
-            const response = await api.post('/api/v1/users/login-google', { token });
+            const response = await api.post('/api/v1/users/login-google', {token:tokeninfo} );
+            console.log(response)
             const { token, refreshToken } = response.data;
             if (token && refreshToken) {
                 localStorage.setItem('accessToken', token);
@@ -231,6 +232,7 @@ export function AuthContextProvider({ children }) {
                 return true;
             }
         } catch (error) {
+            console.log(error)
             console.error("Échec de la connexion/inscription via Google:", error);
             toast.error(error.response?.data?.message || 'Échec de la connexion/inscription via Google.');
             return false;
