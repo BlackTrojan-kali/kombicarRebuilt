@@ -12,9 +12,11 @@ export function DrivingLicenceProvider({ children }) {
   const updateLicenceInfo = async (licenceData) => {
     setLoading(true);
     setError(null);
+    console.log(licenceData)
     try {
-      const response = await api.put('/v1/licence-driving/update-infos', licenceData);
-      setLicenceInfo(response.data);
+       await api.put('/v1/licence-driving/update-infos', licenceData);
+        
+      //setLicenceInfo(response.data);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message;
       setError(errorMessage);

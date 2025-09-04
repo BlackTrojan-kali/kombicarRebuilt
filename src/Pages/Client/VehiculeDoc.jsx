@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 
 const VehiculeDoc = () => {
   const { carId } = useParams();
-  const { getVehicleDocuments, getCarById, loading } = useCars();
+  const { getVehicleDocuments, getCarById, loading, downloadDocument } = useCars();
   const [documents, setDocuments] = useState([]);
   const [car, setCar] = useState(null);
   const { theme } = useColorScheme();
@@ -49,7 +49,7 @@ const VehiculeDoc = () => {
     if (carId) {
       loadData();
     }
-  }, [carId, getVehicleDocuments, getCarById]);
+  }, [carId]);
 
   if (loading) {
     return (
@@ -111,15 +111,13 @@ const VehiculeDoc = () => {
                       </span>
                     )}
                   </span>
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => downloadDocument(doc.name)}
                     className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     title="Télécharger le document"
                   >
                     <FontAwesomeIcon icon={faDownload} />
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}
