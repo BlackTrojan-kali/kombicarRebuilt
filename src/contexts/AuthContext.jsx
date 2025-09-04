@@ -222,9 +222,9 @@ export function AuthContextProvider({ children }) {
         setLoading(true);
         try {
             const response = await api.post('/api/v1/users/login-google', { token });
-            const { accessToken, refreshToken } = response.data;
-            if (accessToken && refreshToken) {
-                localStorage.setItem('accessToken', accessToken);
+            const { token, refreshToken } = response.data;
+            if (token && refreshToken) {
+                localStorage.setItem('accessToken', token);
                 localStorage.setItem('refreshToken', refreshToken);
                 await fetchUserInfo();
                 toast.success('Connexion Google réussie !');

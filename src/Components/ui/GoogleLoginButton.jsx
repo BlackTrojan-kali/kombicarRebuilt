@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import api from "../../api/api";
+import useAuth from "../../hooks/useAuth";
 function GoogleLoginButton() {
-
+const {loginGoogle} = useAuth();
   useEffect(() => {
     window.google
     /* global google */
@@ -15,11 +16,12 @@ function GoogleLoginButton() {
     );
   }, []);
 
-  const handleCredentialResponse = (response) => {
+  const handleCredentialResponse = async(response) => {
     // Envoie le token à ton backend
-    console.log(response)
-    const res = api.post("/api/v1/users/login-google", { token: response.credential })
-    console.log(res)
+        console.log(response)
+    
+        await loginGoogle("/api/v1/users/login-google", { token: response.credential })
+   
   };
 
   return <div id="google-btn"></div>;
