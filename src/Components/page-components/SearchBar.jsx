@@ -80,7 +80,7 @@ const SearchBar = () => {
                 className='absolute -bottom-14 z-10 lg:bottom-0 left-1/2 -translate-x-1/2
                            w-[95%] sm:w-[90%] md:w-[85%] lg:w-[calc(100%-4rem)] 
                            flex flex-col lg:flex-row items-stretch
-                           bg-white rounded-xl shadow-lg overflow-hidden
+                           bg-white rounded-xl shadow-lg 
                            text-gray-800 border border-gray-100'
             >
                 <div className='flex flex-col lg:flex-row w-full lg:flex-grow'>
@@ -98,7 +98,7 @@ const SearchBar = () => {
                             aria-label="Lieu de départ"
                         />
                         {activeField === 'departure' && places.length > 0 && (
-                            <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-60 overflow-y-auto mt-1 z-20">
+                            <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-60 overflow-y-auto mt-1 z-46">
                                 {loading ? (
                                     <li className="p-3 text-gray-500">Chargement...</li>
                                 ) : (
