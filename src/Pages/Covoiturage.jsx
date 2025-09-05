@@ -8,6 +8,13 @@ import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
 
 const Covoiturage = () => {
+    const truncateLocationName = (name) => {
+    const maxLength = 7; // La limite de caractères
+    if (name && name.length > maxLength) {
+      return `${name.substring(0, maxLength)}...`;
+    }
+    return name;
+  };
   // 🔄 Remplacement de `fetchTrips` par `listPublicTrips`
   const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
@@ -69,9 +76,9 @@ const Covoiturage = () => {
                 // 🔄 Correction: Utilisation de la bonne propriété pour le lien et les noms des villes
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`${linkBgColor} p-6 rounded-lg shadow-md flex justify-between items-center group ${linkHoverBgColor} transition-colors duration-200 cursor-pointer`}>
                   <div className={`flex items-center gap-4 ${textColorPrimary}`}>
-                    <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{truncateLocationName(tripData.departureArea?.homeTownName || 'N/A')}</p>
                     <FontAwesomeIcon icon={faArrowRight} className={`text-lg ${textColorSecondary} group-hover:translate-x-1 transition-transform`} />
-                    <p className='font-semibold'>{tripData.arrivalArea?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{truncateLocationName(tripData.arrivalArea?.homeTownName || 'N/A')}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className={`text-xl ${textColorSecondary} group-hover:text-green-500 transition-colors`} />
                 </Link>

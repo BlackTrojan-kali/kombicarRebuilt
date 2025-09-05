@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
@@ -9,32 +9,28 @@ import useColorScheme from '../hooks/useColorScheme';
 import useTrips from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
-// 🎯 Importation du hook de navigation
-import { useNavigate } from 'react-router-dom';
-
-// Le composant Publish permet à l'utilisateur de créer et de publier un nouveau trajet.
+import { Link, useNavigate } from 'react-router-dom';
+// 🎯 Importation du MapContext
+import useMape from "../hooks/useMap"
 const Publish = () => {
-  // Récupération des hooks personnalisés pour le thème, les trajets, les voitures et l'authentification.
   const { theme } = useColorScheme();
   const { createTrip } = useTrips();
   const { cars, loading: loadingCars, error: carsError, fetchUserCars } = useCars();
   const { user } = useAuth();
-  // 🎯 Appel du hook de navigation
   const navigate = useNavigate();
 
-  // 🎯 LOGIQUE DE REDIRECTION SI L'UTILISATEUR N'EST PAS AUTHENTIFIÉ
+  // 🎯 Récupération des données du MapContext
+  const { places, searchPlaces, loading: loadingPlaces, error: placesError } = useMape();
+
   useEffect(() => {
-    // Si l'objet user est null ou undefined, rediriger vers la page de connexion
     if (!user) {
-      toast.error('Veuillez vous connecter pour publier un trajet.', { position: 'top-right' });
+      toast.error('Veuillez vous connecter pour publier un trajet.');
       navigate('/auth/signin');
     } else {
-      // Si l'utilisateur est connecté, charger ses véhicules
       fetchUserCars();
     }
   }, [user, navigate]);
 
-  // Utilisation d'un seul objet d'état pour le formulaire pour une meilleure gestion.
   const [tripData, setTripData] = useState({
     departure: '',
     destination: '',
@@ -43,30 +39,94 @@ const Publish = () => {
     availableSeats: '',
     pricePerSeat: '',
     isLuggageAllowed: false,
-    luggageSize: '1', // Nouvelle valeur par défaut
-    luggageNumberPerPassenger: '1', // Nouvelle valeur par défaut
+    luggageSize: '1',
+    luggageNumberPerPassenger: '1',
     aditionalInfo: '',
     selectedVehicleId: '',
   });
 
-  // Fonction pour gérer les changements des champs du formulaire.
+  // 🎯 États pour les suggestions et pour le debounce
+  const [showDepartureSuggestions, setShowDepartureSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
+
+  // 🎯 Fonction de recherche avec debounce
+  const debouncedSearch = (query) => {
+    clearTimeout(debounceTimeout);
+    const newTimeout = setTimeout(() => {
+      if (query.trim().length > 2) {
+        searchPlaces(query);
+      }
+    }, 500); // Délai de 500ms
+    setDebounceTimeout(newTimeout);
+  };
+
+  // 🎯 Gère les changements du champ de départ
+  const handleDepartureChange = (e) => {
+    const { value } = e.target;
+    setTripData(prevData => ({ ...prevData, departure: value }));
+    debouncedSearch(value);
+    setShowDepartureSuggestions(true);
+    setShowDestinationSuggestions(false);
+  };
+
+  // 🎯 Gère les changements du champ de destination
+  const handleDestinationChange = (e) => {
+    const { value } = e.target;
+    setTripData(prevData => ({ ...prevData, destination: value }));
+    debouncedSearch(value);
+    setShowDestinationSuggestions(true);
+    setShowDepartureSuggestions(false);
+  };
+
+  // 🎯 Gère la sélection d'une suggestion de départ
+  const handleSelectDeparture = (place) => {
+    setTripData(prevData => ({
+      ...prevData,
+      departure: place.description,
+      // Ici vous stockerez toutes les informations nécessaires pour l'API
+      startArea: {
+        homeTownName: place.description,
+        name: place.description,
+        latitude: place.latitude, // Assurez-vous que l'API renvoie ces champs
+        longitude: place.longitude, // Assurez-vous que l'API renvoie ces champs
+        order: 0,
+        type: 0,
+      }
+    }));
+    setShowDepartureSuggestions(false);
+  };
+
+  // 🎯 Gère la sélection d'une suggestion d'arrivée
+  const handleSelectDestination = (place) => {
+    setTripData(prevData => ({
+      ...prevData,
+      destination: place.description,
+      // Ici vous stockerez toutes les informations nécessaires pour l'API
+      arivalArea: {
+        homeTownName: place.description,
+        name: place.description,
+        latitude: place.latitude, // Assurez-vous que l'API renvoie ces champs
+        longitude: place.longitude, // Assurez-vous que l'API renvoie ces champs
+        order: 0,
+        type: 0,
+      }
+    }));
+    setShowDestinationSuggestions(false);
+  };
+
+  // Fonction pour gérer les autres changements des champs du formulaire.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setTripData(prevData => ({
       ...prevData,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Cache les suggestions lorsque d'autres champs changent
+    setShowDepartureSuggestions(false);
+    setShowDestinationSuggestions(false);
   };
 
-  // Chargement des véhicules de l'utilisateur au montage du composant.
-  // L'appel a été déplacé dans le premier useEffect pour éviter les chargements superflus.
-  // useEffect(() => {
-  //   if (cars.length === 0 && !loadingCars && !carsError) {
-  //     fetchUserCars();
-  //   }
-  // }, [user])//cars, loadingCars, carsError, fetchUserCars]);
-
-  // Classes Tailwind conditionnelles pour le mode sombre.
   const isDarkMode = theme === 'dark';
   const textColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
   const inputBg = isDarkMode ? 'bg-gray-700' : 'bg-white';
@@ -75,11 +135,9 @@ const Publish = () => {
   const cardBg = isDarkMode ? 'bg-gray-800' : 'bg-white';
   const shadow = isDarkMode ? 'shadow-lg' : 'shadow-md';
 
-  // Gestion de la soumission du formulaire.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation des champs obligatoires.
     const { departure, destination, date, time, availableSeats, pricePerSeat, selectedVehicleId } = tripData;
     if (!departure || !destination || !date || !time || !availableSeats || !pricePerSeat || !selectedVehicleId) {
       toast.error('Veuillez remplir tous les champs obligatoires.', { position: 'top-right' });
@@ -89,13 +147,13 @@ const Publish = () => {
     const publisherId = user?.id;
     if (!publisherId) {
       toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
-      // Cette vérification est redondante grâce à la logique du useEffect, mais peut être conservée pour des raisons de robustesse.
       return;
     }
 
-    // Création de l'objet de trajet en respectant la nouvelle structure de l'API
+    // Création de l'objet de trajet
     const newTrip = {
-      startArea: {
+      // 🎯 Utilisation des données complètes du lieu sélectionné
+      startArea: tripData.startArea || {
         homeTownName: tripData.departure,
         name: tripData.departure,
         latitude: 0,
@@ -103,7 +161,7 @@ const Publish = () => {
         order: 0,
         type: 0
       },
-      arivalArea: {
+      arivalArea: tripData.arivalArea || {
         homeTownName: tripData.destination,
         name: tripData.destination,
         latitude: 0,
@@ -124,17 +182,14 @@ const Publish = () => {
 
     console.log('Données soumises par le formulaire :', newTrip);
 
-    // Envoi des données du trajet via la fonction createTrip.
     const publishPromise = createTrip(newTrip);
 
-    // Utilisation de react-hot-toast pour afficher l'état de la publication.
     toast.promise(publishPromise, {
       loading: 'Publication de votre trajet...',
       success: 'Trajet publié avec succès !',
       error: (err) => `Erreur: ${err.message || 'Échec de la publication du trajet.'}`,
     });
 
-    // Réinitialisation du formulaire après une publication réussie.
     publishPromise.then((result) => {
       if (result) {
         setTripData({
@@ -154,7 +209,6 @@ const Publish = () => {
     });
   };
 
-  // Si l'utilisateur n'est pas encore chargé (état initial), ne rien afficher pour éviter un rendu instantané
   if (user === undefined) {
     return null;
   }
@@ -176,8 +230,8 @@ const Publish = () => {
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* Champ Départ */}
-            <div>
+            {/* 🎯 Champ Départ avec suggestions */}
+            <div className="relative">
               <label htmlFor="departure" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
                 Lieu de Départ <span className="text-red-500">*</span>
@@ -187,15 +241,34 @@ const Publish = () => {
                 id="departure"
                 name="departure"
                 value={tripData.departure}
-                onChange={handleChange}
+                onChange={handleDepartureChange}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 placeholder="Ex: Yaoundé"
                 required
+                onFocus={() => setShowDepartureSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowDepartureSuggestions(false), 200)}
               />
+              {showDepartureSuggestions && places.length > 0 && (
+                <ul className={`absolute z-10 w-full ${cardBg} border ${inputBorder} rounded-md mt-1 max-h-48 overflow-y-auto ${shadow}`}>
+                  {loadingPlaces ? (
+                    <li className={`p-3 text-center ${labelColor}`}>Chargement...</li>
+                  ) : placesError ? (
+                    <li className={`p-3 text-center text-red-500`}>Erreur de recherche</li>
+                  ) : places.map((place) => (
+                    <li
+                      key={place.placeId}
+                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
+                      onClick={() => handleSelectDeparture(place)}
+                    >
+                      {place.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            {/* Champ Destination */}
-            <div>
+            {/* 🎯 Champ Destination avec suggestions */}
+            <div className="relative">
               <label htmlFor="destination" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapPin} className="mr-2" />
                 Lieu d'Arrivée <span className="text-red-500">*</span>
@@ -205,14 +278,33 @@ const Publish = () => {
                 id="destination"
                 name="destination"
                 value={tripData.destination}
-                onChange={handleChange}
+                onChange={handleDestinationChange}
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 placeholder="Ex: Douala"
                 required
+                onFocus={() => setShowDestinationSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowDestinationSuggestions(false), 200)}
               />
+              {showDestinationSuggestions && places.length > 0 && (
+                <ul className={`absolute z-10 w-full ${cardBg} border ${inputBorder} rounded-md mt-1 max-h-48 overflow-y-auto ${shadow}`}>
+                  {loadingPlaces ? (
+                    <li className={`p-3 text-center ${labelColor}`}>Chargement...</li>
+                  ) : placesError ? (
+                    <li className={`p-3 text-center text-red-500`}>Erreur de recherche</li>
+                  ) : places.map((place) => (
+                    <li
+                      key={place.placeId}
+                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
+                      onClick={() => handleSelectDestination(place)}
+                    >
+                      {place.description}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            {/* Champ Date */}
+            {/* Reste du formulaire inchangé... */}
             <div>
               <label htmlFor="date" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
@@ -228,8 +320,6 @@ const Publish = () => {
                 required
               />
             </div>
-
-            {/* Champ Heure */}
             <div>
               <label htmlFor="time" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faClock} className="mr-2" />
@@ -245,8 +335,6 @@ const Publish = () => {
                 required
               />
             </div>
-
-            {/* Champ Nombre de places */}
             <div>
               <label htmlFor="availableSeats" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faUsers} className="mr-2" />
@@ -264,8 +352,6 @@ const Publish = () => {
                 required
               />
             </div>
-
-            {/* Champ Prix par place */}
             <div>
               <label htmlFor="pricePerSeat" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2" />
@@ -283,8 +369,6 @@ const Publish = () => {
                 required
               />
             </div>
-
-            {/* Sélection du Véhicule */}
             <div>
               <label htmlFor="selectedVehicleId" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faCar} className="mr-2" />
@@ -309,9 +393,10 @@ const Publish = () => {
                   ))
                 )}
               </select>
+              <Link to="/profile/car">
+                <p className='text-blue-600'>cliquez ici pour ajouter un vehicule</p>
+              </Link>
             </div>
-
-            {/* Champ Taille des Bagages */}
             <div>
               <label htmlFor="luggageSize" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faBoxOpen} className="mr-2" />
@@ -330,8 +415,6 @@ const Publish = () => {
                 <option value="3">Grand</option>
               </select>
             </div>
-
-            {/* Champ Nombre de bagages par passager */}
             <div>
               <label htmlFor="luggageNumberPerPassenger" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faLuggageCart} className="mr-2" />
@@ -348,8 +431,6 @@ const Publish = () => {
                 placeholder="Ex: 1"
               />
             </div>
-
-            {/* Checkbox Bagages Autorisé */}
             <div className="md:col-span-2 flex items-center mt-2">
               <input
                 type="checkbox"
@@ -365,8 +446,6 @@ const Publish = () => {
                 Bagages acceptés
               </label>
             </div>
-
-            {/* Champ Description (textarea) */}
             <div className="md:col-span-2">
               <label htmlFor="aditionalInfo" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
@@ -383,7 +462,6 @@ const Publish = () => {
               ></textarea>
             </div>
 
-            {/* Bouton de Soumission */}
             <div className="md:col-span-2 flex justify-center mt-4">
               <button
                 type="submit"

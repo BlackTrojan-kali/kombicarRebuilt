@@ -21,6 +21,15 @@ const TripCard = ({ trip }) => {
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Nouvelle fonction pour tronquer les noms de lieux si ils sont trop longs
+  const truncateLocationName = (name) => {
+    const maxLength = 12; // La limite de caractères
+    if (name && name.length > maxLength) {
+      return `${name.substring(0, maxLength)}...`;
+    }
+    return name;
+  };
+
   // Ajout d'une condition de garde pour s'assurer que l'objet trip existe
   if (!trip || !trip.trip || !trip.departureArea || !trip.arrivalArea) {
     return null; // ou un composant de remplacement pour les données manquantes
@@ -38,11 +47,11 @@ const TripCard = ({ trip }) => {
         />
         <div className='p-6 w-full relative'>
           <div className='flex justify-between items-center text-xl font-bold mb-4'>
-            {/* Utilisation des chemins d'accès corrects depuis l'objet du contexte */}
-            <p className={textColorPrimary}>{trip.departureArea?.homeTownName || 'Départ'}</p>
+            {/* Utilisation de la nouvelle fonction pour le nom de départ */}
+            <p className={textColorPrimary}>{truncateLocationName(trip.departureArea?.homeTownName || 'Départ')}</p>
             <FontAwesomeIcon icon={faArrowRight} className={textColorSecondary} />
-            {/* Utilisation des chemins d'accès corrects depuis l'objet du contexte */}
-            <p className={textColorPrimary}>{trip.arrivalArea?.homeTownName || 'Arrivée'}</p>
+            {/* Utilisation de la nouvelle fonction pour le nom d'arrivée */}
+            <p className={textColorPrimary}>{truncateLocationName(trip.arrivalArea?.homeTownName || 'Arrivée')}</p>
           </div>
           <div>
             <span className={`font-bold text-sm ${textColorSecondary}`}>Prix à partir de</span>

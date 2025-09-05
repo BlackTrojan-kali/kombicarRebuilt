@@ -1,27 +1,28 @@
 import { createContext, useEffect, useState } from "react";
-import api from '../api/api'; 
-import toast from 'react-hot-toast'; 
+import api from '../api/api';
+import toast from 'react-hot-toast';
 
-export const authContext = createContext({})
+export const authContext = createContext({});
 
 export function AuthContextProvider({ children }) {
-    const [user, setUser] = useState(null); 
-    const [loading, setLoading] = useState(true); 
-
-    const logout = async (showToast = true) => { 
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const API_URL = "https://api.kombicar.app/api/download/"
+    const logout = async (showToast = true) => {
         setLoading(true);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         setUser(null);
         setLoading(false);
-        toast.success('déconnexion réussie')
+        if (showToast) {
+            toast.success('Déconnexion réussie');
+        }
     };
 
     const fetchUserInfo = async () => {
         try {
             const response = await api.get('/api/v1/users/infos');
             const fullUserInfo = response.data;
-    
             const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Admin';
             
             setUser({
@@ -31,7 +32,7 @@ export function AuthContextProvider({ children }) {
                 firstName: fullUserInfo.firstName,
                 lastName: fullUserInfo.lastName,
                 country: fullUserInfo.country,
-                role: roleName, 
+                role: roleName,
                 phoneNumber: fullUserInfo.phoneNumber,
                 pictureProfileUrl: fullUserInfo.pictureProfileUrl,
                 balance: fullUserInfo.balance,
@@ -60,10 +61,10 @@ export function AuthContextProvider({ children }) {
                     const response = await api.post('/api/users/refresh-token', { refreshToken });
                     localStorage.setItem('accessToken', response.data.accessToken);
                     localStorage.setItem('refreshToken', response.data.refreshToken);
-                    await fetchUserInfo(); 
+                    await fetchUserInfo();
                 } catch (error) {
                     console.error("Échec du rafraîchissement des tokens:", error);
-                    logout(false); 
+                    logout(false);
                 }
             }
         }
@@ -192,7 +193,7 @@ export function AuthContextProvider({ children }) {
             return true;
         } catch (error) {
             console.error("Échec de la réinitialisation du mot de passe:", error);
-            toast.error(error.response?.data?.message || 'Échec de la réinitialisation. Le lien est peut-être invalide ou expiré.');
+            toast.error(error.response?.data?.message || 'Échec de la réinitialisation. Le lien est peut-être invalide ou a expiré.');
             return false;
         } finally {
             setLoading(false);
@@ -222,7 +223,6 @@ export function AuthContextProvider({ children }) {
         setLoading(true);
         try {
             const response = await api.post('/api/v1/users/login-google', {token:tokeninfo} );
-            console.log(response)
             const { token, refreshToken } = response.data;
             if (token && refreshToken) {
                 localStorage.setItem('accessToken', token);
@@ -232,9 +232,40 @@ export function AuthContextProvider({ children }) {
                 return true;
             }
         } catch (error) {
-            console.log(error)
             console.error("Échec de la connexion/inscription via Google:", error);
             toast.error(error.response?.data?.message || 'Échec de la connexion/inscription via Google.');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 🎯 NOUVELLE FONCTION POUR CHARGER LA PHOTO DE PROFIL
+    const uploadProfilePicture = async (file) => {
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('pictureProfile', file);
+
+            // Envoi de l'image au serveur
+            const response = await api.post('/api/v1/users/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Mise à jour de l'état utilisateur avec la nouvelle URL de l'image
+            const newPictureUrl = response.data.pictureProfileUrl;
+            setUser(prevUser => ({
+                ...prevUser,
+                pictureProfileUrl: newPictureUrl
+            }));
+
+            toast.success('Photo de profil mise à jour !');
+            return true;
+        } catch (error) {
+            console.error("Échec du téléchargement de l'image:", error);
+            toast.error(error.response?.data?.message || "Échec de l'importation de la photo.");
             return false;
         } finally {
             setLoading(false);
@@ -246,20 +277,23 @@ export function AuthContextProvider({ children }) {
     }, []);
 
     const value = {
-        user, 
+        user,
         setUser,
-        loading, 
-        login, 
-        loginAdmin, 
-        loginAdminConfirmCode, 
-        register, 
-        logout, 
-        confirmEmail, 
-        resendConfirmationEmail, 
-        forgotPassword, 
-        resetPassword, 
+        loading,
+        login,
+        loginAdmin,
+        loginAdminConfirmCode,
+        register,
+        logout,
+        confirmEmail,
+        resendConfirmationEmail,
+        forgotPassword,
+        resetPassword,
         externalLoginGoogle,
-        loginGoogle
+        loginGoogle,
+        // 🎯 Ajout de la nouvelle fonction dans l'objet de valeur
+        uploadProfilePicture,
+        API_URL
     };
 
     return (

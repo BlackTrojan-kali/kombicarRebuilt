@@ -35,7 +35,7 @@ const PrevArrow = (props) => {
   const bgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const hoverBgColor = theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
   const textColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
-
+  
   return (
     <div
       className={`${className} absolute top-1/2 -translate-y-1/2 left-4 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center ${bgColor} ${hoverBgColor}`}
@@ -49,7 +49,13 @@ const PrevArrow = (props) => {
 
 const Home = () => {
   const { trips, loading, error, listPublicTrips } = useTrips();
-
+const truncateLocationName = (name) => {
+    const maxLength = 12; // La limite de caractères
+    if (name && name.length > maxLength) {
+      return `${name.substring(0, maxLength)}...`;
+    }
+    return name;
+  };
   const { theme } = useColorScheme();
   const sliderSettings = {
     dots: true,
@@ -199,9 +205,9 @@ const Home = () => {
               tripItems.map((tripData) => (
                 <Link to={`/trip-detail/${tripData.trip.id}`} key={tripData.trip.id} className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer hover:bg-emerald-700 dark:hover:bg-gray-700 ${sectionBgColor}`}>
                   <div className='flex items-center gap-4 text-gray-800 dark:text-gray-100 group-hover:text-white'>
-                    <p className='font-semibold'>{tripData.departureArea?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{truncateLocationName(tripData.departureArea?.homeTownName || 'N/A')}</p>
                     <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform dark:text-gray-400 group-hover:text-white' />
-                    <p className='font-semibold'>{tripData.arrivalArea?.homeTownName || 'N/A'}</p>
+                    <p className='font-semibold'>{truncateLocationName(tripData.arrivalArea?.homeTownName || 'N/A')}</p>
                   </div>
                   <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors dark:text-gray-400' />
                 </Link>

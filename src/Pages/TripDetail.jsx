@@ -18,7 +18,7 @@ const TripDetail = () => {
     const { getTripById, loading, error } = useTrips();
     const { theme } = useColorScheme();
     const [trip, setTrip] = useState(null);
-    const { user } = useAuth();
+    const { user,API_URL } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
@@ -151,7 +151,7 @@ const TripDetail = () => {
                                     <FontAwesomeIcon icon={faUser} className='mr-2 text-gray-500' /> À propos du chauffeur
                                 </h2>
                                 <div className='flex items-center space-x-4'>
-                                    <img src={driver.photoUrl} alt={`Profil de ${driver.firstName}`} className='w-16 h-16 rounded-full object-cover' />
+                                    <img src={`${API_URL}`+driver.photoUrl} alt={`Profil de ${driver.firstName}`} className='w-16 h-16 rounded-full object-cover' />
                                     <div>
                                         <p className={`text-xl font-bold ${textColorPrimary}`}>{driver.firstName} {driver.lastName}</p>
                                         <div className='flex items-center space-x-1 text-sm text-yellow-400'>

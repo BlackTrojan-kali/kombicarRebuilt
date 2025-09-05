@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faEnvelope, faPhone, faUserCircle, faCarSide, faStar,
     faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet,
     faEdit, faTimesCircle, faCalendarAlt, faMoneyBillWave,
     faArrowLeft, faArrowRight, faTrash, faIdCard, faBookmark, faCheckDouble,
-    faSpinner,
+    faSpinner, faCamera
 } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -36,10 +36,14 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
 
 const Profile = () => {
     // --- Hooks et états ---
-    const { user, loading: loadingUser } = useAuth();
+    // Ajout de la fonction uploadProfilePicture depuis le hook useAuth
+    const { user, loading: loadingUser, uploadProfilePicture,API_URL } = useAuth();
     const { trips, loading: loadingTrips, error: tripsError, fetchTrips, cancelTrip, deleteTrip } = useTrips();
     const { theme } = useColorScheme();
     const navigate = useNavigate();
+
+    // Référence pour l'input de fichier caché
+    const fileInputRef = useRef(null);
 
     // États pour les trajets et la pagination
     const [publishedTrips, setPublishedTrips] = useState([]);
@@ -72,7 +76,7 @@ const Profile = () => {
             }
         }
     };
- useEffect(() => {
+    useEffect(() => {
         // Redirige si l'utilisateur n'est pas connecté une fois le chargement terminé
         if (!user && !loadingUser) {
             navigate('/auth/signin');
@@ -144,6 +148,21 @@ const Profile = () => {
             }
         });
     };
+
+    // --- NOUVELLES FONCTIONS DE GESTION DE L'IMAGE DE PROFIL ---
+    const handleImageClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            await uploadProfilePicture(file);
+        }
+    };
+
 
     // --- Styles dynamiques ---
     const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
@@ -245,23 +264,42 @@ const Profile = () => {
                 {/* --- Section Profil de l'utilisateur --- */}
                 <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
                     <div className='flex flex-col items-center sm:flex-row sm:items-start sm:gap-6'>
-                        <div className='relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0'>
+                        
+                        {/* 🎯 Conteneur de l'image de profil avec la fonctionnalité de mise à jour */}
+                        <div className='relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 group'>
                             <img
-                                src={user.profilePicture
-                                    ? user.profilePicture
+                                src={user.pictureProfileUrl
+                                    ? `${API_URL}`+user.pictureProfileUrl
                                     : generateInitialsSvg(user.firstName, user.lastName, theme)
                                 }
                                 alt={`Profil de ${user.firstName} ${user.lastName}`}
-                                className='w-full h-full rounded-full object-cover border-4 border-blue-500 dark:border-blue-400 shadow-md'
+                                className='w-full h-full rounded-full object-cover border-4 border-blue-500 dark:border-blue-400 shadow-md transition-opacity duration-300 group-hover:opacity-75'
+                            />
+                            {/* Overlay de la caméra */}
+                            <div
+                                onClick={handleImageClick}
+                                className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            >
+                                <FontAwesomeIcon icon={faCamera} size="2x" className="text-white" />
+                            </div>
+                            {/* Input de fichier caché */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                accept="image/*"
+                                className="hidden"
                             />
                         </div>
+                        {/* Fin du conteneur d'image */}
+
                         <div className='text-center sm:text-left mt-4 sm:mt-0'>
                             <h1 className={`text-3xl sm:text-4xl font-extrabold ${textColorPrimary} mb-2`}>
                                 {user.firstName} {user.lastName}
                             </h1>
                             <p className={`text-lg ${textColorSecondary} mb-2`}>
                                 <FontAwesomeIcon icon={faUserCircle} className='mr-2 text-blue-500' />
-                                Membre depuis le {dayjs(user.createdAt).format('DD MMMM YYYY à HH:mm') || 'N/A'}
+                                Membre depuis le {dayjs(user.createdAt).format('DD MMMM YYYY') || 'N/A'}
                             </p>
                             <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-3 ${textColorSecondary}`}>
                                 {user.email && (
@@ -269,9 +307,9 @@ const Profile = () => {
                                         <FontAwesomeIcon icon={faEnvelope} className='mr-2 text-gray-500' /> {user.email}
                                     </p>
                                 )}
-                                {user.phone && (
+                                {user.phoneNumber && (
                                     <p className='flex items-center'>
-                                        <FontAwesomeIcon icon={faPhone} className='mr-2 text-gray-500' /> {user.phone}
+                                        <FontAwesomeIcon icon={faPhone} className='mr-2 text-gray-500' /> {user.phoneNumber}
                                     </p>
                                 )}
                             </div>
