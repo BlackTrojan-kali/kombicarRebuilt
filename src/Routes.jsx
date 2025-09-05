@@ -36,162 +36,163 @@ import MyReservations from "./Pages/Client/MyReservations"
 
 
 const Routes = () => {
-  const route = useRoutes([
-    {
-      // ------------------------------------
-      // SECTION CLIENT (Layout: ClientLayout)
-      // ------------------------------------
-      path:"/",
-      element:<ClientLayout/>,
-      children:[
-        // Chemin racine (Accueil)
-        {
-          index: true, // Remplace path: "/" dans les enfants
-          element:<Home/>
-        },
-        {
-          path:"covoiturage",
-          element:<Covoiturage/>
-        },
-        {
-          path:"taxi",
-          element:<Taxi/>
-        },
-        {
-          path:"trip-detail/:tripId",
-          element:<TripDetail/>
-        },
-        {
-          path:"publish-trip",
-          element:<Publish/>
-        },
-        {
-          path:"results",
-          element:<Results/>
-        },
-        // Routes du profil utilisateur (imbriquées sous ClientLayout)
-        {
-          path:"profile",
-          element:<Profile/>
-        },
-        {
-          path:"profile/car", 
-          element:<MyVehicle/>
-        },
-        // Ajout de la nouvelle route pour les documents de véhicule
-        {
-          path:"profile/car/documents/:carId",
-          element:<VehiculeDoc/>
-        },
-        {
-          path:"profile/wallet", 
-          element:<UserWallet/>
-        },
-        {
-          path:"profile/reservations", 
-          element:<MyReservations/>
-        },
-        {
-          path:"profile/licence", // 🆕 Nouvelle route pour la page du permis de conduire
-          element:<MyDrivingLicence/>
-        }
-      ]
-    },
-    {
-      // ---------------------------------
-      // SECTION AUTHENTIFICATION (Layout: AuthLayout)
-      // ---------------------------------
-      path:"auth", // Chemin de base "/auth"
-      element:<AuthLayout/>,
-      children:[
-        {
-          // Chemin final: /auth/signin
-          path:"signin", 
-          element:<Signin/>
-        },
-        {
-          // ERREUR CORRIGÉE: Le composant doit être rendu, pas une chaîne de caractères
-          // Chemin final: /auth/signup
-          path:"signup", 
-          element:<Signup/> 
-        },
-        {
-          // Chemin final: /auth/confirm-email
-          path:"confirm-email",
-          element:<ConfirmEmail/>
-        }
-      ]
-    },
-    {
-      // ------------------------------------
-      // SECTION ADMIN (Connexion)
-      // ------------------------------------
-      path:"/admin/signin", // Doit être une route de niveau supérieur
-      element:<SignInAdmin/>
-    },
-    {
-      // ------------------------------------
-      // SECTION ADMIN (Dashboard Layout)
-      // ------------------------------------
-      path:"admin", // Chemin de base "/admin"
-      element:<StatsContextProvider><DashboardLayout/></StatsContextProvider>,
-      children:[
-        {
-        // Chemin final: /admin/dashboard
-        path:"dashboard",
-        element:<Dashboard/>
-      },
-        {
-        // Chemin final: /admin/admins
-        path:"admins",
-        element:<Admins/>
-      },
-        {
-        path:"drivers",
-        element:<Drivers/>
-      },
-        {
-        path:"users",
-        element:<Utilisateurs/>
-      },
-      {
-        path:"trajets/:type",
-        element:<Trajets/>
-      },
-      {
-        path:"cars",
-        element:<Cars/>
-      },
-      {
-        path:"cars-type",
-        element:<CarTypes/>
-      },
-      {
-        path:"colors",
-        element:<Colors/>
-      },
-      {
-        path:"wallets",
-        element:<Wallet/>
-      },
-      // 🆕 Routes pour la gestion des codes promo
-      {
-        path:"promocodes", // Chemin de base pour la section "promocodes"
-        children: [
-          {
-            path: "list/:type", // Chemin pour la liste complète
-            element: <PromoCode />
-          },
-          {
-            path: "details/:id", // Chemin pour les détails d'un code
-            element: <PromoCodeDetails />
-          }
-        ]
-      },
-      ]
-    }
-  ])
-  return route
+  const route = useRoutes([
+    {
+      // ------------------------------------
+      // SECTION CLIENT (Layout: ClientLayout)
+      // ------------------------------------
+      path: "/",
+      element: <ClientLayout/>,
+      children: [
+        {
+          index: true, // Chemin racine (Accueil)
+          element: <Home/>
+        },
+        {
+          path: "covoiturage",
+          element: <Covoiturage/>
+        },
+        {
+          path: "taxi",
+          element: <Taxi/>
+        },
+        {
+          path: "trip-detail/:tripId",
+          element: <TripDetail/>
+        },
+        {
+          path: "publish-trip",
+          element: <Publish/>
+        },
+        {
+          // La route "results" acceptera désormais des paramètres optionnels dans l'URL
+          path: "results",
+          element: <Results/>
+        },
+        // Routes du profil utilisateur (imbriquées sous ClientLayout)
+        {
+          path: "profile",
+          element: <Profile/>
+        },
+        {
+          path: "profile/car", 
+          element: <MyVehicle/>
+        },
+        {
+          path: "profile/car/:carId/documents", // Chemin mis à jour pour être plus sémantique
+          element: <VehiculeDoc/>
+        },
+        {
+          path: "profile/wallet", 
+          element: <UserWallet/>
+        },
+        {
+          path: "profile/reservations", 
+          element: <MyReservations/>
+        },
+        {
+          path: "profile/licence",
+          element: <MyDrivingLicence/>
+        }
+      ]
+    },
+    {
+      // ---------------------------------
+      // SECTION AUTHENTIFICATION (Layout: AuthLayout)
+      // ---------------------------------
+      path: "/auth",
+      element: <AuthLayout/>,
+      children: [
+        {
+          index: true, // Redirige la route de base /auth vers /auth/signin
+          element: <Signin/>
+        },
+        {
+          path: "signin", 
+          element: <Signin/>
+        },
+        {
+          path: "signup", 
+          element: <Signup/> 
+        },
+        {
+          path: "confirm-email",
+          element: <ConfirmEmail/>
+        }
+      ]
+    },
+    {
+      // ------------------------------------
+      // SECTION ADMIN (Connexion)
+      // ------------------------------------
+      path: "admin/signin",
+      element: <SignInAdmin/>
+    },
+    {
+      // ------------------------------------
+      // SECTION ADMIN (Dashboard Layout)
+      // ------------------------------------
+      path: "admin",
+      element: <StatsContextProvider><DashboardLayout/></StatsContextProvider>,
+      children: [
+        {
+          path: "dashboard",
+          element: <Dashboard/>
+        },
+        {
+          path: "admins",
+          element: <Admins/>
+        },
+        {
+          path: "drivers",
+          element: <Drivers/>
+        },
+        {
+          path: "users",
+          element: <Utilisateurs/>
+        },
+        {
+          path: "trajets/:type",
+          element: <Trajets/>
+        },
+        {
+          path: "cars",
+          element: <Cars/>
+        },
+        {
+          path: "cars-type",
+          element: <CarTypes/>
+        },
+        {
+          path: "colors",
+          element: <Colors/>
+        },
+        {
+          path: "wallets",
+          element: <Wallet/>
+        },
+        // 🆕 Routes pour la gestion des codes promo
+        {
+          path: "promocodes",
+          children: [
+            {
+              index: true, // Redirige vers la liste par défaut si on accède à /admin/promocodes
+              element: <PromoCode />
+            },
+            {
+              path: "list/:type", // Chemin pour la liste avec un paramètre de type
+              element: <PromoCode />
+            },
+            {
+              path: "details/:id", // Chemin pour les détails d'un code
+              element: <PromoCodeDetails />
+            }
+          ]
+        },
+      ]
+    }
+  ]);
+  return route;
 }
 
 export default Routes;
