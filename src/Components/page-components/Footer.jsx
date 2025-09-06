@@ -33,6 +33,8 @@ export function Footer() {
                   >
                     Instagram
                   </a>
+                  <br />
+                  <br />
                   <a
                     href="/admin/signin"
                     className="hover:underline"
