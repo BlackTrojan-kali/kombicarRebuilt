@@ -68,7 +68,7 @@ const ReservationModal = ({ trip, onClose }) => {
                 phoneNumber: phoneNumber,
                 promoCode: promoCode
             });
-            
+            console.log(reservationResponse)
             if (reservationResponse?.paymentUrl) {
                 // C'est un paiement en ligne
                 toast.success("Réservation en attente de confirmation de paiement. Redirection en cours...");
