@@ -13,6 +13,7 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
             return;
         }
 
+        // le nom de domaine doit correspondre à celui configuré dans le backend, le fichier api.js
         const connection = new HubConnectionBuilder()
             .withUrl(`https://test.kombicar.app/reservations-paymentHub?access_token=${token}`)
             .withAutomaticReconnect()
@@ -25,7 +26,7 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
 
                 connection.on('ReceivePaymentStatus', (data) => {
                     // Sécurité : Vérifier que la notification est pour l'utilisateur et la réservation actuels
-                    if (data.userId === userId && data.reservationId === reservationId) {
+                    if (data.reservationId === reservationId) {
                         if (data.status === 'completed') {
                             setStatus(`Paiement de la réservation ${data.reservationId} réussi !`);
                             toast.success(`Paiement réussi pour la réservation ${data.reservationId}.`);

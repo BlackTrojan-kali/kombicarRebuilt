@@ -75,7 +75,7 @@ const ReservationModal = ({ trip, onClose }) => {
             const reservationResponse = await addReservation(reservationData);
             console.log(reservationResponse);
 
-            if (reservationResponse?.paymentUrl) {
+            if (reservationResponse) {
                 toast.success("Réservation en attente de paiement. Redirection...");
                 setIsPaymentPending(true);
                 setCurrentReservationId(reservationResponse.id);
