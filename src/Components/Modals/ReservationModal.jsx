@@ -75,14 +75,11 @@ const ReservationModal = ({ trip, onClose }) => {
             const reservationResponse = await addReservation(reservationData);
             console.log(reservationResponse);
 
-            if (reservationResponse?.paymentUrl) {
+            if (reservationResponse) {
                 toast.success("Réservation en attente de paiement. Redirection...");
                 setIsPaymentPending(true);
                 setCurrentReservationId(reservationResponse.id);
-            } else {
-                toast.success("Réservation effectuée avec succès ! Paiement à bord.");
-                onClose(true);
-            }
+            } 
         } catch (err) {
             console.error("Échec de la réservation:", err);
             toast.error(err.message || "Échec de la réservation. Veuillez réessayer.");
