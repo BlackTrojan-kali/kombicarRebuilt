@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft, faArrowRight, faCalendarAlt, faMoneyBillWave,
-    faRoute, faUserCircle, faSpinner, faBookmark, faInfoCircle, faCheckCircle, faCheckDouble
+    faRoute, faUserCircle, faSpinner, faBookmark, faInfoCircle,
+    faCheckDouble, faBan, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import toast from 'react-hot-toast';
-
 import useAuth from '../../hooks/useAuth';
 import useTrips from '../../hooks/useTrips';
 import useColorScheme from '../../hooks/useColorScheme';
-import  useReservation  from '../../hooks/useReservation';
+import useReservation from '../../hooks/useReservation';
 
 dayjs.locale('fr');
 
@@ -21,7 +21,7 @@ const MyReservations = () => {
     const { user, loading: loadingUser } = useAuth();
     const { listReservedTrips } = useTrips();
     const { theme } = useColorScheme();
-    const { confirmReservationAsDriver } = useReservation();
+    const { confirmReservationAsDriver, cancelReservation, cancelReservationByDriver, confirmAllReservations } = useReservation();
 
     const [reservedTrips, setReservedTrips] = useState([]);
     const [loadingReservations, setLoadingReservations] = useState(true);
@@ -29,6 +29,8 @@ const MyReservations = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [statusFilter, setStatusFilter] = useState(1); // 1 = Confirmé par défaut
     const [isConfirming, setIsConfirming] = useState(null);
+    const [isCancelling, setIsCancelling] = useState(null);
+    const [isConfirmingAll, setIsConfirmingAll] = useState(false);
 
     // Styles dynamiques
     const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
@@ -50,7 +52,7 @@ const MyReservations = () => {
                 perPage: TRIPS_PER_PAGE,
             });
 
-            const allReservations = response.items.flatMap(tripItem => 
+            const allReservations = response.items.flatMap(tripItem =>
                 tripItem.reservations.map(reservation => ({
                     ...reservation,
                     trip: tripItem.trip,
@@ -90,10 +92,58 @@ const MyReservations = () => {
         }
     };
 
+    // Gestion de l'annulation d'une réservation (par l'utilisateur ou le chauffeur)
+    const handleCancelReservation = async (reservationId, isDriver = false) => {
+        if (!window.confirm("Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.")) {
+            return;
+        }
+
+        setIsCancelling(reservationId);
+        try {
+            if (isDriver) {
+                await cancelReservationByDriver(reservationId);
+                toast.success("Réservation annulée par le chauffeur avec succès.");
+            } else {
+                await cancelReservation(reservationId, "phoneNumberRefund", "operatorFai"); // Assurez-vous d'avoir ces valeurs
+                toast.success("Réservation annulée avec succès. Remboursement initié.");
+            }
+            loadReservations();
+        } catch (err) {
+            console.error("Échec de l'annulation :", err);
+            toast.error("Échec de l'annulation de la réservation.");
+        } finally {
+            setIsCancelling(null);
+        }
+    };
+
+    // Gestion de la confirmation de toutes les réservations d'un trajet
+    const handleConfirmAllReservations = async (tripId, tripDate) => {
+        if (dayjs(tripDate).isAfter(dayjs())) {
+            toast.error("La confirmation ne peut être faite qu'après la date du trajet.");
+            return;
+        }
+
+        if (!window.confirm("Êtes-vous sûr de vouloir confirmer toutes les réservations de ce trajet ?")) {
+            return;
+        }
+
+        setIsConfirmingAll(true);
+        try {
+            await confirmAllReservations(tripId);
+            toast.success("Toutes les réservations de ce trajet ont été confirmées.");
+            loadReservations();
+        } catch (err) {
+            console.error("Échec de la confirmation de toutes les réservations :", err);
+            toast.error("Échec de la confirmation de toutes les réservations.");
+        } finally {
+            setIsConfirmingAll(false);
+        }
+    };
+
     // Effet pour recharger les réservations
     useEffect(() => {
         loadReservations();
-    }, [page, statusFilter, user, loadingUser, confirmReservationAsDriver]);
+    }, [page, statusFilter, user, loadingUser]);
 
     // Rendu du composant
     if (loadingUser || loadingReservations) {
@@ -151,14 +201,30 @@ const MyReservations = () => {
                             </select>
                         </div>
                     </div>
-                    
+                    {/* Bouton de confirmation de toutes les réservations pour les chauffeurs */}
+                    {user && user.isDriver && reservedTrips.length > 0 && reservedTrips[0].trip && reservedTrips[0].status === 1 && dayjs(reservedTrips[0].trip.departureDate).isBefore(dayjs()) && (
+                        <div className="mb-6 text-center">
+                            <button
+                                onClick={() => handleConfirmAllReservations(reservedTrips[0].trip.id, reservedTrips[0].trip.departureDate)}
+                                disabled={isConfirmingAll}
+                                className="px-6 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+                            >
+                                {isConfirmingAll ? (
+                                    <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                                ) : (
+                                    <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+                                )}
+                                Confirmer toutes les réservations du trajet
+                            </button>
+                        </div>
+                    )}
                     {reservedTrips.length > 0 ? (
                         <div className='flex flex-col gap-6'>
                             {reservedTrips.map((reservationData) => (
                                 <div key={reservationData.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
                                     <div className="flex-1">
                                         <h3 className={`text-lg font-bold ${textColorPrimary}`}>
-                                            <FontAwesomeIcon icon={faRoute} className='mr-2 text-blue-500'/>
+                                            <FontAwesomeIcon icon={faRoute} className='mr-2 text-blue-500' />
                                             {reservationData.departureArea.homeTownName} - {reservationData.arrivalArea.homeTownName}
                                         </h3>
                                         <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
@@ -176,9 +242,10 @@ const MyReservations = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Bouton de confirmation conditionnel pour les chauffeurs */}
-                                    {user && user.isDriver && reservationData.status === 1 && dayjs(reservationData.trip.departureDate).isBefore(dayjs()) && (
-                                        <div className="mt-4 md:mt-0 md:ml-4">
+                                    {/* Boutons d'action conditionnels */}
+                                    <div className="mt-4 md:mt-0 md:ml-4 flex flex-col sm:flex-row gap-2">
+                                        {/* Bouton de confirmation pour les chauffeurs */}
+                                        {user && user.isDriver && reservationData.status === 1 && dayjs(reservationData.trip.departureDate).isBefore(dayjs()) && (
                                             <button
                                                 onClick={() => handleConfirmReservation(reservationData.id, reservationData.trip.departureDate)}
                                                 disabled={isConfirming === reservationData.id}
@@ -193,8 +260,42 @@ const MyReservations = () => {
                                                     </>
                                                 )}
                                             </button>
-                                        </div>
-                                    )}
+                                        )}
+                                        {/* Bouton d'annulation pour les utilisateurs passagers */}
+                                        {user && !user.isDriver && reservationData.status === 1 && dayjs(reservationData.trip.departureDate).isAfter(dayjs()) && (
+                                            <button
+                                                onClick={() => handleCancelReservation(reservationData.id)}
+                                                disabled={isCancelling === reservationData.id}
+                                                className="px-4 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+                                            >
+                                                {isCancelling === reservationData.id ? (
+                                                    <FontAwesomeIcon icon={faSpinner} spin />
+                                                ) : (
+                                                    <>
+                                                        <FontAwesomeIcon icon={faBan} className="mr-2" />
+                                                        Annuler
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                        {/* Bouton d'annulation pour les chauffeurs */}
+                                        {user && user.isDriver && reservationData.status === 1 && dayjs(reservationData.trip.departureDate).isAfter(dayjs()) && (
+                                            <button
+                                                onClick={() => handleCancelReservation(reservationData.id, true)}
+                                                disabled={isCancelling === reservationData.id}
+                                                className="px-4 py-2 text-sm rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+                                            >
+                                                {isCancelling === reservationData.id ? (
+                                                    <FontAwesomeIcon icon={faSpinner} spin />
+                                                ) : (
+                                                    <>
+                                                        <FontAwesomeIcon icon={faBan} className="mr-2" />
+                                                        Annuler la réservation
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
