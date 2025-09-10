@@ -79,10 +79,9 @@ const ReservationModal = ({ trip, onClose }) => {
                 toast.success("Réservation en attente de paiement. Redirection...");
                 setIsPaymentPending(true);
                 setCurrentReservationId(reservationResponse.id);
-              
             } else {
-               // toast.success("Réservation effectuée avec succès ! Paiement à bord.");
-               // onClose(true);
+                toast.success("Réservation effectuée avec succès ! Paiement à bord.");
+                onClose(true);
             }
         } catch (err) {
             console.error("Échec de la réservation:", err);
@@ -93,10 +92,8 @@ const ReservationModal = ({ trip, onClose }) => {
     // Nouvelle fonction de rappel pour gérer le résultat du paiement
     const handlePaymentResult = (isSuccess) => {
         if (isSuccess) {
-            // Le paiement a réussi, on ferme le modal
             onClose(true);
         } else {
-            // Le paiement a échoué, on revient à l'état initial pour permettre une nouvelle tentative
             setIsPaymentPending(false);
         }
     };

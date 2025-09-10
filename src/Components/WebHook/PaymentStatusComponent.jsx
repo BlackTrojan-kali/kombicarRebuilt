@@ -6,16 +6,15 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
     const [status, setStatus] = useState("En attente de paiement...");
 
     useEffect(() => {
-        const token = localStorage.getItem('jwtToken'); 
+        const token = localStorage.getItem('accessToken');
+        console.log(token) 
         if (!token) {
             console.error("JWT token non trouvé. La connexion au hub ne peut pas être établie.");
             return;
         }
 
         const connection = new HubConnectionBuilder()
-            .withUrl(`https://api.kombicar.com/reservations-paymentHub`, {
-                accessTokenFactory: () => token 
-            })
+            .withUrl(`https://api.kombicar.com/reservations-paymentHub?access_token=${token}`)
             .withAutomaticReconnect()
             .build();
 
