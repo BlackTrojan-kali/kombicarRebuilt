@@ -14,7 +14,7 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
         }
 
         const connection = new HubConnectionBuilder()
-            .withUrl(`https://api.kombicar.com/reservations-paymentHub?access_token=${token}`)
+            .withUrl(`https://test.kombicar.app/reservations-paymentHub?access_token=${token}`)
             .withAutomaticReconnect()
             .build();
 
@@ -29,11 +29,14 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
                         if (data.status === 'completed') {
                             setStatus(`Paiement de la réservation ${data.reservationId} réussi !`);
                             toast.success(`Paiement réussi pour la réservation ${data.reservationId}.`);
+                            console.log(`Paiement réussi pour la réservation ${data.reservationId}.`);
+
                             // Notifier le parent du succès du paiement
                             onPaymentComplete(true);
                         } else {
                             setStatus(`Échec du paiement pour la réservation ${data.reservationId}.`);
                             toast.error(`Échec du paiement pour la réservation ${data.reservationId}.`);
+                            console.log(`Échec du paiement pour la réservation ${data.reservationId}.`);
                             // Notifier le parent de l'échec du paiement
                             onPaymentComplete(false);
                         }
