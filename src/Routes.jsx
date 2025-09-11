@@ -29,11 +29,13 @@ import SignInAdmin from "./Pages/Auth/SignInAdmin"
 import ConfirmEmail from "./Pages/Auth/ConfirmEmail"
 import { StatsContextProvider } from "./contexts/StatsContext"
 
-// 🆕 Nouveaux imports pour les pages des codes promo
+// Nouveaux imports pour les pages des codes promo
 import PromoCode from "./Pages/Dashboard/PromoCode/PromoCode"
 import PromoCodeDetails from "./Pages/Dashboard/PromoCode/PromoCodeDetails"
 import MyReservations from "./Pages/Client/MyReservations"
-
+import ChatRoom from "./Pages/Chat/ChatRoom" // 🎯 Importation du composant ChatRoom
+import MyChats from "./Pages/Chat/MyChats" // 🎯 Importation du composant MyChats
+import { ChatContextProvider } from "./contexts/ChatContext"
 
 const Routes = () => {
   const route = useRoutes([
@@ -93,6 +95,16 @@ const Routes = () => {
         {
           path: "profile/licence",
           element: <MyDrivingLicence/>
+        },
+        // 🎯 Nouvelle route pour la liste des conversations
+        {
+          path: "profile/chats",
+          element: <ChatContextProvider><MyChats/></ChatContextProvider>
+        },
+        // 🎯 Nouvelle route pour la salle de chat
+        {
+          path: "chat/:reservationId",
+          element:<ChatContextProvider> <ChatRoom/></ChatContextProvider>
         }
       ]
     },
@@ -109,7 +121,7 @@ const Routes = () => {
         },
         {
           path: "signin", 
-          element: <Signin/>
+          element: <Signin/> 
         },
         {
           path: "signup", 
@@ -171,7 +183,7 @@ const Routes = () => {
           path: "wallets",
           element: <Wallet/>
         },
-        // 🆕 Routes pour la gestion des codes promo
+        // Routes pour la gestion des codes promo
         {
           path: "promocodes",
           children: [

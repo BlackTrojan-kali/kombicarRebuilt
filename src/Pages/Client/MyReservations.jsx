@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft, faArrowRight, faCalendarAlt, faMoneyBillWave,
     faRoute, faUserCircle, faSpinner, faBookmark, faInfoCircle,
-    faCheckDouble, faBan, faCheckCircle
+    faCheckDouble, faBan, faCheckCircle, faComments // Import chat icon
 } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -30,14 +31,13 @@ const MyReservations = () => {
     const [isCancelling, setIsCancelling] = useState(null);
     const [isConfirmingAll, setIsConfirmingAll] = useState(false);
 
-    // Styles dynamiques
-    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
+    // Dynamic styles
+    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
     const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
     const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
 
-    // Fonction pour charger les réservations en utilisant le nouvel endpoint
     const loadReservations = async () => {
         if (!user || loadingUser) return;
 
@@ -274,6 +274,14 @@ const MyReservations = () => {
                                                 )}
                                             </button>
                                         )}
+                                        {/* 🎯 New Chat Button */}
+                                        <Link 
+                                            to={`/chat/${reservationData.reservation.id}`}
+                                            className="px-4 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center justify-center transition-colors duration-200"
+                                        >
+                                            <FontAwesomeIcon icon={faComments} className="mr-2" />
+                                            Chat
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

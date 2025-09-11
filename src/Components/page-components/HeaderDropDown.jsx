@@ -1,4 +1,4 @@
-import { faChevronDown, faChevronUp, faUserCircle, faRightFromBracket, faSignInAlt, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp, faUserCircle, faRightFromBracket, faSignInAlt, faUserPlus, faComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useAuth from "../../hooks/useAuth";
 import { Link } from "react-router-dom";
@@ -39,9 +39,9 @@ const HeaderDropDown = () => {
             <button
                 onClick={toggleDropDownMenu}
                 className="hidden md:flex items-center gap-2 p-2 rounded-full cursor-pointer
-                           bg-blue-100 text-blue-600 hover:bg-blue-200
-                           dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-600
-                           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                         bg-blue-100 text-blue-600 hover:bg-blue-200
+                         dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-600
+                         transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-expanded={showDrop}
                 aria-haspopup="true"
                 aria-label="Ouvrir le menu utilisateur"
@@ -65,6 +65,14 @@ const HeaderDropDown = () => {
                             >
                                 Profil
                                 <FontAwesomeIcon icon={faUserCircle} className="text-sm text-gray-500 dark:text-gray-400" />
+                            </Link>
+                            <Link
+                                to="/profile/chats"
+                                onClick={() => setShowDrop(false)} // Ferme le dropdown
+                                className="flex items-center justify-between px-4 py-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
+                            >
+                                Mes conversations
+                                <FontAwesomeIcon icon={faComment} className="text-sm text-gray-500 dark:text-gray-400" />
                             </Link>
                             <button
                                 onClick={handleLogoutAndClose} // Appel de la nouvelle fonction

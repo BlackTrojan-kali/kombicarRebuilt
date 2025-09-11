@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import api from '../api';
+import api from '../api/api';
 
 export const ChatContext = createContext({});
 
@@ -16,7 +16,8 @@ export function ChatContextProvider({ children }) {
     const fetchConversations = async () => {
         setLoadingConversations(true);
         try {
-            const response = await api.get('/messages/conversations');
+            const response = await api.get('/api/v1/messages/conversations');
+          
             if (Array.isArray(response.data)) {
                 setConversations(response.data);
             } else {
@@ -35,7 +36,7 @@ export function ChatContextProvider({ children }) {
         setLoadingMessages(true);
         setMessagesError(null);
         try {
-            const response = await api.get(`/messages/${reservationId}/${pageNumber}`);
+            const response = await api.get(`/api/v1/messages/${reservationId}/${pageNumber}`);
             if (Array.isArray(response.data)) {
                 if (pageNumber === 1) {
                     setMessages(response.data);
@@ -58,8 +59,9 @@ export function ChatContextProvider({ children }) {
 
     // POST /api/v1/messages/{reservationId}
     const sendMessage = async (reservationId, content) => {
+        console.log(content)
         try {
-            const response = await api.post(`/messages/${reservationId}`, { content });
+            const response = await api.post(`/api/v1/messages/${reservationId}`,  content );
             if (response.data) {
                 setMessages(prevMessages => [...prevMessages, response.data]);
             }
@@ -72,7 +74,7 @@ export function ChatContextProvider({ children }) {
     // PUT /api/v1/messages/mark-as-seen/{messageId}
     const markMessageAsSeen = async (messageId) => {
         try {
-            await api.put(`/messages/mark-as-seen/${messageId}`);
+            await api.put(`/api/v1/messages/mark-as-seen/${messageId}`);
             setMessages(prevMessages => 
                 prevMessages.map(msg => 
                     msg.messageId === messageId ? { ...msg, hasBeenSeen: true } : msg
@@ -86,7 +88,7 @@ export function ChatContextProvider({ children }) {
     // PUT /api/v1/messages/mark-all-as-seen/{reservationId}
     const markAllAsSeen = async (reservationId) => {
         try {
-            await api.put(`/messages/mark-all-as-seen/${reservationId}`);
+            await api.put(`/api/v1/messages/mark-all-as-seen/${reservationId}`);
             
             setConversations(prevConversations =>
                 prevConversations.map(conv => 

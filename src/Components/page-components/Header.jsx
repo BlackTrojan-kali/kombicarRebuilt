@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faBars, faMoon, faSun, faCar, faTaxi, faUserCircle,
     faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass,
-    faPlusCircle, faRoute
+    faPlusCircle, faRoute, faComment // 🎯 Added faComment icon
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import HeaderDropDown from "./HeaderDropDown";
@@ -124,6 +124,11 @@ const Header = () => {
                         <Link to="/profile" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
                             <FontAwesomeIcon icon={faUserCircle} />
                             Mon Profil
+                        </Link>
+                        {/* 🎯 New link for chats */}
+                        <Link to="/profile/chats" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                            <FontAwesomeIcon icon={faComment} />
+                            Mes conversations
                         </Link>
                         <button onClick={handleLogout} className="flex items-center gap-2 w-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-md transition-colors duration-200">
                             <FontAwesomeIcon icon={faRightFromBracket} />

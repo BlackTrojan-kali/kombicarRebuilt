@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // URL de base de votre API C#
 // Assurez-vous que cette URL est correcte pour votre backend
-const API_BASE_URL = 'https://test.kombicar.app/'; // Exemple: ajustez le port et le chemin
+const API_BASE_URL = 'https://api.kombicar.app/'; // Exemple: ajustez le port et le chemin
 
 // Crée une instance Axios personnalisée
 const api = axios.create({

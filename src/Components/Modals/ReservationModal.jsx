@@ -150,7 +150,6 @@ const ReservationModal = ({ trip, onClose }) => {
                                 onChange={(e) => setOperator(parseInt(e.target.value))}
                                 className={`w-full p-2.5 rounded-lg border focus:ring-blue-500 focus:border-blue-500 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'}`}
                             >
-                                <option value={0}>Aucun (Paiement à bord)</option>
                                 <option value={1}>Orange Money</option>
                                 <option value={2}>MTN MoMo</option>
                             </select>
