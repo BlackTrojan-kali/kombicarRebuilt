@@ -13,7 +13,7 @@ const MyChats = () => {
         if (conversations.length === 0 && !loadingConversations) {
             fetchConversations();
         }
-    }, [conversations, loadingConversations, fetchConversations]);
+    }, [conversations, loadingConversations]);
 
 
     const formatTime = (dateString) => {
