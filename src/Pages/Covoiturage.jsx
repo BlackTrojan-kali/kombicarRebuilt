@@ -32,12 +32,10 @@ const Covoiturage = () => {
     <div className={`${textColorPrimary} transition-colors duration-300`}>
       <HeroSection url='/default/jeunes.jpg' label="Covoiturage : Votre trajet partagé, facile et économique" showLogo={false} />
 
-      <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16'>
-
-        {/* ==================================== */}
+      <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 '>
         {/* Section: Covoiturage pour les Conducteurs */}
         {/* ==================================== */}
-        <section className='flex flex-col md:flex-row gap-12 items-center mb-24 max-w-7xl mx-auto'>
+        <section className='flex flex-col md:flex-row gap-12 mt-[140px] lg:mt-10 items-center mb-24 max-w-7xl mx-auto'>
           <img
             src="/default/carsharing-4.jpg"
             alt="Personne utilisant une application de covoiturage"

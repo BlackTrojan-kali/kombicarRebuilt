@@ -77,7 +77,7 @@ const SearchBar = () => {
         <LocalizationProvider dateAdapter={AdapterDayjs} locale="fr">
             <form
                 onSubmit={handleSearch}
-                className='absolute -bottom-14 z-10 lg:bottom-0 left-1/2 -translate-x-1/2
+                className='absolute -bottom-[160px] z-10 lg:bottom-0 left-1/2 -translate-x-1/2
                            w-[95%] sm:w-[90%] md:w-[85%] lg:w-[calc(100%-4rem)] 
                            flex flex-col lg:flex-row items-stretch
                            bg-white rounded-xl shadow-lg 
