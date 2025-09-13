@@ -3,17 +3,18 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faUserCircle, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import useChat from "../../hooks/useChat";
+import useAuth from "../../hooks/useAuth";
 
 const MyChats = () => {
     const { conversations, loadingConversations, conversationsError, fetchConversations } = useChat();
-
+    const {user} = useAuth()
     useEffect(() => {
         // Appeler la fonction de récupération des conversations depuis le contexte si l'état est vide
         // Ceci est une bonne pratique pour s'assurer que les données sont là si elles n'ont pas encore été chargées par un parent
         if (conversations.length === 0 && !loadingConversations) {
             fetchConversations();
         }
-    }, [conversations]);
+    }, [user]);
 
 
     const formatTime = (dateString) => {
