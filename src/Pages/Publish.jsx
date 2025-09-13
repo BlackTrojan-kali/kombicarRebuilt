@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
-  faMoneyBillWave, faInfoCircle, faCar, faPlusCircle, faRoute, faLuggageCart, faBoxOpen
+  faMoneyBillWave, faInfoCircle, faCar, faPlusCircle, faRoute, faLuggageCart, faBoxOpen, faShieldAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { Toaster, toast } from 'react-hot-toast';
 import useColorScheme from '../hooks/useColorScheme';
@@ -10,8 +10,8 @@ import useTrips from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-// 🎯 Importation du MapContext
 import useMape from "../hooks/useMap"
+
 const Publish = () => {
   const { theme } = useColorScheme();
   const { createTrip } = useTrips();
@@ -19,7 +19,6 @@ const Publish = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // 🎯 Récupération des données du MapContext
   const { places, searchPlaces, loading: loadingPlaces, error: placesError } = useMape();
 
   useEffect(() => {
@@ -45,23 +44,20 @@ const Publish = () => {
     selectedVehicleId: '',
   });
 
-  // 🎯 États pour les suggestions et pour le debounce
   const [showDepartureSuggestions, setShowDepartureSuggestions] = useState(false);
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
-  // 🎯 Fonction de recherche avec debounce
   const debouncedSearch = (query) => {
     clearTimeout(debounceTimeout);
     const newTimeout = setTimeout(() => {
       if (query.trim().length > 2) {
         searchPlaces(query);
       }
-    }, 500); // Délai de 500ms
+    }, 500);
     setDebounceTimeout(newTimeout);
   };
 
-  // 🎯 Gère les changements du champ de départ
   const handleDepartureChange = (e) => {
     const { value } = e.target;
     setTripData(prevData => ({ ...prevData, departure: value }));
@@ -70,7 +66,6 @@ const Publish = () => {
     setShowDestinationSuggestions(false);
   };
 
-  // 🎯 Gère les changements du champ de destination
   const handleDestinationChange = (e) => {
     const { value } = e.target;
     setTripData(prevData => ({ ...prevData, destination: value }));
@@ -79,17 +74,15 @@ const Publish = () => {
     setShowDepartureSuggestions(false);
   };
 
-  // 🎯 Gère la sélection d'une suggestion de départ
   const handleSelectDeparture = (place) => {
     setTripData(prevData => ({
       ...prevData,
       departure: place.description,
-      // Ici vous stockerez toutes les informations nécessaires pour l'API
       startArea: {
         homeTownName: place.description,
         name: place.description,
-        latitude: place.latitude, // Assurez-vous que l'API renvoie ces champs
-        longitude: place.longitude, // Assurez-vous que l'API renvoie ces champs
+        latitude: place.latitude,
+        longitude: place.longitude,
         order: 0,
         type: 0,
       }
@@ -97,17 +90,15 @@ const Publish = () => {
     setShowDepartureSuggestions(false);
   };
 
-  // 🎯 Gère la sélection d'une suggestion d'arrivée
   const handleSelectDestination = (place) => {
     setTripData(prevData => ({
       ...prevData,
       destination: place.description,
-      // Ici vous stockerez toutes les informations nécessaires pour l'API
       arivalArea: {
         homeTownName: place.description,
         name: place.description,
-        latitude: place.latitude, // Assurez-vous que l'API renvoie ces champs
-        longitude: place.longitude, // Assurez-vous que l'API renvoie ces champs
+        latitude: place.latitude,
+        longitude: place.longitude,
         order: 0,
         type: 0,
       }
@@ -115,14 +106,12 @@ const Publish = () => {
     setShowDestinationSuggestions(false);
   };
 
-  // Fonction pour gérer les autres changements des champs du formulaire.
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setTripData(prevData => ({
       ...prevData,
       [name]: type === 'checkbox' ? checked : value
     }));
-    // Cache les suggestions lorsque d'autres champs changent
     setShowDepartureSuggestions(false);
     setShowDestinationSuggestions(false);
   };
@@ -150,9 +139,7 @@ const Publish = () => {
       return;
     }
 
-    // Création de l'objet de trajet
     const newTrip = {
-      // 🎯 Utilisation des données complètes du lieu sélectionné
       startArea: tripData.startArea || {
         homeTownName: tripData.departure,
         name: tripData.departure,
@@ -230,7 +217,6 @@ const Publish = () => {
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* 🎯 Champ Départ avec suggestions */}
             <div className="relative">
               <label htmlFor="departure" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
@@ -267,7 +253,6 @@ const Publish = () => {
               )}
             </div>
 
-            {/* 🎯 Champ Destination avec suggestions */}
             <div className="relative">
               <label htmlFor="destination" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapPin} className="mr-2" />
@@ -304,7 +289,6 @@ const Publish = () => {
               )}
             </div>
 
-            {/* Reste du formulaire inchangé... */}
             <div>
               <label htmlFor="date" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
@@ -393,9 +377,12 @@ const Publish = () => {
                   ))
                 )}
               </select>
-              <Link to="/profile/car">
-                <p className='text-blue-600'>cliquez ici pour ajouter un vehicule</p>
-              </Link>
+              <div className='mt-2'>
+                <Link to="/profile/car" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                  <FontAwesomeIcon icon={faPlusCircle} className="mr-1" />
+                  Ajouter un nouveau véhicule
+                </Link>
+              </div>
             </div>
             <div>
               <label htmlFor="luggageSize" className={`block text-sm font-medium ${labelColor} mb-1`}>
@@ -460,6 +447,13 @@ const Publish = () => {
                 className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                 placeholder="Ex: Je peux vous déposer près du stade..."
               ></textarea>
+            </div>
+
+            <div className="md:col-span-2 mt-4 text-center">
+              <p className={`text-sm ${labelColor} font-semibold p-3 rounded-lg border border-yellow-500 bg-yellow-100 dark:bg-yellow-900/50 dark:border-yellow-700`}>
+                <FontAwesomeIcon icon={faShieldAlt} className="mr-2 text-yellow-500" />
+                Note : Votre véhicule et ce trajet feront l'objet d'une vérification par un administrateur avant d'être rendus disponibles sur la plateforme.
+              </p>
             </div>
 
             <div className="md:col-span-2 flex justify-center mt-4">

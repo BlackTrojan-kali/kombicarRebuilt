@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import HeroSection from '../Components/page-components/HeroSection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBoltLightning, faCoins, faNewspaper, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+// Ajout des icônes pour la nouvelle section "Comment ça marche ?"
+import { faArrowRight, faBoltLightning, faCoins, faNewspaper, faChevronLeft, faChevronRight, faSearch, faTicket, faCar } from '@fortawesome/free-solid-svg-icons';
 import Button from '../Components/ui/Button';
 import TripCard from '../Components/Cards/TripCard';
 import Slider from "react-slick";
@@ -10,7 +11,7 @@ import "slick-carousel/slick/slick-theme.css";
 import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
-
+import toast from 'react-hot-toast';
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();
@@ -114,8 +115,39 @@ const truncateLocationName = (name) => {
       <HeroSection label={"BIENVENUE SUR KOMBICAR"} />
 
       <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-16 mt-[250px] lg:mt-[100px]'>
+        
         {/* ==================================== */}
-        {/* Section: Avantages Clés */}
+        {/* NOUVELLE SECTION: Comment ça marche ? */}
+        {/* ==================================== */}
+        <section className='mb-24 max-w-7xl mx-auto'>
+            <h2 className={`text-center font-extrabold text-3xl sm:text-4xl mb-12 ${textColor}`}>Comment ça marche ?</h2>
+            <div className='flex flex-col md:flex-row justify-between gap-8 text-center'>
+                <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
+                    <FontAwesomeIcon icon={faSearch} className='text-5xl text-blue-500 mb-4' />
+                    <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Trouvez votre trajet</h4>
+                    <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
+                        Recherchez des trajets de covoiturage ou des taxis vers votre destination.
+                    </p>
+                </div>
+                <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
+                    <FontAwesomeIcon icon={faTicket} className='text-5xl text-yellow-500 mb-4' />
+                    <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Réservez votre place</h4>
+                    <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
+                        Sélectionnez le trajet qui vous convient et réservez votre place en quelques clics.
+                    </p>
+                </div>
+                <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
+                    <FontAwesomeIcon icon={faCar} className='text-5xl text-green-500 mb-4' />
+                    <h4 className='font-bold text-xl mb-2 text-gray-800 dark:text-gray-100'>Voyagez en toute sérénité</h4>
+                    <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300'>
+                        Rendez-vous au point de départ, rencontrez votre chauffeur et profitez du voyage.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        {/* ==================================== */}
+        {/* Ancienne Section: Avantages Clés */}
         {/* ==================================== */}
         <section className='max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between gap-8 text-center md:text-left mb-24'>
           <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
@@ -142,7 +174,38 @@ const truncateLocationName = (name) => {
         </section>
 
         {/* ==================================== */}
-        {/* Section: Texte et Image - Simplicité */}
+        {/* NOUVELLE SECTION: Covoiturage vs Taxi */}
+        {/* ==================================== */}
+        <section className='max-w-7xl mx-auto w-full mb-24'>
+            <h2 className={`text-center font-extrabold text-3xl sm:text-4xl mb-12 ${textColor}`}>Covoiturage ou Taxi : choisissez votre option</h2>
+            <div className='flex flex-col md:flex-row justify-between gap-8 text-center'>
+                <div className={`md:w-1/2 p-8 rounded-2xl shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
+                    <h3 className='font-bold text-2xl mb-4 text-gray-800 dark:text-gray-100'>Covoiturage</h3>
+                    <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300 mb-6'>
+                        Partagez les frais de voyage et réduisez vos dépenses sur les longs trajets tout en faisant de nouvelles rencontres.
+                    </p>
+                    <Link to="/covoiturage">
+                        <Button className='px-8 py-3 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-300'>
+                            Rechercher un covoiturage
+                        </Button>
+                    </Link>
+                </div>
+                <div className={`md:w-1/2 p-8 rounded-2xl shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${sectionBgColor}`}>
+                    <h3 className='font-bold text-2xl mb-4 text-gray-800 dark:text-gray-100'>Taxi</h3>
+                    <p className='text-gray-600 text-base leading-relaxed dark:text-gray-300 mb-6'>
+                        Réservez un taxi en un clic pour un service rapide et adapté à tous vos déplacements, en ville ou hors de la ville.
+                    </p>
+                        <Button 
+                         onClick={() => toast.error('Service de taxi non disponible pour le moment. Nous travaillons à le rendre opérationnel !')} 
+                        className='px-8 py-3 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-all duration-300'>
+                            Réserver un taxi
+                        </Button>
+                </div>
+            </div>
+        </section>
+
+        {/* ==================================== */}
+        {/* Ancienne Section: Texte et Image - Simplicité */}
         {/* ==================================== */}
         <section className='mt-24 flex flex-col md:flex-row gap-12 items-center max-w-7xl mx-auto mb-24'>
           <img
@@ -166,7 +229,7 @@ const truncateLocationName = (name) => {
         </section>
 
         {/* ==================================== */}
-        {/* Section: Texte et Image - Sécurité et Communauté */}
+        {/* Ancienne Section: Texte et Image - Sécurité et Communauté */}
         {/* ==================================== */}
         <section className='mt-24 flex flex-col md:flex-row-reverse gap-12 items-center max-w-7xl mx-auto mb-24'>
           <img
@@ -191,7 +254,7 @@ const truncateLocationName = (name) => {
       </main>
 
       {/* ==================================== */}
-      {/* Section: Itinéraires Fréquents */}
+      {/* Ancienne Section: Itinéraires Fréquents */}
       {/* ==================================== */}
       <section className='w-full text-left bg-emerald-800 py-12 px-4 sm:px-6 lg:px-12 xl:px-24 mt-24 dark:bg-gray-800'>
         <div className='max-w-7xl mx-auto'>
@@ -218,7 +281,7 @@ const truncateLocationName = (name) => {
       </section>
 
       {/* ==================================== */}
-      {/* Section: Slider des Trajets Populaires */}
+      {/* Ancienne Section: Slider des Trajets Populaires */}
       {/* ==================================== */}
       <section className='py-20 px-4 sm:px-6 lg:px-12 xl:px-24 text-center bg-gray-50 dark:bg-gray-900'>
         <h2 className='font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 text-gray-800 dark:text-gray-100'>
@@ -250,7 +313,48 @@ const truncateLocationName = (name) => {
       </section>
 
       {/* ==================================== */}
-      {/* Section: Carte du Cameroun */}
+      {/* NOUVELLE SECTION: Appel à l'action pour les conducteurs */}
+      {/* ==================================== */}
+      <section className='mt-24 bg-gray-100 dark:bg-gray-800 py-20 px-4 sm:px-6 lg:px-12 xl:px-24'>
+        <div className='max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-center md:text-left'>
+            <div className='md:w-3/4'>
+                <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${textColor}`}>Vous êtes un conducteur ?</h2>
+                <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
+                    Partagez votre trajet, réduisez vos frais de déplacement et rencontrez de nouvelles personnes. C'est simple et rapide.
+                </p>
+            </div>
+            <div className='md:w-1/4 text-center md:text-right'>
+                <Link to="/publish-trip">
+                    <Button className='px-8 py-4 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-300 transform hover:scale-105'>
+                        Publier mon trajet
+                    </Button>
+                </Link>
+            </div>
+        </div>
+      </section>
+      
+      {/* ==================================== */}
+{/* NOUVELLE SECTION: Gestion du Profil */}
+{/* ==================================== */}
+<section className='mt-24 bg-gray-50 dark:bg-gray-800 py-20 px-4 sm:px-6 lg:px-12 xl:px-24'>
+    <div className='max-w-7xl mx-auto text-center'>
+        <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${textColor}`}>
+            Votre espace personnel
+        </h2>
+        <p className={`leading-relaxed text-lg mb-8 max-w-2xl mx-auto ${paragraphColor}`}>
+            Gérez vos trajets, suivez vos réservations et construisez votre réputation au sein de la communauté Kombicar. Votre profil est la clé d'une expérience de voyage personnalisée.
+        </p>
+        <Link to="/profile">
+            <Button className='px-8 py-4 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105'>
+                Gérer mon profil
+            </Button>
+        </Link>
+    </div>
+</section>
+
+
+      {/* ==================================== */}
+      {/* Ancienne Section: Carte du Cameroun */}
       {/* ==================================== */}
       <section className='mt-24 flex flex-col md:flex-row gap-12 items-center px-4 sm:px-6 lg:px-12 xl:px-24 pb-20 max-w-7xl mx-auto'>
         <img
