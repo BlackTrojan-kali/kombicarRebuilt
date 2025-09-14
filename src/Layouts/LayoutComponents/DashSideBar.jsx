@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTachometerAlt,
@@ -19,51 +19,56 @@ import {
   faWallet,
   faHandHoldingUsd,
   faChevronDown,
-  faGift, // Ajouté pour un usage potentiel
-  faTicket, // Ajouté pour la gestion des codes promo
-  faPlus, // Ajouté pour les liens "Créer"
+  faGift,
+  faTicket,
+  faPlus,
+  faIdCard,
+  faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import useAuth from '../../hooks/useAuth';
 
 // Composant DropDown mis à jour
 const DropDown = ({ icon, title, sublinks = [] }) => {
   const [active, setActive] = useState(false);
+  const location = useLocation();
 
   const handleToggle = () => {
     setActive(!active);
   };
 
+  // Détermine si un des sous-liens est actif pour garder le menu ouvert
+  const isSublinkActive = sublinks.some(sublink => location.pathname === sublink.link);
+
   return (
     <div>
-      {/* Élément cliquable principal du menu déroulant */}
       <div
         onClick={handleToggle}
-        className='flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors duration-200 mb-1'
+        className='flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors duration-200 mb-1'
       >
-        <FontAwesomeIcon icon={icon} className='p-2 rounded-full bg-gray-300 dark:bg-gray-700 dark:text-gray-100' />
-        <p className='text-lg sm:text-xl font-medium flex-grow'>{title}</p>
+        <div className='w-8 h-8 flex items-center justify-center text-lg text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200'>
+          <FontAwesomeIcon icon={icon} />
+        </div>
+        <p className='text-md font-medium flex-grow'>{title}</p>
         {sublinks.length > 0 && (
           <FontAwesomeIcon
             icon={faChevronDown}
-            className={`transition-transform duration-300 ${active ? "rotate-180" : ""}`}
+            className={`text-xs transition-transform duration-300 ${active || isSublinkActive ? "rotate-180" : ""}`}
           />
         )}
       </div>
 
-      {/* Contenu du menu déroulant (sous-liens) */}
-      {active && sublinks.length > 0 && (
+      {(active || isSublinkActive) && sublinks.length > 0 && (
         <div
-          className='flex flex-col pl-6 pr-2 py-1 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 mx-2 mb-2'
+          className='flex flex-col pl-6 border-l-2 border-gray-200 dark:border-gray-700 mx-5 mb-2'
           role="menu"
           aria-orientation="vertical"
-          aria-labelledby="menu-button"
         >
           {sublinks.map((sublink, index) => (
             <Link
               key={index}
               to={sublink.link}
-              className='flex items-center gap-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700
-                         hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 rounded-md'
+              className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors duration-200 my-1
+                         ${location.pathname === sublink.link ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
               role="menuitem"
               onClick={() => setActive(false)}
             >
@@ -79,30 +84,30 @@ const DropDown = ({ icon, title, sublinks = [] }) => {
 
 const DashSideBar = () => {
   const { user } = useAuth();
+  const location = useLocation();
+
+  const activeLinkClass = "flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200";
+  const defaultLinkClass = "flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2";
+
   return (
-    <div className='flex flex-col w-[250px] py-4 overflow-x-scroll px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20'>
-      {/* Logo ou Titre du Tableau de Bord */}
-      <div className='flex items-center justify-center h-16 mb-6'>
-        <h1 className='text-3xl font-extrabold text-blue-600 dark:text-blue-400 text-center'>
+    <div className='flex flex-col w-[280px] py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20 overflow-y-auto'>
+      <div className='flex items-center justify-start h-16 mb-8'>
+        <h1 className='text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500'>
           KombiCar-Admin
         </h1>
       </div>
 
-      {/* Section de l'utilisateur connecté */}
       {user && (
-        <div className='flex items-center gap-3 p-4 mb-6 rounded-lg bg-gray-100 dark:bg-gray-700'>
-          {/* Utilise la photo de profil de l'utilisateur ou une image de remplacement */}
+        <div className='flex items-center gap-4 p-4 mb-6 rounded-xl bg-gray-100 dark:bg-gray-700'>
           <img
             src={user.pictureProfileUrl || "https://via.placeholder.com/40"}
             alt="User Profile"
-            className='w-10 h-10 rounded-full object-cover border-2 border-blue-500'
+            className='w-12 h-12 rounded-full object-cover border-2 border-blue-500'
           />
           <div className='flex flex-col'>
-            {/* Affiche le prénom de l'utilisateur */}
-            <span className='font-semibold text-gray-900 dark:text-gray-100 truncate'>
+            <span className='font-bold text-gray-900 dark:text-gray-100 truncate'>
               {user.firstName}
             </span>
-            {/* Affiche le rôle de l'utilisateur */}
             <span className='text-sm text-gray-600 dark:text-gray-400'>
               {user.role}
             </span>
@@ -110,70 +115,79 @@ const DashSideBar = () => {
         </div>
       )}
 
-      {/* Lien vers le Tableau de Bord (Dashboard) */}
-      <Link
-        to="/admin/dashboard"
-        className='flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2'
-      >
-        <FontAwesomeIcon icon={faTachometerAlt} className='text-xl' />
-        <span className='text-lg font-medium'>Tableau de bord</span>
-      </Link>
+      <nav className='flex flex-col flex-grow space-y-2'>
+        <Link
+          to="/admin/dashboard"
+          className={location.pathname === "/admin/dashboard" ? activeLinkClass : defaultLinkClass}
+        >
+          <div className='w-8 h-8 flex items-center justify-center text-lg text-gray-600 dark:text-gray-400'>
+            <FontAwesomeIcon icon={faTachometerAlt} />
+          </div>
+          <span className='text-md font-medium'>Tableau de bord</span>
+        </Link>
 
-      {/* Dropdown pour les Utilisateurs */}
-      <DropDown
-        icon={faUsers}
-        title="Utilisateurs"
-        sublinks={[
-          { icon: faUserTie, title: "Clients", link: "/admin/users" },
-          { icon: faCar, title: "Chauffeurs", link: "/admin/drivers" },
-          { icon: faUserShield, title: "Administrateurs", link: "/admin/admins" },
-        ]}
-      />
+        <DropDown
+          icon={faUsers}
+          title="Utilisateurs"
+          sublinks={[
+            { icon: faUserTie, title: "Clients", link: "/admin/users" },
+            { icon: faCar, title: "Chauffeurs", link: "/admin/drivers" },
+            { icon: faUserShield, title: "Administrateurs", link: "/admin/admins" },
+          ]}
+        />
 
-      {/* Dropdown pour les Trajets */}
-      <DropDown
-        icon={faRoad}
-        title="Trajets"
-        sublinks={[
-          { icon: faHourglassHalf, title: "En cours", link: `/admin/trajets/${0}` },
-          { icon: faCalendarDay, title: "À venir", link: `/admin/trajets/${2}` },
-          { icon: faCheckCircle, title: "Effectuées", link: `/admin/trajets/${3}` },
-        ]}
-      />
+        <DropDown
+          icon={faRoad}
+          title="Trajets"
+          sublinks={[
+            { icon: faHourglassHalf, title: "En cours", link: `/admin/trajets/0` },
+            { icon: faCalendarDay, title: "À venir", link: `/admin/trajets/2` },
+            { icon: faCheckCircle, title: "Effectuées", link: `/admin/trajets/3` },
+          ]}
+        />
 
-      {/* Dropdown pour les Véhicules */}
-      <DropDown
-        icon={faTruck}
-        title="Véhicules"
-        sublinks={[
-          { icon: faTags, title: "Marques", link: "/admin/cars" },
-          { icon: faShapes, title: "Types", link: "/admin/cars-type" },
-          { icon: faPalette, title: "Couleurs", link: "/admin/colors" },
-        ]}
-      />
+        <DropDown
+          icon={faTruck}
+          title="Véhicules"
+          sublinks={[
+            { icon: faTags, title: "Marques", link: "/admin/cars" },
+            { icon: faShapes, title: "Types", link: "/admin/cars-type" },
+            { icon: faPalette, title: "Couleurs", link: "/admin/colors" },
+          ]}
+        />
 
-      {/* Nouveau Dropdown pour les Codes Promo */}
-      <DropDown
-        icon={faTicket}
-        title="Codes Promo"
-        sublinks={[
-          { icon: faCheckCircle, title: "Codes Actifs", link: `/admin/promocodes/list/active` },
-          { icon: faHourglassHalf, title: "Codes Expirés", link: `/admin/promocodes/list/expired` },
-          { icon: faTicket, title: "Tous les Codes", link: `/admin/promocodes/list/all` },
-        ]}
-      />
+        <DropDown
+          icon={faTicket}
+          title="Codes Promo"
+          sublinks={[
+            { icon: faCheckCircle, title: "Codes Actifs", link: `/admin/promocodes/list/active` },
+            { icon: faHourglassHalf, title: "Codes Expirés", link: `/admin/promocodes/list/expired` },
+            { icon: faTicket, title: "Tous les Codes", link: `/admin/promocodes/list/all` },
+          ]}
+        />
 
-      {/* Nouveau Dropdown pour le Portefeuille */}
-      <DropDown
-        icon={faWallet}
-        title="Portefeuille"
-        sublinks={[
-          { icon: faUserCircle, title: "Portefeuille utilisateurs", link: "/admin/wallets" },
-          { icon: faHandHoldingUsd, title: "Demandes de paiement", link: "/dashboard/wallet/payment-requests" },
-        ]}
-      />
+        {/* 🆕 MISE À JOUR : DropDown pour la gestion des retraits */}
+        <DropDown
+          icon={faHandHoldingUsd}
+          title="Retraits"
+          sublinks={[
+            { icon: faHourglassHalf, title: "Demandes en attente", link: "/admin/withdrawals/pending" },
+            { icon: faCalendarDay, title: "Historique complet", link: "/admin/withdrawals/history" },
+            { icon: faUsers, title: "Historique par utilisateur", link: "/admin/withdrawals/user-history/example-user-id" },
+          ]}
+        />
 
-      {/* Autres DropDowns ou liens peuvent être ajoutés ici */}
+        <DropDown
+          icon={faIdCard}
+          title="Permis de Conduire"
+          sublinks={[
+            { icon: faHourglassHalf, title: "En attente", link: `/admin/licences/0/1` },
+            { icon: faCheckCircle, title: "Vérifiés", link: `/admin/licences/1/1` },
+            { icon: faTimesCircle, title: "Rejetés", link: `/admin/licences/2/1` },
+          ]}
+        />
+
+      </nav>
     </div>
   );
 };

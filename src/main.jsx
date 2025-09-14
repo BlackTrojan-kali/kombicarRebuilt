@@ -11,12 +11,13 @@ import { DrivingLicenceProvider } from './contexts/DrivingLicenceContext.jsx';
 import { PromoCodeContextProvider } from './contexts/PromoCodeCotext.jsx';
 import { ReservationContextProvider } from './contexts/ReservationContext.jsx';
 import { MapContextProvider } from './contexts/MapContext.jsx';
+import { WithdrawContextProvider } from './contexts/withdrawContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     
     <AuthContextProvider>
-    
+    <WithdrawContextProvider>
       <ColorSchemeProvider>
         <CarContextProvider>
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
@@ -34,6 +35,8 @@ createRoot(document.getElementById('root')).render(
           </TripContextProvider>
         </CarContextProvider>
       </ColorSchemeProvider>
+      </WithdrawContextProvider>
+          
     </AuthContextProvider>
   </StrictMode>,
 );

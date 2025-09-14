@@ -9,9 +9,8 @@ import Taxi from "./Pages/Taxi"
 import Results from "./Pages/Results"
 import TripDetail from "./Pages/TripDetail"
 import Profile from "./Pages/Client/Profile"
-import MyVehicle from "./Pages/Client/Vehicule" 
-import UserWallet from "./Pages/Client/UserWallet"
-import VehiculeDoc from "./Pages/Client/VehiculeDoc" 
+import MyVehicle from "./Pages/Client/Vehicule"
+import VehiculeDoc from "./Pages/Client/VehiculeDoc"
 import MyDrivingLicence from "./Pages/Client/MyDrivingLicence"
 
 import DashboardLayout from "./Layouts/DashboardLayout"
@@ -33,9 +32,19 @@ import { StatsContextProvider } from "./contexts/StatsContext"
 import PromoCode from "./Pages/Dashboard/PromoCode/PromoCode"
 import PromoCodeDetails from "./Pages/Dashboard/PromoCode/PromoCodeDetails"
 import MyReservations from "./Pages/Client/MyReservations"
-import ChatRoom from "./Pages/Chat/ChatRoom" // 🎯 Importation du composant ChatRoom
-import MyChats from "./Pages/Chat/MyChats" // 🎯 Importation du composant MyChats
+import ChatRoom from "./Pages/Chat/ChatRoom" 
+import MyChats from "./Pages/Chat/MyChats" 
 import { ChatContextProvider } from "./contexts/ChatContext"
+
+// Import de la nouvelle page pour les permis de conduire
+import DrivingLicences from "./Pages/Dashboard/DrivingLicences"
+import DrivingLicenceDetails from "./Pages/Dashboard/DrivingLicenceDetails"
+
+// 🆕 NOUVEAUX IMPORTS POUR LA GESTION DES RETRAITS
+import UserWithdrawalHistory from "./Pages/Client/UserWithdrawalHistory"
+import AdminWithdrawals from "./Pages/Dashboard/withdraw/AdminWithdrawals"
+import AdminWithdrawalDetails from "./Pages/Dashboard/withdraw/AdminWithdrawalDetails"
+
 
 const Routes = () => {
   const route = useRoutes([
@@ -67,41 +76,39 @@ const Routes = () => {
           element: <Publish/>
         },
         {
-          // La route "results" acceptera désormais des paramètres optionnels dans l'URL
           path: "results",
           element: <Results/>
         },
-        // Routes du profil utilisateur (imbriquées sous ClientLayout)
+        // Routes du profil utilisateur
         {
           path: "profile",
           element: <Profile/>
         },
         {
-          path: "profile/car", 
+          path: "profile/car",
           element: <MyVehicle/>
         },
         {
-          path: "profile/car/:carId/documents", // Chemin mis à jour pour être plus sémantique
+          path: "profile/car/documents/:carId",
           element: <VehiculeDoc/>
         },
+        // 🆕 MISE À JOUR : Remplacement de UserWallet par UserWithdrawalHistory
         {
-          path: "profile/wallet", 
-          element: <UserWallet/>
+          path: "profile/withdrawals",
+          element:<UserWithdrawalHistory/>
         },
         {
-          path: "profile/reservations", 
+          path: "profile/reservations",
           element: <MyReservations/>
         },
         {
           path: "profile/licence",
           element: <MyDrivingLicence/>
         },
-        // 🎯 Nouvelle route pour la liste des conversations
         {
           path: "profile/chats",
           element: <ChatContextProvider><MyChats/></ChatContextProvider>
         },
-        // 🎯 Nouvelle route pour la salle de chat
         {
           path: "chat/:reservationId",
           element:<ChatContextProvider> <ChatRoom/></ChatContextProvider>
@@ -116,16 +123,16 @@ const Routes = () => {
       element: <AuthLayout/>,
       children: [
         {
-          index: true, // Redirige la route de base /auth vers /auth/signin
+          index: true,
           element: <Signin/>
         },
         {
-          path: "signin", 
-          element: <Signin/> 
+          path: "signin",
+          element: <Signin/>
         },
         {
-          path: "signup", 
-          element: <Signup/> 
+          path: "signup",
+          element: <Signup/>
         },
         {
           path: "confirm-email",
@@ -179,24 +186,58 @@ const Routes = () => {
           path: "colors",
           element: <Colors/>
         },
+        // 🆕 NOUVELLES ROUTES pour la gestion des retraits (Admin)
         {
-          path: "wallets",
-          element: <Wallet/>
+          path: "withdrawals",
+          children: [
+            {
+              index: true,
+              element:<AdminWithdrawals />
+            },
+            {
+              path: "pending", // Demandes en attente
+              element:<AdminWithdrawals type="pending" />
+            },
+            {
+              path: "history", // Historique complet
+              element:<AdminWithdrawals type="history" />
+            },
+            {
+              path: "details/:requestId", // Détails d'une demande spécifique
+              element:<AdminWithdrawalDetails />
+            },
+            {
+              path: "user-history/:userId", // Historique d'un utilisateur
+              element:<AdminWithdrawals type="user-history" />
+            },
+          ]
         },
-        // Routes pour la gestion des codes promo
+        {
+          path: "licences",
+          children: [
+            {
+              path: ":verificationState/:page",
+              element: <DrivingLicences />
+            },
+            {
+              path: "details/:licenceId",
+              element: <DrivingLicenceDetails />
+            }
+          ]
+        },
         {
           path: "promocodes",
           children: [
             {
-              index: true, // Redirige vers la liste par défaut si on accède à /admin/promocodes
+              index: true,
               element: <PromoCode />
             },
             {
-              path: "list/:type", // Chemin pour la liste avec un paramètre de type
+              path: "list/:type",
               element: <PromoCode />
             },
             {
-              path: "details/:id", // Chemin pour les détails d'un code
+              path: "details/:id",
               element: <PromoCodeDetails />
             }
           ]

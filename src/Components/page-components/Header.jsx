@@ -37,7 +37,7 @@ const Header = () => {
 
             {/* Navigation Desktop */}
             <nav className="hidden md:flex items-center gap-6 text-kombiblue-500 font-semibold dark:text-blue-300">
-                <Link to="/covoiturage" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
+                <Link to="/covoiturage" onClick={()=>setShowNav(false)} className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
                     <FontAwesomeIcon icon={faCar} />
                     Covoiturage
                 </Link>

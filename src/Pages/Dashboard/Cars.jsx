@@ -7,6 +7,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 import CarFormModal from '../../Components/Modals/CreateCarModal';
 import useCars from '../../hooks/useCar';
@@ -14,33 +15,25 @@ import useColorScheme from '../../hooks/useColorScheme';
 
 const Cars = () => {
   const { theme } = useColorScheme();
-   
-  const { 
-    adminCars, 
+
+  const {
+    adminCars,
+    adminCarPagination,
     isLoadingAdminCars,
     adminCarListError,
     fetchAdminCars,
-    deleteCar, 
-    createCar, 
+    deleteCar,
+    createCar,
     updateCar,
     updateVehicleVerificationState
   } = useCars();
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalRows, setTotalRows] = useState(0);
-  const perPage = 10;
 
   useEffect(() => {
-    const loadCars = async () => {
-        const data = await fetchAdminCars(currentPage);
-        if (data && data.totalCount !== undefined) {
-            setTotalRows(data.totalCount);
-        }
-    };
-    loadCars();
-  }, [])//currentPage, fetchAdminCars]);
+    fetchAdminCars(adminCarPagination.page || 1);
+  }, [adminCarPagination.page, ]);
 
   useEffect(() => {
     if (adminCarListError) {
@@ -49,14 +42,14 @@ const Cars = () => {
   }, [adminCarListError]);
 
   const handleNextPage = () => {
-    if (currentPage < Math.ceil(totalRows / perPage)) {
-      setCurrentPage(prev => prev + 1);
+    if (adminCarPagination.hasNextPage) {
+      fetchAdminCars(adminCarPagination.page + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+    if (adminCarPagination.hasPreviousPage) {
+      fetchAdminCars(adminCarPagination.page - 1);
     }
   };
 
@@ -77,10 +70,7 @@ const Cars = () => {
         const success = await deleteCar(vehicleId);
         if (success) {
           toast.success(`Le véhicule "${vehicleBrand} ${vehicleModel}" a été supprimé avec succès !`);
-          const data = await fetchAdminCars(currentPage);
-          if (data && data.totalCount !== undefined) {
-            setTotalRows(data.totalCount);
-          }
+          fetchAdminCars(adminCarPagination.page);
         } else {
           toast.error(`Échec de la suppression du véhicule "${vehicleBrand} ${vehicleModel}".`);
         }
@@ -90,7 +80,7 @@ const Cars = () => {
 
   const handleToggleVerification = (vehicle) => {
     const newVerificationState = !vehicle.isVerified;
-    const confirmText = newVerificationState 
+    const confirmText = newVerificationState
       ? `Êtes-vous sûr de vouloir vérifier ce véhicule ?`
       : `Êtes-vous sûr de vouloir annuler la vérification de ce véhicule ?`;
 
@@ -108,6 +98,7 @@ const Cars = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         await updateVehicleVerificationState(vehicle.id, newVerificationState);
+        fetchAdminCars(adminCarPagination.page);
       }
     });
   };
@@ -132,7 +123,7 @@ const Cars = () => {
       const result = await updateCar(carData.id, carData);
       if (result) {
         toast.success(`Le véhicule "${carData.brand} ${carData.model}" a été mis à jour avec succès !`);
-        fetchAdminCars(currentPage);
+        fetchAdminCars(adminCarPagination.page);
         handleCloseFormModal();
       } else {
         toast.error(`Échec de la mise à jour du véhicule "${carData.brand} ${carData.model}".`);
@@ -141,15 +132,13 @@ const Cars = () => {
       const result = await createCar(carData);
       if (result) {
         toast.success(`Le véhicule "${result.brand} ${result.model}" a été ajouté avec succès !`);
-        fetchAdminCars(currentPage);
+        fetchAdminCars(adminCarPagination.page);
         handleCloseFormModal();
       } else {
         toast.error(`Échec de l'ajout du véhicule "${carData.brand} ${carData.model}".`);
       }
     }
   };
-
-  const totalPages = Math.ceil(totalRows / perPage);
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
@@ -185,7 +174,7 @@ const Cars = () => {
                 <thead>
                   <tr className={`uppercase text-sm font-semibold text-left ${theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                     <th className="py-3 px-4 rounded-tl-lg">ID</th>
-                    <th className="py-3 px-4">Conducteur ID</th>
+                    <th className="py-3 px-4">Conducteur</th>
                     <th className="py-3 px-4">Marque</th>
                     <th className="py-3 px-4">Modèle</th>
                     <th className="py-3 px-4">Places</th>
@@ -204,7 +193,9 @@ const Cars = () => {
                         <td className="py-4 px-4">
                             <span className="flex items-center gap-2">
                                 <FontAwesomeIcon icon={faUser} className="text-gray-400" />
-                                {car.userId}
+                                <Link to={`/admin/users/details/${car.userId}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                                  {car.driver?.firstName} {car.driver?.lastName}
+                                </Link>
                             </span>
                         </td>
                         <td className="py-4 px-4">
@@ -274,7 +265,7 @@ const Cars = () => {
                             <button
                               onClick={() => toast(`Affichage des détails de ${car.brand} ${car.model}`, { icon: 'ℹ️' })}
                               className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-                              title="Voir les détails"
+                              title="Voir les documents"
                             >
                               <FontAwesomeIcon icon={faEye} />
                             </button>
@@ -311,24 +302,24 @@ const Cars = () => {
             </div>
             <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
               <div className="mb-2 sm:mb-0">
-                Affichage de {Math.min(totalRows, (currentPage - 1) * perPage + 1)} à {Math.min(totalRows, currentPage * perPage)} sur {totalRows} véhicules.
+                Affichage de {adminCarPagination.page * 10 - 9} à {Math.min(adminCarPagination.page * 10, adminCarPagination.totalCount)} sur {adminCarPagination.totalCount} véhicules.
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handlePreviousPage}
-                  disabled={currentPage === 1 || isLoadingAdminCars}
-                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage === 1 || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  disabled={!adminCarPagination.hasPreviousPage || isLoadingAdminCars}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${!adminCarPagination.hasPreviousPage || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
                   Précédent
                 </button>
                 <span className={`px-4 py-2 rounded-md font-bold ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-200'}`}>
-                  Page {currentPage} sur {totalPages || 1}
+                  Page {adminCarPagination.page} sur {Math.ceil(adminCarPagination.totalCount / 10) || 1}
                 </span>
                 <button
                   onClick={handleNextPage}
-                  disabled={currentPage >= totalPages || isLoadingAdminCars}
-                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage >= totalPages || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                  disabled={!adminCarPagination.hasNextPage || isLoadingAdminCars}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${!adminCarPagination.hasNextPage || isLoadingAdminCars ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                 >
                   Suivant
                   <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
@@ -338,7 +329,15 @@ const Cars = () => {
           </>
         )}
       </div>
-    
+
+      {isFormModalOpen && (
+        <CarFormModal
+          isOpen={isFormModalOpen}
+          onClose={handleCloseFormModal}
+          onSave={handleSaveCar}
+          carToEdit={carToEdit}
+        />
+      )}
     </div>
   );
 };

@@ -37,6 +37,18 @@ export function UserContextProvider({ children }) {
     });
     const [isLoadingStandardUsers, setIsLoadingStandardUsers] = useState(false);
     const [standardUserListError, setStandardUserListError] = useState(null);
+    
+    // NOUVEAUX ÉTATS pour les conducteurs vérifiés
+    const [verifiedConductorList, setVerifiedConductorList] = useState([]);
+    const [verifiedConductorPagination, setVerifiedConductorPagination] = useState({
+        totalCount: 0,
+        page: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    });
+    const [isLoadingVerifiedConductors, setIsLoadingVerifiedConductors] = useState(false);
+    const [verifiedConductorListError, setVerifiedConductorListError] = useState(null);
+
 
     // Fonction pour lister les administrateurs
     const listAdmins = async (page = 1) => {
@@ -181,6 +193,55 @@ export function UserContextProvider({ children }) {
         }
     };
 
+    // NOUVELLE FONCTION : Mettre à jour le rôle d'un utilisateur
+    const updateUserRole = async (userId, newRole) => {
+        setIsLoadingAdmins(true);
+        setAdminListError(null);
+        try {
+            const response = await api.put(`/api/v1/users/admin/update-user-role/${userId}/${newRole}`);
+            toast.success("Rôle utilisateur mis à jour avec succès !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du rôle utilisateur:", error);
+            const errorMessage = error.response?.data?.message || "Échec de la mise à jour du rôle.";
+            setAdminListError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoadingAdmins(false);
+        }
+    };
+    
+    // NOUVELLE FONCTION pour lister les conducteurs vérifiés
+    const listVerifiedConductors = async (page = 1) => {
+        setIsLoadingVerifiedConductors(true);
+        setVerifiedConductorListError(null);
+        try {
+            const response = await api.get(`/api/v1/users/admin/list-drivers/${page}`);
+            if (response.status !== 200) {
+                throw new Error("Échec de la récupération de la liste des conducteurs vérifiés.");
+            }
+            const data = response.data;
+            setVerifiedConductorList(data.items);
+            setVerifiedConductorPagination({
+                totalCount: data.totalCount,
+                page: data.page,
+                hasNextPage: data.hasNextPage,
+                hasPreviousPage: data.hasPreviousPage,
+            });
+            return data;
+        } catch (error) {
+            console.error("Erreur lors de la liste des conducteurs vérifiés:", error);
+            const errorMessage = error.message || "Une erreur inattendue est survenue.";
+            setVerifiedConductorListError(errorMessage);
+            toast.error(errorMessage);
+            setVerifiedConductorList([]);
+            throw error;
+        } finally {
+            setIsLoadingVerifiedConductors(false);
+        }
+    };
+
     const value = {
         // Administration
         adminList,
@@ -202,6 +263,14 @@ export function UserContextProvider({ children }) {
         isLoadingStandardUsers,
         standardUserListError,
         listStandardUsers,
+        // Nouvelle fonction
+        updateUserRole,
+        // Conducteurs vérifiés
+        verifiedConductorList,
+        verifiedConductorPagination,
+        isLoadingVerifiedConductors,
+        verifiedConductorListError,
+        listVerifiedConductors,
     };
 
     return (

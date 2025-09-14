@@ -3,8 +3,9 @@ import DataTable, { createTheme } from 'react-data-table-component';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUserTie, faEnvelope, faPhone, faCalendarAlt, faCar, faIdCard, faStar,
-  faEye, faEdit, faTrash, faUserPlus, faThumbsUp, faThumbsDown
+  faEye, faEdit, faTrash, faUserPlus, faThumbsUp, faThumbsDown, faCarSide, faTachometerAlt
 } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 
 // Importations personnalisées
 import useColorScheme from '../../hooks/useColorScheme';
@@ -36,34 +37,32 @@ createTheme('darkTheme', {
 const Drivers = () => {
   const { theme } = useColorScheme();
 
-  // Utilisez votre hook personnalisé pour accéder au contexte
+  // Utilisation des données pour les conducteurs VERIFIÉS
   const { 
-    conductorList, 
-    conductorPagination, 
-    isLoadingConductors, 
-    listConductors, 
-    conductorListError 
+    verifiedConductorList,
+    verifiedConductorPagination,
+    isLoadingVerifiedConductors,
+    listVerifiedConductors,
+    verifiedConductorListError,
+    deleteUser // Supposons que vous ayez une fonction de suppression
   } = useUser();
 
   const [perPage, setPerPage] = useState(10);
 
-  // Charger les conducteurs au montage et à chaque changement de page/nombre par page
+  // Charger les conducteurs vérifiés au montage
   useEffect(() => {
-    // La fonction listConductors gère déjà la pagination, on l'appelle avec le bon numéro de page
-    listConductors(conductorPagination.page);
-  }, [])//listConductors, conductorPagination.page, perPage]);
+    listVerifiedConductors(verifiedConductorPagination.page || 1);
+  }, [verifiedConductorPagination.page]);
 
   const handlePageChange = page => {
-    // La fonction de pagination du contexte s'occupera de la logique
-    listConductors(page);
+    listVerifiedConductors(page);
   };
 
   const handlePerRowsChange = (newPerPage, page) => {
     setPerPage(newPerPage);
-    listConductors(page);
+    listVerifiedConductors(page);
   };
 
-  // --- Fonction de suppression avec SweetAlert2 (inchangée) ---
   const handleDeleteDriver = async (driverId, driverName) => {
     Swal.fire({
       title: 'Êtes-vous sûr ?',
@@ -78,32 +77,17 @@ const Drivers = () => {
       color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Logique de suppression ici (à implémenter en utilisant le contexte si disponible)
-        // Note: Vous devrez ajouter une fonction `deleteConductor` à votre UserContext pour cela.
-        // Pour l'instant, la simulation reste en place.
-        const deletePromise = new Promise((resolve, reject) => {
-          setTimeout(() => {
-            const success = Math.random() > 0.2;
-            if (success) {
-              // Recharger la liste des conducteurs après la suppression
-              listConductors(conductorPagination.page);
-              resolve();
-            } else {
-              reject(new Error("Échec de la suppression du chauffeur."));
-            }
-          }, 1000);
-        });
-
-        toast.promise(deletePromise, {
-          loading: `Suppression de ${driverName}...`,
-          success: `Le chauffeur ${driverName} a été supprimé avec succès !`,
-          error: (err) => `Erreur : ${err.message}`,
-        });
+        try {
+          await deleteUser(driverId);
+          toast.success(`Le chauffeur ${driverName} a été supprimé avec succès !`);
+          listVerifiedConductors(verifiedConductorPagination.page);
+        } catch (error) {
+          toast.error("Échec de la suppression du chauffeur.");
+        }
       }
     });
   };
 
-  // --- Fonction pour ajouter un chauffeur (inchangée) ---
   const handleAddDriver = () => {
     toast('Un formulaire pour ajouter un nouveau chauffeur s\'ouvrira ici.', {
       icon: '🚗',
@@ -112,7 +96,6 @@ const Drivers = () => {
     });
   };
 
-  // Définition des colonnes pour la table des chauffeurs
   const columns = useMemo(() => [
     { name: 'ID', selector: row => row.id, sortable: true, width: '80px', },
     {
@@ -120,7 +103,9 @@ const Drivers = () => {
       cell: row => (
         <span className="flex items-center gap-2">
           <FontAwesomeIcon icon={faUserTie} className="text-gray-400" />
-          {row.firstName} {row.lastName}
+          <Link to={`/admin/users/details/${row.id}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+            {row.firstName} {row.lastName}
+          </Link>
         </span>
       ),
     },
@@ -150,14 +135,43 @@ const Drivers = () => {
         </span>
       ),
     },
-    { name: 'Véhicule', selector: row => "À implémenter", sortable: false, minWidth: '180px',
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faCar} className="text-gray-400" />
-          {/* L'API ne renvoie pas d'infos sur le véhicule, ce sera à implémenter */}
-          N/A
-        </span>
-      ),
+    {
+      name: 'Statut du Permis',
+      selector: row => row.licenceDriving.verificationState,
+      sortable: true,
+      cell: row => {
+        let statusClasses = '';
+        let statusIcon = null;
+        let statusText = '';
+        switch (row.licenceDriving?.verificationState) {
+          case 0:
+            statusClasses = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+            statusIcon = faTachometerAlt;
+            statusText = 'En attente';
+            break;
+          case 1:
+            statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+            statusIcon = faThumbsUp;
+            statusText = 'Vérifié';
+            break;
+          case 2:
+            statusClasses = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+            statusIcon = faThumbsDown;
+            statusText = 'Rejeté';
+            break;
+          default:
+            statusClasses = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+            statusIcon = faIdCard;
+            statusText = 'Non soumis';
+            break;
+        }
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusClasses}`}>
+            <FontAwesomeIcon icon={statusIcon} />
+            {statusText}
+          </span>
+        );
+      },
     },
     {
       name: 'Actions',
@@ -178,7 +192,7 @@ const Drivers = () => {
             <FontAwesomeIcon icon={faEdit} />
           </button>
           <button
-            onClick={() => handleDeleteDriver(row.id, row.firstName)}
+            onClick={() => handleDeleteDriver(row.id, `${row.firstName} ${row.lastName}`)}
             className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
             title="Supprimer"
           >
@@ -210,18 +224,18 @@ const Drivers = () => {
       </div>
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
         <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Chauffeurs Enregistrés</h2>
-        {conductorListError ? (
+        {verifiedConductorListError ? (
           <div className="text-red-500 text-center p-4">
-            Erreur lors du chargement des conducteurs: {conductorListError}
+            Erreur lors du chargement des conducteurs: {verifiedConductorListError}
           </div>
         ) : (
           <DataTable
             columns={columns}
-            data={conductorList}
-            progressPending={isLoadingConductors}
+            data={verifiedConductorList}
+            progressPending={isLoadingVerifiedConductors}
             pagination
             paginationServer
-            paginationTotalRows={conductorPagination.totalCount}
+            paginationTotalRows={verifiedConductorPagination.totalCount}
             onChangeRowsPerPage={handlePerRowsChange}
             onChangePage={handlePageChange}
             highlightOnHover

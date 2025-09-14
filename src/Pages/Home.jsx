@@ -102,8 +102,7 @@ const truncateLocationName = (name) => {
       tripStatus: 0, // "Published" status
         });
   }, []);
-
-  console.log(trips)
+``
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
   const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
