@@ -16,10 +16,10 @@ const UserWithdrawalHistory = () => {
     useEffect(() => {
         // Appelle la fonction pour récupérer l'historique de l'utilisateur au chargement du composant
         fetchUserWithdrawalHistory(1);
-    }, [fetchUserWithdrawalHistory]);
+    }, []);
 
     return (
-        <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <div className="container mt-[100px]  mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 border-b pb-4">Historique de mes Retraits</h1>
 
             {isLoadingUserHistory && (

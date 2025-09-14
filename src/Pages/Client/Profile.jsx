@@ -305,11 +305,11 @@ const Profile = () => {
                             Mes Réservations
                         </button>
                         <button
-                            onClick={() => navigate('/profile/wallet')}
+                            onClick={() => navigate('/profile/withdrawals')}
                             className="flex flex-col items-center justify-center p-4 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors duration-200 text-sm md:text-base"
                         >
                             <FontAwesomeIcon icon={faWallet} className="text-2xl mb-2" />
-                            Mon Portefeuille
+                            Mes Retraits
                         </button>
                         <button
                             onClick={() => navigate('/profile/licence')}
@@ -335,7 +335,7 @@ const Profile = () => {
                     <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
                         Statistiques et Évaluation
                     </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
                         <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
                             <FontAwesomeIcon icon={faCarSide} className='text-4xl text-green-500 mr-4 flex-shrink-0' />
                             <div>
@@ -346,8 +346,15 @@ const Profile = () => {
                         <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
                             <FontAwesomeIcon icon={faStar} className='text-4xl text-yellow-500 mr-4 flex-shrink-0' />
                             <div>
-                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user.rating || 'N/A'}</p>
+                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user?.note}</p>
                                 <p className={`${textColorSecondary}`}>Note moyenne</p>
+                            </div>
+                        </div>
+                        <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
+                            <FontAwesomeIcon icon={faWallet} className='text-4xl text-purple-500 mr-4 flex-shrink-0' />
+                            <div>
+                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user?.balance || 0} FCFA</p>
+                                <p className={`${textColorSecondary}`}>Solde du portefeuille</p>
                             </div>
                         </div>
                     </div>
