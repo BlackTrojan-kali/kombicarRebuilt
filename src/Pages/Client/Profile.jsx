@@ -34,52 +34,6 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
-// Nouvelle abstraction pour une carte de trajet
-const TripCard = ({ tripData, theme, onEdit, onCancel, onDelete }) => {
-    const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
-    const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
-    const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-    const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
-
-    const isPublished = tripData.trip.status === 0;
-
-    return (
-        <div className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
-            <div className="flex-1">
-                <h3 className={`text-lg font-bold ${textColorPrimary}`}>
-                    {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
-                </h3>
-                <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
-                    <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
-                    <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
-                </div>
-            </div>
-            {isPublished && (
-                <div className="flex gap-2 mt-4 md:mt-0 flex-shrink-0">
-                    <button
-                        onClick={() => onEdit(tripData)}
-                        className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                    >
-                        <FontAwesomeIcon icon={faEdit} /> Modifier
-                    </button>
-                    <button
-                        onClick={() => onCancel(tripData.trip.id)}
-                        className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                    >
-                        <FontAwesomeIcon icon={faTimesCircle} /> Annuler
-                    </button>
-                    <button
-                        onClick={() => onDelete(tripData)}
-                        className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                    >
-                        <FontAwesomeIcon icon={faTrash} /> Supprimer
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-};
-
 // Le composant de pagination est également une bonne abstraction
 const Pagination = ({ page, totalPages, setPage, theme }) => {
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -207,6 +161,16 @@ const Profile = () => {
         }
     };
 
+    const handleViewReviews = (tripId) => {
+        // Redirige vers la page des avis pour ce trajet
+        navigate(`/reviews/${tripId}`);
+    };
+
+    const handleSubmitReview = (tripId) => {
+        // Redirige vers un formulaire pour soumettre un avis pour ce trajet
+        navigate(`/reviews/submit/${tripId}`);
+    };
+
     const handleImageClick = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
@@ -225,6 +189,65 @@ const Profile = () => {
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
     const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
     const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
+    
+    // Rendu conditionnel des styles de carte
+    const renderTripCard = (tripData, index) => {
+        const isPublished = tripData.trip.status === 0;
+        const isCompleted = tripData.trip.status === 2;
+        
+        return (
+            <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
+                <div className="flex-1">
+                    <h3 className={`text-lg font-bold ${textColorPrimary}`}>
+                        {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
+                    </h3>
+                    <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                        <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
+                        <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
+                    </div>
+                </div>
+                
+                <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-4 md:mt-0 flex-shrink-0">
+                    {isPublished && (
+                        <>
+                            <button
+                                onClick={() => handleEditTrip(tripData)}
+                                className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                            >
+                                <FontAwesomeIcon icon={faEdit} /> Modifier
+                            </button>
+                            <button
+                                onClick={() => handleCancelTrip(tripData.trip.id)}
+                                className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                            >
+                                <FontAwesomeIcon icon={faTimesCircle} /> Annuler
+                            </button>
+                            <button
+                                onClick={() => handleDeleteTrip(tripData)}
+                                className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                            >
+                                <FontAwesomeIcon icon={faTrash} /> Supprimer
+                            </button>
+                            <button
+                                onClick={() => handleViewReviews(tripData.trip.id)}
+                                className="flex items-center gap-1 px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                            >
+                                <FontAwesomeIcon icon={faStar} /> Voir les avis
+                            </button>
+                        </>
+                    )}
+                    {isCompleted && (
+                        <button
+                            onClick={() => handleSubmitReview(tripData.trip.id)}
+                            className="flex items-center gap-1 px-3 py-2 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faStar} /> Soumettre un avis
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    };
 
     if (loadingUser || loadingSpecificTrips) {
         return (
@@ -368,16 +391,53 @@ const Profile = () => {
                     {publishedTrips.length > 0 ? (
                         <>
                             <div className='flex flex-col gap-6'>
-                                {publishedTrips.map(tripData => (
-                                    <TripCard
-                                        key={tripData.trip.id}
-                                        tripData={tripData}
-                                        theme={theme}
-                                        onEdit={handleEditTrip}
-                                        onCancel={handleCancelTrip}
-                                        onDelete={handleDeleteTrip}
-                                    />
-                                ))}
+                                {publishedTrips.map(tripData => {
+                                    const isPublished = tripData.trip.status === 0;
+                                    return (
+                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
+                                            <div className="flex-1">
+                                                <h3 className={`text-lg font-bold ${textColorPrimary}`}>
+                                                    {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
+                                                </h3>
+                                                <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                                                    <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
+                                                    <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-4 md:mt-0 flex-shrink-0">
+                                                {isPublished && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEditTrip(tripData)}
+                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                                                        >
+                                                            <FontAwesomeIcon icon={faEdit} /> Modifier
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleCancelTrip(tripData.trip.id)}
+                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                                                        >
+                                                            <FontAwesomeIcon icon={faTimesCircle} /> Annuler
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteTrip(tripData)}
+                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                                                        >
+                                                            <FontAwesomeIcon icon={faTrash} /> Supprimer
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleViewReviews(tripData.trip.id)}
+                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                                                        >
+                                                            <FontAwesomeIcon icon={faStar} /> Voir les avis
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <Pagination page={publishedPage} totalPages={publishedTotalPages} setPage={setPublishedPage} theme={theme} />
                         </>
@@ -394,16 +454,33 @@ const Profile = () => {
                     {completedTrips.length > 0 ? (
                         <>
                             <div className='flex flex-col gap-6'>
-                                {completedTrips.map(tripData => (
-                                    <TripCard
-                                        key={tripData.trip.id}
-                                        tripData={tripData}
-                                        theme={theme}
-                                        onEdit={handleEditTrip}
-                                        onCancel={handleCancelTrip}
-                                        onDelete={handleDeleteTrip}
-                                    />
-                                ))}
+                                {completedTrips.map(tripData => {
+                                    const isCompleted = tripData.trip.status === 2;
+                                    return (
+                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
+                                            <div className="flex-1">
+                                                <h3 className={`text-lg font-bold ${textColorPrimary}`}>
+                                                    {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
+                                                </h3>
+                                                <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
+                                                    <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
+                                                    <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-4 md:mt-0 flex-shrink-0">
+                                                {isCompleted && (
+                                                    <button
+                                                        onClick={() => handleSubmitReview(tripData.trip.id)}
+                                                        className="flex items-center gap-1 px-3 py-2 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                                                    >
+                                                        <FontAwesomeIcon icon={faStar} /> Soumettre un avis
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <Pagination page={completedPage} totalPages={completedTotalPages} setPage={setCompletedPage} theme={theme} />
                         </>

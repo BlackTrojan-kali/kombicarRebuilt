@@ -12,11 +12,12 @@ import { PromoCodeContextProvider } from './contexts/PromoCodeCotext.jsx';
 import { ReservationContextProvider } from './contexts/ReservationContext.jsx';
 import { MapContextProvider } from './contexts/MapContext.jsx';
 import { WithdrawContextProvider } from './contexts/withdrawContext.jsx';
-
+import { ReviewContextProvider } from './contexts/reviewContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     
     <AuthContextProvider>
+      <ReviewContextProvider>
     <WithdrawContextProvider>
       <ColorSchemeProvider>
         <CarContextProvider>
@@ -35,8 +36,9 @@ createRoot(document.getElementById('root')).render(
           </TripContextProvider>
         </CarContextProvider>
       </ColorSchemeProvider>
+
       </WithdrawContextProvider>
-          
+      </ReviewContextProvider>
     </AuthContextProvider>
   </StrictMode>,
 );

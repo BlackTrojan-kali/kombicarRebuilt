@@ -44,6 +44,10 @@ import DrivingLicenceDetails from "./Pages/Dashboard/DrivingLicenceDetails"
 import UserWithdrawalHistory from "./Pages/Client/UserWithdrawalHistory"
 import AdminWithdrawals from "./Pages/Dashboard/withdraw/AdminWithdrawals"
 import AdminWithdrawalDetails from "./Pages/Dashboard/withdraw/AdminWithdrawalDetails"
+import Reviews from "./Pages/Client/Reviews"
+
+// 🆕 NOUVEAUX IMPORTS POUR LES AVIS
+import SubmitReview from "./Pages/Client/SubmitReview";
 
 
 const Routes = () => {
@@ -112,6 +116,22 @@ const Routes = () => {
         {
           path: "chat/:reservationId",
           element:<ChatContextProvider> <ChatRoom/></ChatContextProvider>
+        },
+        // 🚧 NOTA BENE: la route "profile/reviews" est redondante
+        // avec la nouvelle structure, mais nous la laissons pour ne
+        // pas modifier la route existante.
+        {
+          path: "profile/reviews",
+          element:<Reviews/>
+        },
+        // 🆕 NOUVELLES ROUTES POUR LES AVIS
+        {
+          path: "reviews/:tripId",
+          element: <Reviews />
+        },
+        {
+          path: "reviews/submit/:tripId",
+          element: <SubmitReview />
         }
       ]
     },
