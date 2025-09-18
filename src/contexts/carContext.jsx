@@ -205,7 +205,7 @@ export function CarContextProvider({ children }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.put(`/api/v1/vehicules/${id}`, carData);
+            const response = await api.put(`/api/v1/vehicules`, carData);
             setCars(prev => prev.map(car => car.id === id ? response.data : car));
             toast.success('Véhicule mis à jour avec succès !');
             return response.data;
