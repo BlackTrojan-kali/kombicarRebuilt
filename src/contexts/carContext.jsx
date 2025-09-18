@@ -61,9 +61,10 @@ export function CarContextProvider({ children }) {
     const fetchAdminCars = async (page = 1, isVerified) => {
         setIsLoadingAdminCars(true);
         setAdminCarListError(null);
+        console.log(isVerified)
         try {
             const response = await api.get(`/api/v1/vehicules/admin/list/${page}/${isVerified}`);
-            console.log(response);
+
             if (response.status !== 200) {
                 throw new Error("Échec de la récupération de la liste des véhicules.");
             }

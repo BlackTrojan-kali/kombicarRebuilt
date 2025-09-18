@@ -30,7 +30,7 @@ const Cars = () => {
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
-  const [verificationFilter, setVerificationFilter] = useState(null); // 'true', 'false', ou null pour tous
+  const [verificationFilter, setVerificationFilter] = useState(false); // 'true', 'false', ou null pour tous
 
   useEffect(() => {
     fetchAdminCars(adminCarPagination.page || 1, verificationFilter);

@@ -18,7 +18,6 @@ const ChatRoom = () => {
     const { reservationId } = useParams(); 
     const [newMessageContent, setNewMessageContent] = useState('');
     const messagesEndRef = useRef(null); // Ref for auto-scrolling to the latest message
-    const [pageNumber, setPageNumber] = useState(1); // For pagination
 
     // Fetch messages when the component mounts or reservationId changes
     useEffect(() => {
@@ -27,7 +26,7 @@ const ChatRoom = () => {
             // Mark all messages as seen when entering the chat room
             markAllAsSeen(reservationId); 
         }
-    }, [reservationId]); // Re-fetch if reservationId changes
+    }, [reservationId,]); // Re-fetch if reservationId changes
 
     // Scroll to the latest message whenever messages are updated
     useEffect(() => {
@@ -45,14 +44,15 @@ const ChatRoom = () => {
             setNewMessageContent('');
         }
     };
-
+    
     // Placeholder for who the other user is in this chat
     const otherParticipant = {
         id: 'someOtherUserId', 
         name: 'Autre Utilisateur' 
     };
     
-    console.log(messages)
+    // Sort messages from oldest to newest
+    const sortedMessages = [...messages].sort((a, b) => new Date(a.sendedAt) - new Date(b.sendedAt));
 
     if (loadingMessages) {
         return (
@@ -81,10 +81,10 @@ const ChatRoom = () => {
 
             {/* Messages Display Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 dark:bg-gray-900">
-                {messages.length === 0 ? (
+                {sortedMessages.length === 0 ? (
                     <p className="text-center text-gray-500 dark:text-gray-400">Aucun message pour le moment. Envoyez-en un !</p>
                 ) : (
-                    messages.map((message) => (
+                    sortedMessages.map((message) => (
                         <div 
                             key={message.id} 
                             className={`flex ${

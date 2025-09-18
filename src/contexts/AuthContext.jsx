@@ -24,7 +24,7 @@ export function AuthContextProvider({ children }) {
             const response = await api.get('/api/v1/users/infos');
             const fullUserInfo = response.data;
             const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Admin';
-            
+         
             setUser({
                 id: fullUserInfo.id,
                 email: fullUserInfo.email,

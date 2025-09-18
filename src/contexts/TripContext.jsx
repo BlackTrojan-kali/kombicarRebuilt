@@ -83,6 +83,7 @@ export function TripContextProvider({ children }) {
     };
 
     const getTripById = async (id) => {
+    console.log(id)
         setLoading(true);
         setError(null);
         try {
@@ -91,7 +92,6 @@ export function TripContextProvider({ children }) {
         } catch (err) {
             setError(err);
             //the toaster 
-            toast.error(err.response?.data?.message || `Échec de la récupération du trajet ${id}.`);
             throw err;
         } finally {
         

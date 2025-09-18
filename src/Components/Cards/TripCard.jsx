@@ -3,6 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import useColorScheme from '../../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import 'dayjs/locale/fr';
+
+dayjs.extend(localizedFormat);
+dayjs.locale('fr');
 
 const TripCard = ({ trip }) => {
   const { theme } = useColorScheme();
@@ -64,6 +70,9 @@ const TripCard = ({ trip }) => {
               <div>
                 <h4 className={`text-xs ${textColorSecondary}`}>Départ</h4>
                 <p className={`font-bold ${textColorPrimary}`}>{formatTime(trip.trip?.departureDate)}</p>
+                {trip.trip?.departureDate && (
+                  <p className={`text-xs ${textColorSecondary}`}>{dayjs(trip.trip?.departureDate).format('DD MMMM YYYY')}</p>
+                )}
               </div>
               <div>
                 <h4 className={`text-xs ${textColorSecondary}`}>Places restantes</h4>

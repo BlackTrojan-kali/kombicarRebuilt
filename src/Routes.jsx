@@ -130,7 +130,7 @@ const Routes = () => {
           element: <Reviews />
         },
         {
-          path: "reviews/submit/:tripId",
+          path: "reviews/create/:tripId",
           element: <SubmitReview />
         }
       ]

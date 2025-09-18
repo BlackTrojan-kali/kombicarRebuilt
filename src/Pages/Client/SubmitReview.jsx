@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faSpinner, faRoute, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import useReviews from '../../hooks/useReviews';
 import useTrips from '../../hooks/useTrips';
@@ -10,25 +10,51 @@ import dayjs from 'dayjs';
 
 const SubmitReview = () => {
     const { tripId } = useParams();
-    const navigate = useNavigate();
-    const { submitReview, loading, error, success } = useReviews();
-    const { fetchTripDetail, tripDetail, loading: loadingTrip } = useTrips();
+    const { submitReview, loading: submittingReview } = useReviews();
+    const { getTripById, loading: loadingTrip } = useTrips();
     const { theme } = useColorScheme();
 
+    const [tripDetail, setTripDetail] = useState(null);
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
-    const [submitClicked, setSubmitClicked] = useState(false);
 
     useEffect(() => {
-        // Charge les détails du trajet pour les afficher
-        if (tripId) {
-            fetchTripDetail(tripId);
+        // Fonction asynchrone pour charger les détails du trajet
+        const fetchTripDetails = async () => {
+            if (tripId) {
+                
+                    const res = await getTripById(tripId);
+                    setTripDetail(res);
+                
+            }
+        };
+
+        fetchTripDetails();
+    }, [tripId, getTripById, theme]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (rating === 0) {
+            Swal.fire({
+                title: 'Note requise',
+                text: 'Veuillez sélectionner une note pour le trajet.',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+            });
+            return;
         }
-    }, [tripId, fetchTripDetail]);
 
-    useEffect(() => {
-        // Affiche un message de succès après la soumission
-        if (submitClicked && success) {
+        const reviewData = {
+            tripId: tripId,
+            rating: rating,
+            comment: comment,
+        };
+
+        try {
+            await submitReview(reviewData);
             Swal.fire({
                 title: 'Succès !',
                 text: 'Votre avis a été soumis avec succès.',
@@ -37,23 +63,18 @@ const SubmitReview = () => {
                 background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
                 color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
             }).then(() => {
-                // Redirige l'utilisateur après la soumission réussie
                 navigate('/profile');
             });
+        } catch (error) {
+            Swal.fire({
+                title: 'Erreur !',
+                text: `Échec de la soumission de l'avis : ${error.message || 'Veuillez réessayer.'}`,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+            });
         }
-    }, [submitClicked, success, navigate, theme]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitClicked(true);
-        // Appelle la fonction de soumission d'avis du contexte
-        const reviewData = {
-            tripId: Number(tripId),
-            rating: rating,
-            comment: comment,
-            // L'ID du passager est géré par l'API
-        };
-        await submitReview(reviewData);
     };
 
     const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
@@ -80,9 +101,9 @@ const SubmitReview = () => {
                         Donnez votre avis sur ce trajet
                     </h1>
                     <div className={`${textColorSecondary} text-center mb-6`}>
-                        <p className="text-xl font-semibold">{tripDetail.departureArea.homeTownName} → {tripDetail.arrivalArea.homeTownName}</p>
-                        <p>Trajet avec {tripDetail.driver.firstName} {tripDetail.driver.lastName}</p>
-                        <p>{dayjs(tripDetail.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</p>
+                        <p className="text-xl font-semibold">{tripDetail?.departureArea?.homeTownName} → {tripDetail?.arrivalArea?.homeTownName}</p>
+                        <p>Trajet avec {tripDetail?.driver?.firstName} {tripDetail?.driver?.lastName}</p>
+                        <p>{dayjs(tripDetail?.trip?.departureDate).format('DD MMMM YYYY à HH:mm')}</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -120,12 +141,12 @@ const SubmitReview = () => {
                         <div className="text-center">
                             <button
                                 type="submit"
-                                disabled={loading || rating === 0}
+                                disabled={submittingReview}
                                 className={`w-full px-6 py-3 rounded-lg text-lg font-semibold transition-colors duration-200 ${
-                                    loading || rating === 0 ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                    submittingReview ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'
                                 }`}
                             >
-                                {loading ? <FontAwesomeIcon icon={faSpinner} spin /> : 'Soumettre l\'avis'}
+                                {submittingReview ? <FontAwesomeIcon icon={faSpinner} spin /> : 'Soumettre l\'avis'}
                             </button>
                         </div>
                     </form>

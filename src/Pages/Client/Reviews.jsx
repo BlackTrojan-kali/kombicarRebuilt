@@ -1,23 +1,50 @@
 import React, { useEffect } from 'react';
 import useReviews from '../../hooks/useReviews';
+import { useParams } from 'react-router-dom';
 
 const Reviews = () => {
     // Utilisez le hook useReviews pour accéder aux données et fonctions du contexte.
-    const { reviews, fetchReviewPerTrip } = useReviews();
+    const { reviews, fetchReviewPerTrip, isLoading, error } = useReviews();
+    
+    // Utilisez useParams pour récupérer l'ID de trajet depuis l'URL.
+    // Par exemple, si l'URL est /trip/123/reviews, tripId sera '123'.
+    // Si votre route n'inclut pas de paramètre, vous pouvez conserver la ligne const tripId = 1;
+    const { tripId } = useParams();
 
-    // Utilisez useEffect pour déclencher la récupération des avis lorsque le composant se monte.
     useEffect(() => {
-        // Remplacez '1' par l'ID de trajet réel et '0' par le numéro de page souhaité.
-        const tripId = 1; 
-        const page = 0; 
-        fetchReviewPerTrip(tripId, page);
-    }, [fetchReviewPerTrip]); // La dépendance s'assure que la fonction est appelée correctement.
+        // Déclenche la récupération des avis lorsque le composant se monte
+        // et lorsque l'ID de trajet change.
+        if (tripId) {
+            const page = 0; // Remplacez par le numéro de page souhaité.
+            fetchReviewPerTrip(tripId, page);
+        }
+    }, [tripId]);
+
+    // Affichez un message d'erreur si la requête a échoué.
+    if (error) {
+        return (
+            <div className='w-full mt-20 mx-10 text-center'>
+                <p className="text-red-500 text-lg font-semibold">
+                    Erreur lors du chargement des avis : {error}
+                </p>
+            </div>
+        );
+    }
+
+    // Affichez un indicateur de chargement pendant la requête.
+    if (isLoading) {
+        return (
+            <div className='w-full mt-20 mx-10 text-center'>
+                <p className="text-gray-500 text-lg">Chargement des avis...</p>
+            </div>
+        );
+    }
 
     return (
         <div className='w-full mt-20 mx-10'>
             <h1 className="text-2xl font-bold mb-4">Avis</h1>
             {reviews.length === 0 ? (
-                <p>Chargement des avis...</p>
+                <p className="text-gray-500 text-lg">Aucun avis n'a été trouvé pour ce trajet.</p>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {reviews.map((review) => (

@@ -49,6 +49,9 @@ const ResultCard = ({ trip }) => {
           <div className='flex items-center w-full sm:w-2/3'>
             <div className='flex flex-col items-center mr-4'>
               <p className={`font-semibold text-lg ${textColorPrimary}`}>{formatTime(tripData.departureDate)}</p>
+              {tripData.departureDate && (
+                <p className={`text-sm ${textColorSecondary}`}>{dayjs(tripData.departureDate).format('DD MMMM YYYY')}</p>
+              )}
               <p className={`text-sm ${textColorSecondary}`}>{trip.departureArea.homeTownName || 'N/A'}</p>
             </div>
             <div className='relative flex-1 h-px bg-gray-300 mx-2 dark:bg-gray-600'>

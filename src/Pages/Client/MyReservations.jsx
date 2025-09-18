@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom'; // Import Link
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft, faArrowRight, faCalendarAlt, faMoneyBillWave,
     faRoute, faUserCircle, faSpinner, faBookmark, faInfoCircle,
-    faCheckDouble, faBan, faCheckCircle, faComments // Import chat icon
+    faCheckDouble, faBan, faCheckCircle, faComments, faStar
 } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
@@ -17,11 +17,42 @@ dayjs.locale('fr');
 
 const TRIPS_PER_PAGE = 6;
 
+// Composant de modal de confirmation réutilisable
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, theme }) => {
+    if (!isOpen) return null;
+    
+    const modalBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
+    const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
+    const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+            <div className={`${modalBg} rounded-xl p-8 shadow-2xl border ${borderColor} max-w-sm w-full transition-all duration-300 transform scale-95`}>
+                <h3 className={`text-xl font-bold mb-4 ${textColorPrimary}`}>{title}</h3>
+                <p className={`text-sm mb-6 ${textColorPrimary}`}>{message}</p>
+                <div className="flex justify-end space-x-4">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 rounded-lg text-sm font-semibold bg-gray-500 text-white hover:bg-gray-600 transition-colors duration-200"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                    >
+                        {confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const MyReservations = () => {
     const { user, loading: loadingUser } = useAuth();
     const { getReservationsWithStatus, confirmReservationAsDriver, cancelReservation, cancelReservationByDriver, confirmAllReservations } = useReservation();
     const { theme } = useColorScheme();
-
     const [reservedTrips, setReservedTrips] = useState([]);
     const [loadingReservations, setLoadingReservations] = useState(true);
     const [page, setPage] = useState(1);
@@ -31,7 +62,15 @@ const MyReservations = () => {
     const [isCancelling, setIsCancelling] = useState(null);
     const [isConfirmingAll, setIsConfirmingAll] = useState(false);
 
-    // Dynamic styles
+    // États pour le modal de confirmation
+    const [showModal, setShowModal] = useState(false);
+    const [modalData, setModalData] = useState({
+        title: '',
+        message: '',
+        confirmText: '',
+        action: () => {},
+    });
+
     const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
@@ -66,39 +105,55 @@ const MyReservations = () => {
             toast.error("La confirmation ne peut être faite qu'après la date du trajet.");
             return;
         }
-        setIsConfirming(reservationId);
-        try {
-            await confirmReservationAsDriver(reservationId);
-            toast.success("Réservation complétée avec succès !");
-            loadReservations();
-        } catch (err) {
-            console.error("Échec de la confirmation :", err);
-            toast.error("Échec de la confirmation de la réservation.");
-        } finally {
-            setIsConfirming(null);
-        }
+        
+        setModalData({
+            title: 'Confirmer la réservation',
+            message: 'Êtes-vous sûr de vouloir marquer cette réservation comme complétée ?',
+            confirmText: 'Confirmer',
+            action: async () => {
+                setIsConfirming(reservationId);
+                try {
+                    await confirmReservationAsDriver(reservationId);
+                    toast.success("Réservation complétée avec succès !");
+                    loadReservations();
+                } catch (err) {
+                    console.error("Échec de la confirmation :", err);
+                    toast.error("Échec de la confirmation de la réservation.");
+                } finally {
+                    setIsConfirming(null);
+                    setShowModal(false);
+                }
+            }
+        });
+        setShowModal(true);
     };
 
     const handleCancelReservation = async (reservationId, isDriver = false) => {
-        if (!window.confirm("Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.")) {
-            return;
-        }
-        setIsCancelling(reservationId);
-        try {
-            if (isDriver) {
-                await cancelReservationByDriver(reservationId);
-                toast.success("Réservation annulée par le chauffeur avec succès.");
-            } else {
-                await cancelReservation(reservationId, "phoneNumberRefund", "operatorFai");
-                toast.success("Réservation annulée avec succès. Remboursement initié.");
+        setModalData({
+            title: 'Annuler la réservation',
+            message: 'Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.',
+            confirmText: 'Annuler',
+            action: async () => {
+                setIsCancelling(reservationId);
+                try {
+                    if (isDriver) {
+                        await cancelReservationByDriver(reservationId);
+                        toast.success("Réservation annulée par le chauffeur avec succès.");
+                    } else {
+                        await cancelReservation(reservationId, "phoneNumberRefund", "operatorFai");
+                        toast.success("Réservation annulée avec succès. Remboursement initié.");
+                    }
+                    loadReservations();
+                } catch (err) {
+                    console.error("Échec de l'annulation :", err);
+                    toast.error("Échec de l'annulation de la réservation.");
+                } finally {
+                    setIsCancelling(null);
+                    setShowModal(false);
+                }
             }
-            loadReservations();
-        } catch (err) {
-            console.error("Échec de l'annulation :", err);
-            toast.error("Échec de l'annulation de la réservation.");
-        } finally {
-            setIsCancelling(null);
-        }
+        });
+        setShowModal(true);
     };
 
     const handleConfirmAllReservations = async (tripId, tripDate) => {
@@ -106,20 +161,27 @@ const MyReservations = () => {
             toast.error("La confirmation ne peut être faite qu'après la date du trajet.");
             return;
         }
-        if (!window.confirm("Êtes-vous sûr de vouloir confirmer toutes les réservations de ce trajet ?")) {
-            return;
-        }
-        setIsConfirmingAll(true);
-        try {
-            await confirmAllReservations(tripId);
-            toast.success("Toutes les réservations de ce trajet ont été confirmées.");
-            loadReservations();
-        } catch (err) {
-            console.error("Échec de la confirmation de toutes les réservations :", err);
-            toast.error("Échec de la confirmation de toutes les réservations.");
-        } finally {
-            setIsConfirmingAll(false);
-        }
+
+        setModalData({
+            title: 'Confirmer toutes les réservations',
+            message: 'Êtes-vous sûr de vouloir confirmer toutes les réservations de ce trajet ?',
+            confirmText: 'Confirmer tout',
+            action: async () => {
+                setIsConfirmingAll(true);
+                try {
+                    await confirmAllReservations(tripId);
+                    toast.success("Toutes les réservations de ce trajet ont été confirmées.");
+                    loadReservations();
+                } catch (err) {
+                    console.error("Échec de la confirmation de toutes les réservations :", err);
+                    toast.error("Échec de la confirmation de toutes les réservations.");
+                } finally {
+                    setIsConfirmingAll(false);
+                    setShowModal(false);
+                }
+            }
+        });
+        setShowModal(true);
     };
 
     useEffect(() => {
@@ -274,7 +336,17 @@ const MyReservations = () => {
                                                 )}
                                             </button>
                                         )}
-                                        {/* 🎯 New Chat Button */}
+                                        {/* Bouton pour publier un avis (pour les passagers sur les réservations complétées) */}
+                                        {user && !user.isDriver  && (
+                                            <Link
+                                                to={`/reviews/create/${reservationData.reservation.id}`}
+                                                className="px-4 py-2 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 flex items-center justify-center transition-colors duration-200"
+                                            >
+                                                <FontAwesomeIcon icon={faStar} className="mr-2" />
+                                                Écrire un avis
+                                            </Link>
+                                        )}
+                                        {/* Bouton de Chat */}
                                         <Link 
                                             to={`/chat/${reservationData.reservation.id}`}
                                             className="px-4 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center justify-center transition-colors duration-200"
@@ -315,6 +387,15 @@ const MyReservations = () => {
                     )}
                 </div>
             </main>
+            <ConfirmationModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onConfirm={() => modalData.action()}
+                title={modalData.title}
+                message={modalData.message}
+                confirmText={modalData.confirmText}
+                theme={theme}
+            />
         </div>
     );
 };
