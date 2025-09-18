@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
@@ -10,27 +10,48 @@ import dayjs from 'dayjs';
 
 const SubmitReview = () => {
     const { tripId } = useParams();
-    const { submitReview, loading: submittingReview } = useReviews();
+    // Utiliser createReview à la place de submitReview
+    const { createReview, loading: submittingReview } = useReviews();
     const { getTripById, loading: loadingTrip } = useTrips();
     const { theme } = useColorScheme();
 
     const [tripDetail, setTripDetail] = useState(null);
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     useEffect(() => {
-        // Fonction asynchrone pour charger les détails du trajet
         const fetchTripDetails = async () => {
             if (tripId) {
-                
+                try {
                     const res = await getTripById(tripId);
-                    setTripDetail(res);
-                
+                    if (res) {
+                        setTripDetail(res);
+                    } else {
+                        Swal.fire({
+                            title: 'Erreur',
+                            text: 'Trajet introuvable ou erreur de chargement.',
+                            icon: 'error',
+                            background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                            color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+                        });
+                    }
+                } catch (err) {
+                    console.error("Erreur lors du chargement des détails du trajet: ", err);
+                    Swal.fire({
+                        title: 'Erreur de chargement',
+                        text: 'Impossible de charger les détails du trajet. Veuillez réessayer.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                        color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+                    });
+                }
             }
         };
 
         fetchTripDetails();
-    }, [tripId, getTripById, theme]);
+    }, [tripId, theme]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,7 +75,8 @@ const SubmitReview = () => {
         };
 
         try {
-            await submitReview(reviewData);
+            // Appel de la fonction createReview du contexte
+            await createReview(reviewData);
             Swal.fire({
                 title: 'Succès !',
                 text: 'Votre avis a été soumis avec succès.',
@@ -63,7 +85,7 @@ const SubmitReview = () => {
                 background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
                 color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
             }).then(() => {
-                navigate('/profile');
+                setIsSubmitted(true);
             });
         } catch (error) {
             Swal.fire({
@@ -88,6 +110,17 @@ const SubmitReview = () => {
             <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
                 <FontAwesomeIcon icon={faSpinner} spin size="2x" />
                 <p className="ml-4 text-xl">Chargement des détails du trajet...</p>
+            </div>
+        );
+    }
+    
+    if (isSubmitted) {
+        return (
+            <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
+                <div className={`${cardBg} rounded-2xl shadow-xl p-8 border ${borderColor} text-center`}>
+                    <h2 className="text-3xl font-bold text-green-500 mb-4">Avis soumis avec succès ! 🎉</h2>
+                    <p className={`${textColorSecondary}`}>Merci pour votre avis. Vous pouvez maintenant fermer cette page.</p>
+                </div>
             </div>
         );
     }
@@ -134,7 +167,6 @@ const SubmitReview = () => {
                                 onChange={(e) => setComment(e.target.value)}
                                 className={`w-full p-3 rounded-lg border ${borderColor} ${cardBg} ${textColorPrimary} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                 placeholder="Partagez votre expérience du trajet..."
-                                required
                             ></textarea>
                         </div>
                         

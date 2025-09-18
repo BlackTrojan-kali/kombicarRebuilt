@@ -83,7 +83,6 @@ export function TripContextProvider({ children }) {
     };
 
     const getTripById = async (id) => {
-    console.log(id)
         setLoading(true);
         setError(null);
         try {

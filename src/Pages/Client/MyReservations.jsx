@@ -61,7 +61,6 @@ const MyReservations = () => {
     const [isConfirming, setIsConfirming] = useState(null);
     const [isCancelling, setIsCancelling] = useState(null);
     const [isConfirmingAll, setIsConfirmingAll] = useState(false);
-
     // États pour le modal de confirmation
     const [showModal, setShowModal] = useState(false);
     const [modalData, setModalData] = useState({
@@ -339,7 +338,7 @@ const MyReservations = () => {
                                         {/* Bouton pour publier un avis (pour les passagers sur les réservations complétées) */}
                                         {user && !user.isDriver  && (
                                             <Link
-                                                to={`/reviews/create/${reservationData.reservation.id}`}
+                                                to={`/reviews/create/${reservationData.trip.id}`}
                                                 className="px-4 py-2 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 flex items-center justify-center transition-colors duration-200"
                                             >
                                                 <FontAwesomeIcon icon={faStar} className="mr-2" />
