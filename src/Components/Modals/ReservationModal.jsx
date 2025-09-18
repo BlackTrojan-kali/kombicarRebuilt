@@ -35,7 +35,7 @@ const ReservationModal = ({ trip, onClose }) => {
                 const finalPrice = await getPrice(trip.trip.id, numberReservedPlaces, promoCode);
                 setTotalPrice(finalPrice);
             } catch (err) {
-                console.error("Failed to get price:", err);
+                //console.error("Failed to get price:", err);
                 setTotalPrice(trip.trip.pricePerPlace * numberReservedPlaces);
             } finally {
                 setIsPricing(false);

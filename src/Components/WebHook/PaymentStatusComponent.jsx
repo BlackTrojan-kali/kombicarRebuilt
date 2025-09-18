@@ -28,7 +28,7 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
                 connection.on('ReceivePaymentStatus', (data) => {
                         console.log(data)
                     // Sécurité : Vérifier que la notification est pour l'utilisateur et la réservation actuels
-                    if (data.userId === userId && data.reservationId === reservationId) {
+                    if (data) {
                   
                         if (data.status === 'completed') {
                             setStatus(`Paiement de la réservation ${data.reservationId} réussi !`);
@@ -37,12 +37,14 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
 
                             // Notifier le parent du succès du paiement
                             onPaymentComplete(true);
+                            setStatus("paiement reussi")
                         } else {
                             setStatus(`Échec du paiement pour la réservation ${data.reservationId}.`);
                             toast.error(`Échec du paiement pour la réservation ${data.reservationId}.`);
                             console.log(`Échec du paiement pour la réservation ${data.reservationId}.`);
                             // Notifier le parent de l'échec du paiement
                             onPaymentComplete(false);
+                            setStatus("echec de paiment")
                         }
                     }
                 });
