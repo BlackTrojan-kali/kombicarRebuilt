@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCar, faBuilding, faUser, faIdCard,
   faEye, faEdit, faTrash, faPlusCircle, faCheckCircle, faTimesCircle, faCarSide,
-  faPalette, faListAlt, faArrowLeft, faArrowRight
+  faPalette, faListAlt, faArrowLeft, faArrowRight, faFilter
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import toast, { Toaster } from 'react-hot-toast';
@@ -30,10 +30,11 @@ const Cars = () => {
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
+  const [verificationFilter, setVerificationFilter] = useState(null); // 'true', 'false', ou null pour tous
 
   useEffect(() => {
-    fetchAdminCars(adminCarPagination.page || 1);
-  }, [adminCarPagination.page, ]);
+    fetchAdminCars(adminCarPagination.page || 1, verificationFilter);
+  }, [adminCarPagination.page, verificationFilter]);
 
   useEffect(() => {
     if (adminCarListError) {
@@ -43,13 +44,13 @@ const Cars = () => {
 
   const handleNextPage = () => {
     if (adminCarPagination.hasNextPage) {
-      fetchAdminCars(adminCarPagination.page + 1);
+      fetchAdminCars(adminCarPagination.page + 1, verificationFilter);
     }
   };
 
   const handlePreviousPage = () => {
     if (adminCarPagination.hasPreviousPage) {
-      fetchAdminCars(adminCarPagination.page - 1);
+      fetchAdminCars(adminCarPagination.page - 1, verificationFilter);
     }
   };
 
@@ -70,7 +71,7 @@ const Cars = () => {
         const success = await deleteCar(vehicleId);
         if (success) {
           toast.success(`Le véhicule "${vehicleBrand} ${vehicleModel}" a été supprimé avec succès !`);
-          fetchAdminCars(adminCarPagination.page);
+          fetchAdminCars(adminCarPagination.page, verificationFilter);
         } else {
           toast.error(`Échec de la suppression du véhicule "${vehicleBrand} ${vehicleModel}".`);
         }
@@ -98,7 +99,7 @@ const Cars = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         await updateVehicleVerificationState(vehicle.id, newVerificationState);
-        fetchAdminCars(adminCarPagination.page);
+        fetchAdminCars(adminCarPagination.page, verificationFilter);
       }
     });
   };
@@ -123,7 +124,7 @@ const Cars = () => {
       const result = await updateCar(carData.id, carData);
       if (result) {
         toast.success(`Le véhicule "${carData.brand} ${carData.model}" a été mis à jour avec succès !`);
-        fetchAdminCars(adminCarPagination.page);
+        fetchAdminCars(adminCarPagination.page, verificationFilter);
         handleCloseFormModal();
       } else {
         toast.error(`Échec de la mise à jour du véhicule "${carData.brand} ${carData.model}".`);
@@ -132,7 +133,7 @@ const Cars = () => {
       const result = await createCar(carData);
       if (result) {
         toast.success(`Le véhicule "${result.brand} ${result.model}" a été ajouté avec succès !`);
-        fetchAdminCars(adminCarPagination.page);
+        fetchAdminCars(1, verificationFilter); // Retour à la première page après l'ajout
         handleCloseFormModal();
       } else {
         toast.error(`Échec de l'ajout du véhicule "${carData.brand} ${carData.model}".`);
@@ -140,12 +141,16 @@ const Cars = () => {
     }
   };
 
+  const handleFilterChange = (filter) => {
+    setVerificationFilter(filter);
+  };
+
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
       <Toaster />
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
           Gestion des Véhicules
         </h1>
         <button
@@ -158,7 +163,35 @@ const Cars = () => {
       </div>
 
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
-        <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Parc Automobile</h2>
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4">
+          <h2 className='text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0'>Parc Automobile</h2>
+          <div className="flex space-x-2">
+         
+            <button
+              onClick={() => handleFilterChange(true)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+                verificationFilter === true
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+              Vérifiés
+            </button>
+            <button
+              onClick={() => handleFilterChange(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+                verificationFilter === false
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              <FontAwesomeIcon icon={faTimesCircle} className="mr-2" />
+              Non Vérifiés
+            </button>
+          </div>
+        </div>
+
         {isLoadingAdminCars ? (
           <div className="p-4 text-center text-blue-500 dark:text-blue-400">
             Chargement des véhicules...

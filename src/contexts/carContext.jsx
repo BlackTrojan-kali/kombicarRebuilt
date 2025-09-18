@@ -58,12 +58,12 @@ export function CarContextProvider({ children }) {
     };
 
     // 🆕 Fonction pour lister les véhicules pour les administrateurs
-    const fetchAdminCars = async (page = 1) => {
+    const fetchAdminCars = async (page = 1, isVerified) => {
         setIsLoadingAdminCars(true);
         setAdminCarListError(null);
         try {
-            const response = await api.get(`/api/v1/vehicules/admin/list/${page}`);
-            console.log(response)
+            const response = await api.get(`/api/v1/vehicules/admin/list/${page}/${isVerified}`);
+            console.log(response);
             if (response.status !== 200) {
                 throw new Error("Échec de la récupération de la liste des véhicules.");
             }
