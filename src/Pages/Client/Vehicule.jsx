@@ -12,7 +12,8 @@ import useCars from '../../hooks/useCar';
 import CarForm from '../../Components/form/CarForm';
 import Modal from '../../Components/Modals/Modal';
 import Swal from 'sweetalert2';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from "sonner";
+
 
 const MyVehicle = () => {
   const { theme } = useColorScheme();
@@ -176,7 +177,6 @@ const MyVehicle = () => {
   }
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
-      <Toaster />
       <main className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className="flex justify-between items-center mb-8">
             <h1 className={`text-4xl font-extrabold ${textColorPrimary}`}>

@@ -8,7 +8,7 @@ import {
   faTimesCircle,
   faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 
 const AdminWithdrawalDetails = () => {
   const { requestId } = useParams();

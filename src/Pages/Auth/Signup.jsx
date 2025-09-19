@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import Select from 'react-select';
 import Input from "../../Components/form/Input";
 import FormButton from "../../Components/form/FormButton";
-import { Toaster, toast } from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 import GoogleLoginButton from "../../Components/ui/GoogleLoginButton";
+import { toast } from "sonner";
 
 export default function Signup() {
   const { register, externalLoginGoogle, loading } = useAuth();
@@ -185,7 +185,6 @@ export default function Signup() {
 
   return (
     <>
-      <Toaster />
       <div>
         <br /><br /><br /><br />
         <div></div>

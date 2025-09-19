@@ -4,7 +4,7 @@ import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
   faMoneyBillWave, faInfoCircle, faCar, faEdit, faTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import useColorScheme from '../../hooks/useColorScheme';
 import useTrips from '../../hooks/useTrips';
 import useCars from '../../hooks/useCar';

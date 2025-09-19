@@ -14,7 +14,6 @@ import {
 } from 'chart.js';
 import useStats from '../../hooks/useStats'; 
 import useColorScheme from '../../hooks/useColorScheme';
-import { Toaster } from 'react-hot-toast';
 
 ChartJS.register(
   CategoryScale,
@@ -103,7 +102,7 @@ const Dashboard = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-full transition-colors duration-300'>
-      <Toaster />
+
       <h2 className='text-3xl font-extrabold mb-8 text-center'>Aperçu du Tableau de Bord</h2>
 
       {/* Cartes des indicateurs clés */}

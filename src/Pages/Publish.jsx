@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt, faMapPin, faCalendarAlt, faClock, faUsers,
   faMoneyBillWave, faInfoCircle, faCar, faPlusCircle, faRoute, faLuggageCart, faBoxOpen, faShieldAlt
 } from '@fortawesome/free-solid-svg-icons';
-import { Toaster, toast } from 'react-hot-toast';
 import useColorScheme from '../hooks/useColorScheme';
 import useTrips from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import useMape from "../hooks/useMap"
+import { toast } from "sonner";
 
 const Publish = () => {
   const { theme } = useColorScheme();
@@ -202,7 +202,6 @@ const Publish = () => {
 
   return (
     <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : ''}`}>
-      <Toaster />
 
       <div className="max-w-4xl mx-auto py-8">
         <h1 className={`text-4xl font-extrabold mb-8 text-center ${textColor}`}>

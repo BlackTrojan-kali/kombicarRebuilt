@@ -11,7 +11,9 @@ import "slick-carousel/slick/slick-theme.css";
 import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
+
+
 const NextArrow = (props) => {
   const { className, style, onClick } = props;
   const { theme } = useColorScheme();

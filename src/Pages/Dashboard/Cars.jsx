@@ -6,12 +6,12 @@ import {
   faPalette, faListAlt, faArrowLeft, faArrowRight, faFilter
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
-import toast, { Toaster } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 import CarFormModal from '../../Components/Modals/CreateCarModal';
 import useCars from '../../hooks/useCar';
 import useColorScheme from '../../hooks/useColorScheme';
+import { toast } from "sonner";
 
 const Cars = () => {
   const { theme } = useColorScheme();
@@ -147,7 +147,6 @@ const Cars = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      <Toaster />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">

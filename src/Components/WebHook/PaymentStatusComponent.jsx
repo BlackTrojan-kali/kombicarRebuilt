@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import toast from 'react-hot-toast';
+import { API_URL } from '../../api/api-settings';
 
 const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) => {
     const [status, setStatus] = useState("En attente de paiement...");
@@ -15,8 +16,8 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
 
         // le nom de domaine doit correspondre à celui configuré dans le backend, le fichier api.js
         const connection = new HubConnectionBuilder()
-            .withUrl(`https://test.kombicar.app/reservations-paymentHub?access_token=${token}`)
-            .withUrl(`https://test.kombicar.app/reservations-paymentHub?access_token=${token}`)
+            .withUrl(`${API_URL}/reservations-paymentHub?access_token=${token}`)
+            .withUrl(`${API_URL}/reservations-paymentHub?access_token=${token}`)
             .withAutomaticReconnect()
             .build();
 

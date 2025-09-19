@@ -1,6 +1,6 @@
 import { createContext, useState } from "react";
 import api from '../api/api';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 import useAuth from "../hooks/useAuth";
 
 export const carContext = createContext({});

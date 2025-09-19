@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth'; // Assurez-vous que le chemin d'importation est correct
-import { Toaster } from 'react-hot-toast'; // Importez Toaster pour afficher les notifications
 
 // Composant de page de connexion pour l'administrateur.
 const SignInAdmin = () => {
@@ -69,7 +68,6 @@ const SignInAdmin = () => {
   return (
     // Conteneur principal avec un fond clair et centré.
     <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900 p-4">
-      <Toaster /> {/* Affiche les notifications de react-hot-toast */}
       {/* Carte du formulaire de connexion */}
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-xl border border-gray-200">
         <div className="text-center">

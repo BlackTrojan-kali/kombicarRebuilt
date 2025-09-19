@@ -3,7 +3,7 @@ import useDrivingLicence from '../../hooks/useDrivingLicence';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faIdCard, faFileAlt, faUpload, faSave, faSpinner, faCheckCircle, faExclamationTriangle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from "sonner";
 
 import useColorScheme from '../../hooks/useColorScheme';
 
@@ -119,7 +119,6 @@ const MyDrivingLicence = () => {
 
   return (
     <div className={`${pageBgColor} ${textColor} min-h-screen py-10 transition-colors duration-300`}>
-      <Toaster />
       <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-8'>
           <h1 className='text-3xl sm:text-4xl font-extrabold'>

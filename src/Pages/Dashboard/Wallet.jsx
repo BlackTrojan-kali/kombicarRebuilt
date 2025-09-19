@@ -9,7 +9,7 @@ import useColorScheme from '../../hooks/useColorScheme'; // Assurez-vous que le 
 
 // Importations de SweetAlert2 et React Hot Toast
 import Swal from 'sweetalert2';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 
 // --- Définition des Thèmes pour DataTable ---
@@ -222,9 +222,6 @@ const Wallet = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      {/* React Hot Toast Toaster component for notifications */}
-      <Toaster />
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
           Gestion des Portefeuilles

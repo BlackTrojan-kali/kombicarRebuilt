@@ -6,8 +6,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
-import toast, { Toaster } from 'react-hot-toast';
 import useUser from '../../hooks/useUser';
+import { toast } from "sonner";
 
 const Utilisateurs = () => {
   const { theme } = useColorScheme();
@@ -110,8 +110,6 @@ const Utilisateurs = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      <Toaster />
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
           Liste des Utilisateurs

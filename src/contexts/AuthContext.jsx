@@ -1,13 +1,15 @@
 import { createContext, useEffect, useState } from "react";
 import api from '../api/api';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
+import { Toaster } from "../components/ui/sonner"
+import "../App.css"
+import { API_URL } from "../api/api-settings";
 
 export const authContext = createContext({});
 
 export function AuthContextProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const API_URL = "https://api.kombicar.app"
     const logout = async (showToast = true) => {
         setLoading(true);
         localStorage.removeItem('accessToken');
@@ -58,7 +60,7 @@ export function AuthContextProvider({ children }) {
             const userInfoSuccess = await fetchUserInfo();
             if (!userInfoSuccess && refreshToken) {
                 try {
-                    const response = await api.post('/api/users/refresh-token', { refreshToken });
+                    const response = await api.post('/api/v1/users/refresh-token', { refreshToken });
                     localStorage.setItem('accessToken', response.data.accessToken);
                     localStorage.setItem('refreshToken', response.data.refreshToken);
                     await fetchUserInfo();
@@ -299,6 +301,7 @@ export function AuthContextProvider({ children }) {
 
     return (
         <authContext.Provider value={value}>
+           <Toaster/>
             {children}
         </authContext.Provider>
     );

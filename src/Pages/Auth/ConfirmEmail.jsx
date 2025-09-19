@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Toaster, toast } from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
+import { toast } from "sonner";
 
 export default function ConfirmEmail() {
     // Récupère les fonctions et les états nécessaires du contexte
@@ -57,7 +57,6 @@ export default function ConfirmEmail() {
 
     return (
         <>
-            <Toaster />
             <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
                 <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center space-y-6">
                     <picture>

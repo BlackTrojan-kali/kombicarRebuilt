@@ -6,6 +6,7 @@ import useColorScheme from '../../hooks/useColorScheme';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import 'dayjs/locale/fr';
+import { API_URL } from '../../api/api-settings';
 
 dayjs.extend(localizedFormat);
 dayjs.locale('fr');
@@ -77,7 +78,7 @@ const ResultCard = ({ trip }) => {
             {/* Infos du conducteur */}
             <div className='flex items-center gap-4'>
                 {driverPhoto ? (
-                    <img src={`https://api.kombicar.app/`+driverPhoto} alt={driverFullName} className='w-12 h-12 rounded-full object-cover' />
+                    <img src={`${API_URL}`+driverPhoto} alt={driverFullName} className='w-12 h-12 rounded-full object-cover' />
                 ) : (
                     <div className='w-12 h-12 rounded-full flex items-center justify-center bg-gray-300 dark:bg-gray-700'>
                         <FontAwesomeIcon icon={faCar} className='text-gray-500 text-xl' />

@@ -8,10 +8,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
-import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 import useReservation from '../../hooks/useReservation';
+import { toast } from "sonner";
 
 dayjs.locale('fr');
 

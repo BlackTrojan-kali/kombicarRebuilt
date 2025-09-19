@@ -1,6 +1,7 @@
 import { createContext, useState } from "react";
 import api from "../api/api";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
+
 
 export const ReservationContext = createContext({});
 

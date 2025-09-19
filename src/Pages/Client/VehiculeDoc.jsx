@@ -4,8 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileAlt, faSpinner, faArrowLeft, faTimesCircle, faCheckCircle, faDownload } from '@fortawesome/free-solid-svg-icons';
 import useCars from '../../hooks/useCar'; 
 import useColorScheme from '../../hooks/useColorScheme';
-import toast, { Toaster } from 'react-hot-toast';
 import dayjs from 'dayjs';
+import { toast } from 'sonner';
 
 const VehiculeDoc = () => {
   const { carId } = useParams();
@@ -64,7 +64,6 @@ const VehiculeDoc = () => {
 
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen py-10 transition-colors duration-300`}>
-      <Toaster />
       <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* En-tête de la page */}
         <div className="flex items-center mb-8">

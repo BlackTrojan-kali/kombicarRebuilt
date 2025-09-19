@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCheckCircle, faTimesCircle, faDownload, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import useCars from '../../hooks/useCar';
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 
 const DrivingLicenceDetails = () => {
     const { licenceId } = useParams();

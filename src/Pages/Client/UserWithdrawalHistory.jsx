@@ -3,8 +3,8 @@ import useWithDraw from '../../hooks/useWithDraw';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Modal from '../../Components/Modals/Modal'; // Assurez-vous d'avoir un composant Modal
-import toast from 'react-hot-toast'; // Pour les notifications
 import useAuth from '../../hooks/useAuth';
+import { toast } from "sonner";
 
 const UserWithdrawalHistory = () => {
     const {

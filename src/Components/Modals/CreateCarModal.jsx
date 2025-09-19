@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCarSide, faTag, faChair, faPalette, faIdCard, faWind, faList
 } from '@fortawesome/free-solid-svg-icons';
-import toast, { Toaster } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const CarForm = ({ onSave, initialCarData, isEditing, isLoading, theme }) => {
 
@@ -99,7 +99,6 @@ const CarForm = ({ onSave, initialCarData, isEditing, isLoading, theme }) => {
   
   return (
     <form id="car-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Toaster />
       {/* Marque (Brand) */}
       <div>
         <label htmlFor="brand" className={labelClass}>

@@ -1,7 +1,8 @@
 import { createContext, useState, useContext } from "react";
 import api from '../api/api';
-import toast from 'react-hot-toast';
 import useAuth from "../hooks/useAuth";
+import { toast } from "sonner";
+
 
 export const tripContext = createContext({});
 export function TripContextProvider({ children }) {

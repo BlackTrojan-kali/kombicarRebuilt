@@ -4,10 +4,10 @@ import Input from "../../Components/form/Input";
 import FormButton from "../../Components/form/FormButton";
 import useAuth from "../../hooks/useAuth";
 import useColorScheme from "../../hooks/useColorScheme";
-import { Toaster, toast } from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
 // Import the GoogleLoginButton component
 import GoogleLoginButton from "../../Components/ui/GoogleLoginButton";
+import { toast } from "sonner";
 
 export default function Signin() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -57,8 +57,7 @@ export default function Signin() {
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : ''} text-gray-900 dark:text-gray-100 transition-colors duration-300 flex items-center justify-center py-20`}>
-      <Toaster />
-
+     
       <div className="w-[90vw] md:w-[500px] ">
         <div className="flex items-center justify-center mb-6">
           {/* Use the new GoogleLoginButton component here */}

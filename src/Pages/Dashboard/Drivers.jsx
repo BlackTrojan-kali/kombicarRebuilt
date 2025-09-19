@@ -6,6 +6,7 @@ import {
   faEye, faEdit, faTrash, faUserPlus, faThumbsUp, faThumbsDown, faCarSide, faTachometerAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { toast } from "sonner";
 
 // Importations personnalisées
 import useColorScheme from '../../hooks/useColorScheme';
@@ -13,7 +14,6 @@ import useUser from '../../hooks/useUser'; // Importez votre hook personnalisé
 
 // Importations de SweetAlert2 et React Hot Toast
 import Swal from 'sweetalert2';
-import toast, { Toaster } from 'react-hot-toast';
 
 // Définitions des Thèmes pour DataTable
 createTheme('lightTheme', {
@@ -209,7 +209,6 @@ const Drivers = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      <Toaster />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
           Liste des Chauffeurs
