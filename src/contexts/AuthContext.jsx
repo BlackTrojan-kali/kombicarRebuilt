@@ -96,11 +96,11 @@ export function AuthContextProvider({ children }) {
             localStorage.setItem('refreshToken', refreshToken);
             await fetchUserInfo();
             toast.success('Connexion réussie !');
-            return true;
+           
         } catch (error) {
             console.error("Échec de la connexion:", error);
             toast.error(error.response?.data || 'Identifiants invalides.');
-            return false;
+           
         } finally {
             setLoading(false);
         }

@@ -93,7 +93,7 @@ const SearchBar = () => {
                             onChange={(e) => handleSearchChange(e.target.value, 'departure')}
                             onFocus={() => setActiveField('departure')}
                             onBlur={() => setTimeout(() => setActiveField(null), 200)}
-                            placeholder='Depart'
+                            placeholder='Départ'
                             className='flex-grow outline-none bg-transparent text-lg py-1'
                             aria-label="Lieu de départ"
                         />
