@@ -174,7 +174,6 @@ const MyVehicle = () => {
       </div>
     );
   }
-
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
       <Toaster />
@@ -390,32 +389,7 @@ const MyVehicle = () => {
         onClose={closeCarModal}
         title={editingCarData ? "Modifier le Véhicule" : "Ajouter un Nouveau Véhicule"}
         size="lg"
-        footer={
-          <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={closeCarModal}
-              className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md hover:bg-gray-400 dark:hover:bg-gray-700 transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              form="car-form"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
-                  Sauvegarde...
-                </>
-              ) : (
-                editingCarData ? 'Sauvegarder les Modifications' : 'Créer le Véhicule'
-              )}
-            </button>
-          </div>
-        }
+       
       >
         <CarForm
           initialCarData={editingCarData}
