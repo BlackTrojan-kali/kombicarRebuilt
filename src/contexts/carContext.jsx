@@ -135,10 +135,10 @@ export function CarContextProvider({ children }) {
             const response = await api.get('/api/v1/vehicules');
             if (response.data && response.data.length > 0) {
                 setCars(response.data);
-                toast.success('Vos véhicules ont été chargés avec succès !');
+               // toast.success('Vos véhicules ont été chargés avec succès !');
             } else {
                 setCars([]);
-                toast.error('Vous n\'avez pas encore de véhicule enregistré.');
+              //  toast.error('Vous n\'avez pas encore de véhicule enregistré.');
             }
             return response.data;
         } catch (err) {
