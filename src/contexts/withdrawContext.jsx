@@ -78,14 +78,41 @@ export function WithdrawContextProvider({ children }) {
     };
 
     // Fonction pour soumettre une demande de retrait (avec le nouvel endpoint)
-    const submitWithdrawalRequest = async (amount, userId) => {
+    const submitWithdrawalRequest = async (amount, phoneNumber, operator) => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await api.post(`/api/v1/withdraws`, { amount, userId });
+            const response = await api.post(`/api/v1/withdraws`, { amount, phoneNumber, operator });
             toast.success("Demande de retrait soumise avec succès !");
-            return response.data;
+            return response.status === 200;
         } catch (err) {
+
+            if(err.response && err.response.status === 400) {
+                if(err.response.data && err.response.data.code === "WithdrawErrors.InsufficientBalance") {
+                    setError("Solde insuffisant pour effectuer ce retrait.");
+                    toast.error("Solde insuffisant pour effectuer ce retrait.");
+                    return null;
+                }
+
+                //WithdrawErrors.AmountTooLow
+                if(err.response.data && err.response.data.code === "WithdrawErrors.AmountTooLow") {
+                    setError("Le montant du retrait est trop faible.");
+                    toast.error("Le montant du retrait est trop faible.");
+                    return null;
+                }
+
+                //GlobalErrors.InvalidPhoneNumber
+                if(err.response.data && err.response.data.code === "GlobalErrors.InvalidPhoneNumber") {
+                    setError("Le numéro de téléphone fourni est invalide.");
+                    toast.error("Le numéro de téléphone fourni est invalide.");
+                    return null;
+                }
+
+                const errorMessage = err.response.data.message || 'Données invalides pour la demande de retrait.';
+                setError(errorMessage);
+                toast.error(errorMessage);
+                return null;
+            }
             console.error("Erreur lors de la soumission de la demande de retrait:", err);
             setError(err);
             toast.error(err.response?.data?.message || 'Échec de la soumission de la demande de retrait.');
@@ -148,6 +175,8 @@ export function WithdrawContextProvider({ children }) {
             setIsDetailsLoading(false);
         }
     };
+
+    
 
     // Fonction pour récupérer les demandes de retrait en attente (Admin)
     const fetchPendingWithdrawalRequests = async (page = 1) => {
@@ -282,6 +311,36 @@ export function WithdrawContextProvider({ children }) {
         }
     };
 
+    // Recupération des détails des paramètres de l'application, emplacement temporaire
+    // À déplacer plus tard 
+    
+    const [appSettings, setAppSettings] = useState(null);
+    const [isAppSettingsLoading, setIsAppSettingsLoading] = useState(false);
+    const fetchApplicationsSettingsDetails = async () => {
+        setIsDetailsLoading(true);
+        setDetailsError(null);
+        try {
+            const response = await api.get(`/api/v1/app-settings/public-app-settings`);
+            if (response.status !== 200) {
+                throw new Error("Oops quelque choses s'est mal passé.");
+            }
+            const data = response.data;
+            setAppSettings(data);
+            return data;
+        } catch (error) {
+            console.error("Oops quelque choses s'est mal passé.", error);
+            //const errorMessage = error.response?.data?.message || "Une erreur inattendue est survenue.";
+            toast.error("Oops quelque choses s'est mal passé.");
+            setIsAppSettingsLoading(null);
+            throw error;
+        } finally {
+            setIsDetailsLoading(false);
+        }
+    };
+
+
+
+
     const contextValue = {
         isLoading,
         error,
@@ -324,6 +383,10 @@ export function WithdrawContextProvider({ children }) {
         isLoadingAllHistory,
         allHistoryError,
         fetchAllWithdrawalHistory,
+        // Détails des paramètres de l'application
+        appSettings,
+        isAppSettingsLoading,
+        fetchApplicationsSettingsDetails
     };
 
     return (

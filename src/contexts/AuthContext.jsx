@@ -280,6 +280,7 @@ export function AuthContextProvider({ children }) {
         user,
         setUser,
         loading,
+        fetchUserInfo,
         login,
         loginAdmin,
         loginAdminConfirmCode,

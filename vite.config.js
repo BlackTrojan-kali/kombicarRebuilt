@@ -9,5 +9,5 @@ export default defineConfig({
     port: 5173,
     allowedHosts: [ // Ajoutez cette ligne
       'kombicar.app'],
-},
+  },
 })
