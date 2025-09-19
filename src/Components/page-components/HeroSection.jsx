@@ -18,7 +18,7 @@ const HeroSection = ({ children, url = "/default/carsharing-2.jpg", label }) => 
       {/* Contenu principal : texte et barre de recherche */}
       <div className="relative z-20 flex flex-col items-center justify-around h-[80vh] px-4">
         <div className="text-white text-center">
-          <p className="text-5xl md:text-6xl font-extrabold leading-tight backdrop-blur-sm p-2 rounded-lg">{label}</p>
+          <p className="text-5xl md:text-6xl font-extrabold leading-tight backdrop-blur-xl p-2 rounded-lg">{label}</p>
           {children && <div className="mt-4 text-xl md:text-2xl font-light">{children}</div>}
         </div>
         
