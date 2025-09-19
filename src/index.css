@@ -14,3 +14,13 @@ body{
   
   @apply text-slate-900 dark:text-gray-200 bg-gradient-to-r from-kombiblue-100 from-10%  via-white via-30% to-kombiyellow-100 dark:from-slate-900 dark:from-100%
 }
+
+.shadow-text-dark {
+  /* text-shadow: contour-noir, ombre-portée */
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    4px 4px 8px rgba(0, 0, 0, 0.7);
+}
