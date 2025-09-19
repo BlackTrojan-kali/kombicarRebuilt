@@ -65,7 +65,7 @@ const UserWithdrawalHistory = () => {
     return (
         <div className="container mt-[100px] mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historique de mes Retraits - <span className='text-xl'>(Mon solde actuel: {user.balance} FCFA)</span> </h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historique de mes Retraits - <span className='text-xl'>(Mon solde actuel: {user?.balance} FCFA)</span> </h1>
                 <button
                     onClick={() => setIsModalOpen(true)}
                     className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
@@ -111,14 +111,20 @@ const UserWithdrawalHistory = () => {
                                             <p className="text-sm text-gray-600 dark:text-gray-300">
                                                 {new Date(request.requestedAt).toLocaleDateString()}
                                             </p>
+                                            {/* 
+                                            
+                                                REFUSED = 0,
+                                                PENDING = 1,
+                                                COMPLETED = 2
+                                            */}
                                             <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${
-                                                request.status === 0 ? 'bg-yellow-200 text-yellow-800' :
-                                                request.status === 1 ? 'bg-green-200 text-green-800' :
-                                                'bg-red-200 text-red-800'
+                                                request.status === 0 ? 'bg-red-200 text-red-800 ' :
+                                                request.status === 1 ? 'bg-yellow-200 text-yellow-800' :
+                                                'bg-green-200 text-green-800'
                                             }`}>
-                                                {request.status === 0 ? 'En attente' :
-                                                request.status === 1 ? 'Validée' :
-                                                'Rejetée'}
+                                                {request.status === 0 ? 'Rejetée' :
+                                                request.status === 1 ? 'En attente' :
+                                                'Validée'}
                                             </span>
                                         </div>
                                     </div>
