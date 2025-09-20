@@ -48,6 +48,7 @@ import Reviews from "./Pages/Client/Reviews"
 
 // 🆕 NOUVEAUX IMPORTS POUR LES AVIS
 import SubmitReview from "./Pages/Client/SubmitReview";
+import CarDocuments from "./Pages/Dashboard/CarDocuments"
 
 
 const Routes = () => {
@@ -197,6 +198,10 @@ const Routes = () => {
         {
           path: "cars",
           element: <Cars/>
+        },
+        {
+          path: "car-documents/:vehiculeId",
+          element: <CarDocuments/>
         },
         {
           path: "cars-type",

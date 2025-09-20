@@ -15,6 +15,20 @@ import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 
+const generateInitialsSvg = (firstName, lastName, theme) => {
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
+  const textColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
+
+  const svg = `<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="150" height="150" rx="75" fill="${bgColor}"/>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="${textColor}">
+          ${initials}
+      </text>
+  </svg>`;
+
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+};
 // Composant simple pour un élément de Dropdown
 const DropdownItem = ({ icon, text, to, onClick }) => (
   <Link
@@ -29,7 +43,7 @@ const DropdownItem = ({ icon, text, to, onClick }) => (
 
 const DashHeader = () => {
   // Utilisation du hook `useAuth` pour accéder à l'objet `user` et à la fonction `logout`.
-  const { user, logout } = useAuth();
+  const { user, logout,API_URL } = useAuth();
   // Utilisation du hook `useColorScheme` pour gérer le mode clair/sombre.
   const { theme, setTheme } = useColorScheme();
 
@@ -107,7 +121,7 @@ const DashHeader = () => {
             aria-label="Menu du profil"
           >
             <img
-              src={user?.pictureProfileUrl || 'https://via.placeholder.com/40'}
+              src={user.pictureProfileUrl ? `${API_URL}`+ user.pictureProfileUrl : generateInitialsSvg(user.firstName, user.lastName, theme)}
               alt='Profile'
               className='w-9 h-9 rounded-full object-cover border-2 border-transparent hover:border-blue-500 transition-colors duration-200'
             />

@@ -133,7 +133,7 @@ const Admins = () => {
   };
 
   const totalPages = Math.ceil(totalRows / perPage);
-
+console.log(adminList)
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
       <div className="flex justify-between items-center mb-6">
