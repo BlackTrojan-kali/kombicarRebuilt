@@ -26,6 +26,7 @@ import {
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import useAuth from '../../hooks/useAuth';
+import useColorScheme from '../../hooks/useColorScheme';
 
 const generateInitialsSvg = (firstName, lastName, theme) => {
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -44,6 +45,8 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
 // Composant DropDown mis à jour
 const DropDown = ({ icon, title, sublinks = [] }) => {
   const [active, setActive] = useState(false);
+  
+  const { theme } = useColorScheme();
   const location = useLocation();
 
   const handleToggle = () => {
