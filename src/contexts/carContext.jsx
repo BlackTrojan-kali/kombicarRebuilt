@@ -30,14 +30,18 @@ export function CarContextProvider({ children }) {
     // Nouveaux états pour les permis de conduire de l'administrateur
     const [adminLicences, setAdminLicences] = useState([]);
     const [adminLicencePagination, setAdminLicencePagination] = useState({
-      totalCount: 0,
-      page: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
+        totalCount: 0,
+        page: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
     });
     const [isLoadingAdminLicences, setIsLoadingAdminLicences] = useState(false);
     const [adminLicenceListError, setAdminLicenceListError] = useState(null);
-
+    
+    // Nouvel état pour les documents d'un véhicule spécifique pour l'admin
+    const [adminVehicleDocuments, setAdminVehicleDocuments] = useState([]);
+    const [isLoadingAdminVehicleDocuments, setIsLoadingAdminVehicleDocuments] = useState(false);
+    const [adminVehicleDocumentsError, setAdminVehicleDocumentsError] = useState(null);
 
     // 🌐 Récupère la liste de tous les véhicules (pour les admins)
     const fetchCars = async (params = {}) => {
@@ -90,37 +94,63 @@ export function CarContextProvider({ children }) {
         }
     };
     
-     // 🆕 Fonction pour lister les permis de conduire pour les administrateurs
+    // 🆕 Fonction pour lister les permis de conduire pour les administrateurs
     const fetchAdminDrivingLicences = async (page = 1, verificationState = 0) => {
-      setIsLoadingAdminLicences(true);
-      setAdminLicenceListError(null);
-      try {
-        const response = await api.get(`/api/v1/licence-driving/admin/list-licences-driving/${page}/${verificationState}`);
-        
-        if (response.status !== 200) {
-          throw new Error("Échec de la récupération de la liste des permis de conduire.");
+        setIsLoadingAdminLicences(true);
+        setAdminLicenceListError(null);
+        try {
+            const response = await api.get(`/api/v1/licence-driving/admin/list-licences-driving/${page}/${verificationState}`);
+            
+            if (response.status !== 200) {
+                throw new Error("Échec de la récupération de la liste des permis de conduire.");
+            }
+            
+            const data = response.data;
+            setAdminLicences(data.items);
+            setAdminLicencePagination({
+                totalCount: data.totalCount,
+                page: data.page,
+                hasNextPage: data.hasNextPage,
+                hasPreviousPage: data.hasPreviousPage,
+            });
+            return data;
+        } catch (error) {
+            console.error("Erreur lors de la liste des permis de conduire pour l'admin:", error);
+            const errorMessage = error.response?.data?.message || "Une erreur inattendue est survenue.";
+            setAdminLicenceListError(errorMessage);
+            toast.error(errorMessage);
+            setAdminLicences([]);
+            throw error;
+        } finally {
+            setIsLoadingAdminLicences(false);
         }
-        
-        const data = response.data;
-        setAdminLicences(data.items);
-        setAdminLicencePagination({
-          totalCount: data.totalCount,
-          page: data.page,
-          hasNextPage: data.hasNextPage,
-          hasPreviousPage: data.hasPreviousPage,
-        });
-        return data;
-      } catch (error) {
-        console.error("Erreur lors de la liste des permis de conduire pour l'admin:", error);
-        const errorMessage = error.response?.data?.message || "Une erreur inattendue est survenue.";
-        setAdminLicenceListError(errorMessage);
-        toast.error(errorMessage);
-        setAdminLicences([]);
-        throw error;
-      } finally {
-        setIsLoadingAdminLicences(false);
-      }
     };
+
+    // 🆕 Fonction pour lister les documents d'un véhicule spécifique (pour les admins)
+    const fetchAdminVehicleDocuments = async (vehiculeId) => {
+        setIsLoadingAdminVehicleDocuments(true);
+        setAdminVehicleDocumentsError(null);
+        try {
+            if (!user || user.role !== "Admin") {
+                throw new Error("Accès refusé. Cette action est réservée aux administrateurs.");
+            }
+            const response = await api.get(`/api/v1/vehicules/admin/${vehiculeId}/documents`);
+            if (response.status !== 200) {
+                throw new Error("Échec de la récupération des documents du véhicule.");
+            }
+            setAdminVehicleDocuments(response.data);
+            return response.data;
+        } catch (err) {
+            console.error(`Erreur lors de la récupération des documents pour le véhicule ${vehiculeId}:`, err);
+            setAdminVehicleDocumentsError(err.response?.data?.message || "Une erreur inattendue est survenue.");
+            toast.error(err.response?.data?.message || 'Échec du chargement des documents du véhicule.');
+            setAdminVehicleDocuments([]);
+            throw err;
+        } finally {
+            setIsLoadingAdminVehicleDocuments(false);
+        }
+    };
+
 
     // 👤 Récupère les véhicules de l'utilisateur authentifié
     const fetchUserCars = async () => {
@@ -138,7 +168,7 @@ export function CarContextProvider({ children }) {
                // toast.success('Vos véhicules ont été chargés avec succès !');
             } else {
                 setCars([]);
-              //  toast.error('Vous n\'avez pas encore de véhicule enregistré.');
+              //  toast.error('Vous n\'avez pas encore de véhicule enregistré.');
             }
             return response.data;
         } catch (err) {
@@ -289,11 +319,12 @@ export function CarContextProvider({ children }) {
 
     // 🔽 Télécharge un document à partir du serveur
     const downloadDocument = async (fileName) => {
-        console.log(fileName)
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`${fileName}`);
+            const response = await api.get(`${fileName}`, {
+                responseType: 'blob', // Spécifie le type de réponse pour les fichiers binaires
+            });
 
             // Crée une URL temporaire pour le blob et déclenche le téléchargement
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -371,6 +402,11 @@ export function CarContextProvider({ children }) {
         isLoadingAdminLicences,
         adminLicenceListError,
         fetchAdminDrivingLicences,
+        // Nouvelles valeurs pour les documents de véhicule d'admin
+        adminVehicleDocuments,
+        isLoadingAdminVehicleDocuments,
+        adminVehicleDocumentsError,
+        fetchAdminVehicleDocuments,
     };
 
     return (

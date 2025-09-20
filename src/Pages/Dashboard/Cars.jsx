@@ -147,7 +147,6 @@ const Cars = () => {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
           Gestion des Véhicules
@@ -160,12 +159,10 @@ const Cars = () => {
           Ajouter un Véhicule
         </button>
       </div>
-
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4">
           <h2 className='text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0'>Parc Automobile</h2>
           <div className="flex space-x-2">
-         
             <button
               onClick={() => handleFilterChange(true)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 ${
@@ -190,7 +187,6 @@ const Cars = () => {
             </button>
           </div>
         </div>
-
         {isLoadingAdminCars ? (
           <div className="p-4 text-center text-blue-500 dark:text-blue-400">
             Chargement des véhicules...
@@ -294,13 +290,13 @@ const Cars = () => {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex justify-center gap-2">
-                            <button
-                              onClick={() => toast(`Affichage des détails de ${car.brand} ${car.model}`, { icon: 'ℹ️' })}
+                            <Link
+                              to={`/admin/car-documents/${car.id}`}
                               className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
                               title="Voir les documents"
                             >
                               <FontAwesomeIcon icon={faEye} />
-                            </button>
+                            </Link>
                             <button
                               onClick={() => handleEditVehicle(car)}
                               className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
@@ -361,7 +357,6 @@ const Cars = () => {
           </>
         )}
       </div>
-
       {isFormModalOpen && (
         <CarFormModal
           isOpen={isFormModalOpen}
