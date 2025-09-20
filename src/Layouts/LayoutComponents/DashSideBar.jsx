@@ -27,6 +27,20 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import useAuth from '../../hooks/useAuth';
 
+const generateInitialsSvg = (firstName, lastName, theme) => {
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
+  const textColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
+
+  const svg = `<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="150" height="150" rx="75" fill="${bgColor}"/>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="${textColor}">
+          ${initials}
+      </text>
+  </svg>`;
+
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+};
 // Composant DropDown mis à jour
 const DropDown = ({ icon, title, sublinks = [] }) => {
   const [active, setActive] = useState(false);
@@ -83,7 +97,7 @@ const DropDown = ({ icon, title, sublinks = [] }) => {
 };
 
 const DashSideBar = () => {
-  const { user } = useAuth();
+  const { user,API_URL } = useAuth();
   const location = useLocation();
 
   const activeLinkClass = "flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200";
@@ -100,7 +114,7 @@ const DashSideBar = () => {
       {user && (
         <div className='flex items-center gap-4 p-4 mb-6 rounded-xl bg-gray-100 dark:bg-gray-700'>
           <img
-            src={user.pictureProfileUrl || "https://via.placeholder.com/40"}
+            src={user.pictureProfileUrl ? `${API_URL}`+ user.pictureProfileUrl : generateInitialsSvg(user.firstName, user.lastName, theme)}
             alt="User Profile"
             className='w-12 h-12 rounded-full object-cover border-2 border-blue-500'
           />
@@ -141,7 +155,7 @@ const DashSideBar = () => {
           title="Trajets"
           sublinks={[
             { icon: faHourglassHalf, title: "Publiés", link: `/admin/trajets/0` },
-            { icon: faCalendarDay, title: "À venir", link: `/admin/trajets/2` },
+            { icon: faCalendarDay, title: "Terminé", link: `/admin/trajets/2` },
             { icon: faCheckCircle, title: "Non Verifie", link: `/admin/trajets/3` },
           ]}
         />
