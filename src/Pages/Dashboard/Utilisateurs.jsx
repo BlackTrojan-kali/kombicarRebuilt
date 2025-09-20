@@ -142,7 +142,6 @@ const Utilisateurs = () => {
                     <th className="py-3 px-4">Nom de l'utilisateur</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Téléphone</th>
-                    <th className="py-3 px-4">Statut</th>
                     <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
                   </tr>
                 </thead>
@@ -169,12 +168,6 @@ const Utilisateurs = () => {
                             <span className="flex items-center gap-2">
                               <FontAwesomeIcon icon={faPhone} className="text-gray-400" />
                               {user.phoneNumber}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center justify-center gap-1 ${statusInfo.classes}`}>
-                                <FontAwesomeIcon icon={statusInfo.icon} />
-                                {statusInfo.text}
                             </span>
                           </td>
                           <td className="py-4 px-4">
