@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import api from '../api/api';
 import { toast } from "sonner";
-import { Toaster } from "../components/ui/sonner"
+import { Toaster } from "../Components/ui/sonner"
 import "../App.css"
 import { API_URL } from "../api/api-settings";
 
