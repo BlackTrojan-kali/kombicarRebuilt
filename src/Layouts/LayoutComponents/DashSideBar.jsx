@@ -103,6 +103,7 @@ const DashSideBar = () => {
   const { user,API_URL } = useAuth();
   const location = useLocation();
 
+  const { theme } = useColorScheme();
   const activeLinkClass = "flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200";
   const defaultLinkClass = "flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2";
 
