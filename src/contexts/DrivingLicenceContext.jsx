@@ -34,7 +34,9 @@ export function DrivingLicenceProvider({ children }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/api/v1/licence-driving/upload', formData);
+      const response = await api.post('/api/v1/licence-driving/upload', formData,{
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
       setLicenceInfo(response.data); 
       return response.data;
     } catch (err) {

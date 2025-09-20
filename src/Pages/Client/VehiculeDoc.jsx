@@ -64,7 +64,8 @@ const VehiculeDoc = () => {
 
   return (
     <div className={`${pageBgColor} ${textColorPrimary} min-h-screen py-10 transition-colors duration-300`}>
-      <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
+<br /><br />    
+  <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
         {/* En-tête de la page */}
         <div className="flex items-center mb-8">
           <Link to="/profile/car" className={`p-2 rounded-full ${cardBg} hover:bg-opacity-80 transition-colors`}>
@@ -111,7 +112,7 @@ const VehiculeDoc = () => {
                     )}
                   </span>
                   <button
-                    onClick={() => downloadDocument(doc.name)}
+                    onClick={() => downloadDocument(doc.url)}
                     className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     title="Télécharger le document"
                   >

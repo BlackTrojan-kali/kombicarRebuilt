@@ -289,12 +289,11 @@ export function CarContextProvider({ children }) {
 
     // 🔽 Télécharge un document à partir du serveur
     const downloadDocument = async (fileName) => {
+        console.log(fileName)
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/download/${fileName}`, {
-                responseType: 'blob', // Important pour les fichiers binaires
-            });
+            const response = await api.get(`${fileName}`);
 
             // Crée une URL temporaire pour le blob et déclenche le téléchargement
             const url = window.URL.createObjectURL(new Blob([response.data]));

@@ -23,7 +23,7 @@ const MyDrivingLicence = () => {
     dateOfBirth: '',
     issueDate: '',
     expirationDate: '',
-    category: 0 // Nouvelle valeur pour la catégorie
+    category: 0 
   });
   const [file, setFile] = useState(null);
 
@@ -58,8 +58,8 @@ const MyDrivingLicence = () => {
   }, [licenceInfo]);
 
   const handleInputChange = (e) => {
-    const { licenceFile, value } = e.target;
-    setLicenceData(prevData => ({ ...prevData, [licenceFile]: value }));
+    const { name, value } = e.target;
+    setLicenceData(prevData => ({ ...prevData, [name]: value }));
   };
 
   const handleFileChange = (e) => {
@@ -78,6 +78,7 @@ const MyDrivingLicence = () => {
 
     try {
       await updateLicenceInfo(formattedData);
+      toast.success('Informations mises à jour avec succès !');
     } catch (err) {
       toast.error('Échec de la mise à jour des informations.');
     }
@@ -92,7 +93,7 @@ const MyDrivingLicence = () => {
 
     const formData = new FormData();
     formData.append('licenceFile', file);
-    //formData.append('type', 2); // Le type 2 correspond au permis de conduire
+    //formData.append('type', 2); 
 
     try {
       await uploadLicenceDocument(formData);
