@@ -212,7 +212,7 @@ console.log(adminList)
                         </td>
                         <td className="py-4 px-4">
                           {(() => {
-                            const isActive = admin.isEmailVerified;
+                            const isActive = admin.isVerified;
                             return (
                               <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
                                 <FontAwesomeIcon icon={isActive ? faCheckCircle : faTimesCircle} />
