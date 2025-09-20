@@ -28,7 +28,7 @@ const AdminWithdrawalDetails = () => {
     if (requestId) {
       fetchAdminWithdrawalDetails(requestId);
     }
-  }, [requestId, fetchAdminWithdrawalDetails]);
+  }, [requestId,]);
 
   const handleUpdateStatus = async (status, reason = '') => {
     if (isUpdatingStatus) return;

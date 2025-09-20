@@ -140,7 +140,7 @@ const DashSideBar = () => {
           icon={faRoad}
           title="Trajets"
           sublinks={[
-            { icon: faHourglassHalf, title: "En cours", link: `/admin/trajets/0` },
+            { icon: faHourglassHalf, title: "Publiés", link: `/admin/trajets/0` },
             { icon: faCalendarDay, title: "À venir", link: `/admin/trajets/2` },
             { icon: faCheckCircle, title: "Non Verifie", link: `/admin/trajets/3` },
           ]}
@@ -150,9 +150,9 @@ const DashSideBar = () => {
           icon={faTruck}
           title="Véhicules"
           sublinks={[
-            { icon: faTags, title: "Marques", link: "/admin/cars" },
-            { icon: faShapes, title: "Types", link: "/admin/cars-type" },
-            { icon: faPalette, title: "Couleurs", link: "/admin/colors" },
+            { icon: faTags, title: "Vehicules", link: "/admin/cars" },
+          //  { icon: faShapes, title: "Types", link: "/admin/cars-type" },
+          //  { icon: faPalette, title: "Couleurs", link: "/admin/colors" },
           ]}
         />
 
