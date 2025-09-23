@@ -10,10 +10,7 @@ export const authContext = createContext({});
 export function AuthContextProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-<<<<<<< HEAD
-=======
-    const API_URL = "https://test.kombicar.app"
->>>>>>> 5f4b9de (push for teste)
+    const API_URL = "https://test.kombicar.ap
     const logout = async (showToast = true) => {
         setLoading(true);
         localStorage.removeItem('accessToken');
