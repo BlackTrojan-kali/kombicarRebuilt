@@ -10,6 +10,10 @@ export const authContext = createContext({});
 export function AuthContextProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
+=======
+    const API_URL = "https://test.kombicar.app"
+>>>>>>> 5f4b9de (push for teste)
     const logout = async (showToast = true) => {
         setLoading(true);
         localStorage.removeItem('accessToken');
@@ -25,7 +29,7 @@ export function AuthContextProvider({ children }) {
         try {
             const response = await api.get('/api/v1/users/infos');
             const fullUserInfo = response.data;
-            const roleName = fullUserInfo.role === 0 ? 'Admin' : fullUserInfo.role === 1 ? 'Client' : 'Admin';
+            const roleName = fullUserInfo.role === 1 ? 'Admin' : fullUserInfo.role === 2 ? 'SUPER_ADMIN' : 'Admin';
          
             setUser({
                 id: fullUserInfo.id,
