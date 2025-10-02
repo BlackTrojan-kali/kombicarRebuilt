@@ -12,7 +12,7 @@ const AdminLayout = () => {
 
   useEffect(() => {
     if (!loading) {
-      if (!user || user.role !== 'Admin') {
+      if (!user  && user.role !== "SUPER_ADMIN") {
         console.log("Accès refusé. Redirection vers la page de connexion.");
         navigate('/admin/signin', { replace: true });
       }
