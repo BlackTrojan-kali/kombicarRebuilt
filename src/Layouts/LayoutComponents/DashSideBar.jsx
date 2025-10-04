@@ -191,7 +191,7 @@ const DashSideBar = () => {
           sublinks={[
             { icon: faHourglassHalf, title: "Demandes en attente", link: "/admin/withdrawals/pending" },
             { icon: faCalendarDay, title: "Historique complet", link: "/admin/withdrawals/history" },
-            { icon: faUsers, title: "Historique par utilisateur", link: "/admin/withdrawals/user-history/example-user-id" },
+           // { icon: faUsers, title: "Historique par utilisateur", link: "/admin/withdrawals/user-history/example-user-id" },
           ]}
         />
 

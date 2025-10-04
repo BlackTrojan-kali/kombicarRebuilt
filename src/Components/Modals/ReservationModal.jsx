@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faMinus, faSpinner, faCalendar, faTimes, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faMinus, faSpinner, faCalendar, faTimes } from '@fortawesome/free-solid-svg-icons';
 import Button from '../ui/Button';
 import useReservation from '../../hooks/useReservation';
 import useAuth from '../../hooks/useAuth';
@@ -10,13 +10,14 @@ import PaymentStatusComponent from '../WebHook/PaymentStatusComponent';
 
 const ReservationModal = ({ trip, onClose }) => {
     const { user } = useAuth();
+    // Le hook useReservation est désormais capable de renvoyer un objet de redirection
     const { addReservation, getPrice, isLoading: isReserving } = useReservation();
     const { theme } = useColorScheme();
 
     const [numberReservedPlaces, setNumberReservedPlaces] = useState(1);
     const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
     const [promoCode, setPromoCode] = useState('');
-    const [operator, setOperator] = useState(0); 
+    const [operator, setOperator] = useState(1); // Mettre 1 comme valeur par défaut pour Orange Money
     const [isPaymentPending, setIsPaymentPending] = useState(false);
     const [currentReservationId, setCurrentReservationId] = useState(null);
 
@@ -32,10 +33,11 @@ const ReservationModal = ({ trip, onClose }) => {
         if (numberReservedPlaces > 0) {
             setIsPricing(true);
             try {
+                // Utilisation de trip.trip.id, car 'trip' semble être structuré { trip: { id, ... } }
                 const finalPrice = await getPrice(trip.trip.id, numberReservedPlaces, promoCode);
                 setTotalPrice(finalPrice);
             } catch (err) {
-                //console.error("Failed to get price:", err);
+                // Si l'API échoue, utiliser le prix calculé localement comme fallback
                 setTotalPrice(trip.trip.pricePerPlace * numberReservedPlaces);
             } finally {
                 setIsPricing(false);
@@ -70,28 +72,41 @@ const ReservationModal = ({ trip, onClose }) => {
                 operator: operator,
                 phoneNumber: phoneNumber,
                 promoCode: promoCode,
+                // On pourrait ajouter ici l'ID du pays pour aider le contexte
+                // countryId: user.country || defaultCountry.countryCode 
+                // ... mais c'est déjà géré dans useReservation.
             };
 
             const reservationResponse = await addReservation(reservationData);
-            console.log(reservationResponse);
 
-            if (reservationResponse) {
-                toast.success("Réservation en attente de paiement. Redirection...");
+            if (reservationResponse?.isRedirect && reservationResponse.redirectUrl) {
+                // CAS V2 (Cinetpay) : Redirection immédiate
+                // Sauvegarder l'ID pour le suivi au retour de la redirection si nécessaire
+                localStorage.setItem('pendingReservationId', reservationResponse.id);
+                toast.success("Redirection vers la plateforme de paiement...", { duration: 3000 });
+                window.location.href = reservationResponse.redirectUrl; 
+
+            } else if (reservationResponse) {
+                // CAS V1 (Trustpayway) : Paiement géré par le composant PaymentStatusComponent
+                toast.success("Réservation créée. Veuillez payer.");
                 setIsPaymentPending(true);
                 setCurrentReservationId(reservationResponse.id);
             } 
         } catch (err) {
+            // Le message d'erreur est propagé depuis addReservation
             console.error("Échec de la réservation:", err);
             toast.error(err.message || "Échec de la réservation. Veuillez réessayer.");
         }
     };
 
-    // Nouvelle fonction de rappel pour gérer le résultat du paiement
+    // Fonction de rappel pour gérer le résultat du paiement (utilisée pour V1/Trustpayway)
     const handlePaymentResult = (isSuccess) => {
         if (isSuccess) {
-            onClose(true);
+            // Fermer la modale et indiquer le succès
+            onClose(true); 
         } else {
-            setIsPaymentPending(false);
+            // Échec du paiement, revenir au formulaire de réservation
+            setIsPaymentPending(false); 
         }
     };
 
@@ -110,8 +125,8 @@ const ReservationModal = ({ trip, onClose }) => {
                         <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4`}>
                             Réserver ce trajet
                         </h2>
-                        {/* Le reste du formulaire de réservation */}
-                        {/* ... */}
+                        
+                        {/* Détails du trajet */}
                         <div className={`flex justify-between items-center py-2 border-b ${borderColor}`}>
                             <p className={`text-lg ${textColorSecondary}`}>Prix par passager</p>
                             <p className='text-xl font-bold text-green-600 dark:text-green-400'>{trip.trip.pricePerPlace} XAF</p>
@@ -120,6 +135,8 @@ const ReservationModal = ({ trip, onClose }) => {
                             <p className={`text-lg ${textColorSecondary}`}>Places restantes</p>
                             <p className={`text-xl font-bold ${textColorPrimary}`}>{trip.trip.placesLeft}</p>
                         </div>
+                        
+                        {/* Sélection du nombre de places */}
                         <div className={`flex justify-between items-center py-4 border-t ${borderColor} mt-4`}>
                             <p className={`text-lg ${textColorSecondary}`}>Nombre de places</p>
                             <div className='flex items-center space-x-3'>
@@ -140,6 +157,8 @@ const ReservationModal = ({ trip, onClose }) => {
                                 </button>
                             </div>
                         </div>
+                        
+                        {/* Méthode de paiement (Opérateur) */}
                         <div className={`py-4 border-t ${borderColor} mt-4`}>
                             <label htmlFor="operator" className={`block mb-2 text-lg font-medium ${textColorSecondary}`}>
                                 Méthode de paiement
@@ -154,6 +173,8 @@ const ReservationModal = ({ trip, onClose }) => {
                                 <option value={2}>MTN MoMo</option>
                             </select>
                         </div>
+                        
+                        {/* Téléphone et Code Promo */}
                         <div className={`flex flex-col md:flex-row gap-4 py-4 border-t ${borderColor} mt-4`}>
                             <div className="flex-1">
                                 <label htmlFor="phoneNumber" className={`block mb-2 text-lg font-medium ${textColorSecondary}`}>Numéro de téléphone</label>
@@ -179,6 +200,8 @@ const ReservationModal = ({ trip, onClose }) => {
                                 />
                             </div>
                         </div>
+                        
+                        {/* Prix Total */}
                         <div className={`flex justify-between items-center py-4 border-t ${borderColor} mt-4`}>
                             <p className={`text-lg ${textColorSecondary}`}>Prix total</p>
                             <p className='text-2xl font-bold text-green-600 dark:text-green-400'>
@@ -189,10 +212,12 @@ const ReservationModal = ({ trip, onClose }) => {
                                 )}
                             </p>
                         </div>
+                        
+                        {/* Bouton de Réservation */}
                         <Button
                             className="w-full py-4 text-xl font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                             onClick={handleReservation}
-                            disabled={isReserving || isPricing}
+                            disabled={isReserving || isPricing || numberReservedPlaces <= 0 || !phoneNumber}
                         >
                             {isReserving ? (
                                 <>
@@ -206,6 +231,7 @@ const ReservationModal = ({ trip, onClose }) => {
                         </Button>
                     </>
                 ) : (
+                    // Écran de statut de paiement pour la logique V1 (Trustpayway)
                     <PaymentStatusComponent
                         reservationId={currentReservationId}
                         userId={user.id}

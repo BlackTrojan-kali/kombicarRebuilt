@@ -1,11 +1,13 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState } from "react";
 import api from "../api/api";
 import { toast } from "sonner";
 
 export const UserContext = createContext({});
 
 export function UserContextProvider({ children }) {
-    // États pour la gestion des administrateurs
+    // ===================================
+    // 1. GESTION DES ADMINISTRATEURS (Admin List)
+    // ===================================
     const [adminList, setAdminList] = useState([]);
     const [adminPagination, setAdminPagination] = useState({
         totalCount: 0,
@@ -16,7 +18,9 @@ export function UserContextProvider({ children }) {
     const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
     const [adminListError, setAdminListError] = useState(null);
 
-    // États pour la gestion des conducteurs
+    // ===================================
+    // 2. GESTION DES CONDUCTEURS (Unverified Conductor List)
+    // ===================================
     const [conductorList, setConductorList] = useState([]);
     const [conductorPagination, setConductorPagination] = useState({
         totalCount: 0,
@@ -27,7 +31,9 @@ export function UserContextProvider({ children }) {
     const [isLoadingConductors, setIsLoadingConductors] = useState(false);
     const [conductorListError, setConductorListError] = useState(null);
 
-    // Nouveaux états pour la gestion des utilisateurs standards
+    // ===================================
+    // 3. GESTION DES UTILISATEURS STANDARDS (Standard User List - Role NONE)
+    // ===================================
     const [standardUserList, setStandardUserList] = useState([]);
     const [standardUserPagination, setStandardUserPagination] = useState({
         totalCount: 0,
@@ -38,7 +44,9 @@ export function UserContextProvider({ children }) {
     const [isLoadingStandardUsers, setIsLoadingStandardUsers] = useState(false);
     const [standardUserListError, setStandardUserListError] = useState(null);
     
-    // NOUVEAUX ÉTATS pour les conducteurs vérifiés
+    // ===================================
+    // 4. GESTION DES CONDUCTEURS VÉRIFIÉS (Verified Conductor List - Role DRIVER)
+    // ===================================
     const [verifiedConductorList, setVerifiedConductorList] = useState([]);
     const [verifiedConductorPagination, setVerifiedConductorPagination] = useState({
         totalCount: 0,
@@ -49,8 +57,18 @@ export function UserContextProvider({ children }) {
     const [isLoadingVerifiedConductors, setIsLoadingVerifiedConductors] = useState(false);
     const [verifiedConductorListError, setVerifiedConductorListError] = useState(null);
 
+    // ===================================
+    // 5. GESTION DU PROFIL UTILISATEUR CONNECTÉ (User Profile Update)
+    // ===================================
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    const [updateProfileError, setUpdateProfileError] = useState(null);
 
-    // Fonction pour lister les administrateurs
+
+    // ###################################
+    // # FONCTIONS D'ADMINISTRATION
+    // ###################################
+
+    /** Récupère la liste des administrateurs paginée. */
     const listAdmins = async (page = 1) => {
         setIsLoadingAdmins(true);
         setAdminListError(null);
@@ -72,7 +90,7 @@ export function UserContextProvider({ children }) {
             return data;
         } catch (error) {
             console.error("Erreur lors de la liste des administrateurs:", error);
-            const errorMessage = error.message || "Une erreur inattendue est survenue.";
+            const errorMessage = error.response?.data?.message || error.message || "Une erreur inattendue est survenue.";
             setAdminListError(errorMessage);
             toast.error(errorMessage);
             setAdminList([]);
@@ -82,7 +100,7 @@ export function UserContextProvider({ children }) {
         }
     };
 
-    // Fonction pour ajouter un nouvel administrateur
+    /** Ajoute un nouvel administrateur. */
     const addAdmin = async (adminData) => {
         setIsLoadingAdmins(true);
         setAdminListError(null);
@@ -110,7 +128,7 @@ export function UserContextProvider({ children }) {
         }
     };
 
-    // Fonction pour supprimer un administrateur
+    /** Supprime un administrateur par son ID. */
     const deleteAdmin = async (userId) => {
         setIsLoadingAdmins(true);
         setAdminListError(null);
@@ -129,7 +147,52 @@ export function UserContextProvider({ children }) {
         }
     };
 
-    // Fonction pour lister les conducteurs
+    /** Met à jour le rôle d'un utilisateur par un admin. */
+    const updateUserRole = async (userId, newRole) => {
+        setIsLoadingAdmins(true);
+        setAdminListError(null);
+        try {
+            const response = await api.put(`/api/v1/users/admin/update-user-role/${userId}/${newRole}`);
+            toast.success("Rôle utilisateur mis à jour avec succès !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du rôle utilisateur:", error);
+            const errorMessage = error.response?.data?.message || "Échec de la mise à jour du rôle.";
+            setAdminListError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoadingAdmins(false);
+        }
+    };
+
+    /**
+     * Met à jour le pays d'accès d'un administrateur.
+     * PUT /api/v1/users/admin/update-access-country/{userId}/{adminCountryAccess}
+     */
+    const updateAdminCountryAccess = async (userId, adminCountryAccess) => {
+        setIsLoadingAdmins(true);
+        setAdminListError(null);
+        try {
+            const response = await api.put(`/api/v1/users/admin/update-access-country/${userId}/${adminCountryAccess}`);
+            toast.success("Pays d'accès de l'administrateur mis à jour avec succès !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du pays d'accès de l'administrateur:", error);
+            const errorMessage = error.response?.data?.message || "Échec de la mise à jour du pays d'accès.";
+            setAdminListError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoadingAdmins(false);
+        }
+    };
+
+    // ###################################
+    // # FONCTIONS DE LISTING PAGINÉ
+    // ###################################
+
+    /** Récupère la liste des conducteurs non vérifiés. */
     const listConductors = async (page = 1) => {
         setIsLoadingConductors(true);
         setConductorListError(null);
@@ -151,7 +214,7 @@ export function UserContextProvider({ children }) {
             return data;
         } catch (error) {
             console.error("Erreur lors de la liste des conducteurs:", error);
-            const errorMessage = error.message || "Une erreur inattendue est survenue.";
+            const errorMessage = error.response?.data?.message || error.message || "Une erreur inattendue est survenue.";
             setConductorListError(errorMessage);
             toast.error(errorMessage);
             setConductorList([]);
@@ -161,8 +224,8 @@ export function UserContextProvider({ children }) {
         }
     };
 
-    // Nouvelle fonction pour lister les utilisateurs standards (rôle NONE)
-    const listStandardUsers = async (page ) => {
+    /** Récupère la liste des utilisateurs standards (rôle NONE). */
+    const listStandardUsers = async (page = 1) => {
         setIsLoadingStandardUsers(true);
         setStandardUserListError(null);
         try {
@@ -183,7 +246,7 @@ export function UserContextProvider({ children }) {
             return data;
         } catch (error) {
             console.error("Erreur lors de la liste des utilisateurs standards:", error);
-            const errorMessage = error.message || "Une erreur inattendue est survenue.";
+            const errorMessage = error.response?.data?.message || error.message || "Une erreur inattendue est survenue.";
             setStandardUserListError(errorMessage);
             toast.error(errorMessage);
             setStandardUserList([]);
@@ -192,27 +255,8 @@ export function UserContextProvider({ children }) {
             setIsLoadingStandardUsers(false);
         }
     };
-
-    // NOUVELLE FONCTION : Mettre à jour le rôle d'un utilisateur
-    const updateUserRole = async (userId, newRole) => {
-        setIsLoadingAdmins(true);
-        setAdminListError(null);
-        try {
-            const response = await api.put(`/api/v1/users/admin/update-user-role/${userId}/${newRole}`);
-            toast.success("Rôle utilisateur mis à jour avec succès !");
-            return response.data;
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour du rôle utilisateur:", error);
-            const errorMessage = error.response?.data?.message || "Échec de la mise à jour du rôle.";
-            setAdminListError(errorMessage);
-            toast.error(errorMessage);
-            throw error;
-        } finally {
-            setIsLoadingAdmins(false);
-        }
-    };
     
-    // NOUVELLE FONCTION pour lister les conducteurs vérifiés
+    /** Récupère la liste des conducteurs vérifiés (rôle DRIVER). */
     const listVerifiedConductors = async (page = 1) => {
         setIsLoadingVerifiedConductors(true);
         setVerifiedConductorListError(null);
@@ -232,7 +276,7 @@ export function UserContextProvider({ children }) {
             return data;
         } catch (error) {
             console.error("Erreur lors de la liste des conducteurs vérifiés:", error);
-            const errorMessage = error.message || "Une erreur inattendue est survenue.";
+            const errorMessage = error.response?.data?.message || error.message || "Une erreur inattendue est survenue.";
             setVerifiedConductorListError(errorMessage);
             toast.error(errorMessage);
             setVerifiedConductorList([]);
@@ -242,35 +286,60 @@ export function UserContextProvider({ children }) {
         }
     };
 
+    // ###################################
+    // # FONCTION UTILISATEUR AUTHENTIFIÉ
+    // ###################################
+
+    /** Met à jour les informations de profil de l'utilisateur authentifié. */
+    const updateProfile = async (profileData) => {
+        setIsUpdatingProfile(true);
+        setUpdateProfileError(null);
+        try {
+            // Le payload contient firstName, lastName, phoneNumber, country, etc.
+            const response = await api.put('/api/v1/users/update', profileData); 
+            
+            toast.success("Votre profil a été mis à jour avec succès !");
+
+            // Le composant d'appel devra utiliser l'AuthContext pour mettre à jour l'état 'user' localement.
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du profil:", error);
+            const errorMessage = error.response?.data?.message || "Échec de la mise à jour du profil.";
+            setUpdateProfileError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsUpdatingProfile(false);
+        }
+    };
+
+
+    // ###################################
+    // # VALEUR DU CONTEXTE EXPORTÉE
+    // ###################################
     const value = {
-        // Administration
-        adminList,
-        adminPagination,
-        isLoadingAdmins,
-        adminListError,
-        listAdmins,
-        addAdmin,
-        deleteAdmin,
-        // Conducteurs
-        conductorList,
-        conductorPagination,
-        isLoadingConductors,
-        conductorListError,
+        // --- ADMINS ---
+        adminList, adminPagination, isLoadingAdmins, adminListError,
+        listAdmins, addAdmin, deleteAdmin, updateAdminCountryAccess, // <--- AJOUTÉ ICI
+
+        // --- CONDUCTEURS (Non Vérifiés) ---
+        conductorList, conductorPagination, isLoadingConductors, conductorListError,
         listConductors,
-        // Utilisateurs standards (rôle NONE)
-        standardUserList,
-        standardUserPagination,
-        isLoadingStandardUsers,
-        standardUserListError,
+
+        // --- UTILISATEURS STANDARDS ---
+        standardUserList, standardUserPagination, isLoadingStandardUsers, standardUserListError,
         listStandardUsers,
-        // Nouvelle fonction
-        updateUserRole,
-        // Conducteurs vérifiés
-        verifiedConductorList,
-        verifiedConductorPagination,
-        isLoadingVerifiedConductors,
-        verifiedConductorListError,
+
+        // --- CONDUCTEURS VÉRIFIÉS ---
+        verifiedConductorList, verifiedConductorPagination, isLoadingVerifiedConductors, verifiedConductorListError,
         listVerifiedConductors,
+
+        // --- OPÉRATIONS ADMINISTRATIVES GLOBALES ---
+        updateUserRole,
+
+        // --- PROFIL UTILISATEUR CONNECTÉ ---
+        isUpdatingProfile, updateProfileError,
+        updateProfile, 
     };
 
     return (
