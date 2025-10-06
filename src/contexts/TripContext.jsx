@@ -6,11 +6,11 @@ import { toast } from "sonner";
 
 export const tripContext = createContext({});
 export function TripContextProvider({ children }) {
-    const { user, loading: authLoading } = useAuth();
+    // 1. Récupération des données d'authentification et du pays par défaut
+    const { user, loading: authLoading, defaultCountry } = useAuth();
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
     const fetchTrips = async ({pageIndex, status}) => {
         if (authLoading) return;
         setLoading(true);
@@ -36,12 +36,37 @@ export function TripContextProvider({ children }) {
         }
     };
     
+    // ----------------------------------------------------------------------
+    // 2. Mise à jour de listPublicTrips pour inclure la logique du pays par défaut
+    // ----------------------------------------------------------------------
     const listPublicTrips = async (searchCriteria) => {
         setLoading(true);
         setError(null);
+        
+        let countryToFilter = searchCriteria.country;
+
+        // Détermination du pays à utiliser si le critère 'country' n'est pas spécifié (ou vaut 0)
+        if (countryToFilter === 0 || countryToFilter === null || countryToFilter === undefined) {
+            if (user?.country) {
+                // Utilisateur authentifié : Utilise le pays du profil
+                countryToFilter = user.country;
+            } else if (defaultCountry?.countryCode) {
+                // Utilisateur non authentifié : Utilise le pays par défaut détecté
+                countryToFilter = defaultCountry.countryCode;
+            }
+        }
+        
+        // Création des critères de recherche finaux
+        const finalSearchCriteria = {
+            ...searchCriteria,
+            // S'assure que le champ est inclus, même avec la valeur par défaut ou trouvée
+            country: countryToFilter || 0,
+        };
+
         try {
-            const response = await api.post('/api/v1/trips/list-public', searchCriteria);
+            const response = await api.post('/api/v1/trips/list-public', finalSearchCriteria);
             const data = response.data;
+            
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
             } else {
@@ -57,6 +82,7 @@ export function TripContextProvider({ children }) {
             setLoading(false);
         }
     };
+    // ----------------------------------------------------------------------
     
     const createTrip = async (tripData) => {
         if (authLoading) return;
@@ -91,7 +117,8 @@ export function TripContextProvider({ children }) {
             return response.data;
         } catch (err) {
             setError(err);
-            //the toaster 
+            // Ajout du toast ici pour uniformité
+            toast.error(err.response?.data?.message || 'Échec du chargement du trajet.');
             throw err;
         } finally {
         
@@ -200,12 +227,11 @@ export function TripContextProvider({ children }) {
             const response = await api.get(`/api/v1/trips/list-by-reservation/${pageIndex}/${status}/${reservationStatus}`);
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
-                // Note : Vous pouvez choisir de ne pas mettre à jour l'état 'trips' ici
-                // pour éviter de mélanger les trajets publiés et réservés.
-                // Vous pouvez plutôt retourner les données pour un usage direct.
+                // Note : Le toast de succès ici est correct
                 toast.success('Trajets réservés chargés avec succès !');
             } else {
-                toast.error('Aucun trajet réservé trouvé.');
+                // Uniformisation : Utilisez setError(null) avant, donc le toast d'erreur pour une liste vide n'est pas optimal
+                // toast.error('Aucun trajet réservé trouvé.');
             }
             return data;
         } catch (err) {
