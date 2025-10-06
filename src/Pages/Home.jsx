@@ -367,12 +367,8 @@ const Home = () => {
         </Link>
     </div>
 </section>
-
-
-      {/* ==================================== */}
-      {/* Ancienne Section: Carte du Cameroun */}
-      {/* ==================================== */}
-      <section className='mt-24 flex flex-col md:flex-row gap-12 items-center px-4 sm:px-6 lg:px-12 xl:px-24 pb-20 max-w-7xl mx-auto'>
+{/*
+   <section className='mt-24 flex flex-col md:flex-row gap-12 items-center px-4 sm:px-6 lg:px-12 xl:px-24 pb-20 max-w-7xl mx-auto'>
         <img
           src="/default/map-cameroon.png"
           alt="Carte du Cameroun avec les principales villes"
@@ -395,7 +391,8 @@ const Home = () => {
           </div>
         </div>
       </section>
-    </div>
+*/} 
+   </div>
   );
 };
 

@@ -5,6 +5,28 @@ import { Toaster } from "../Components/ui/sonner"
 import "../App.css"
 import { API_URL } from "../api/api-settings"; 
 
+// ###################################################
+// MAPING DES CODES PAYS (AJOUTÉ)
+// ###################################################
+
+const COUNTRY_CODE_TO_NAME = {
+    237: 'Cameroun', 
+    225: "Côte d'Ivoire", 
+    221: 'Sénégal', 
+    243: 'République Démocratique du Congo', 
+    223: 'Mali', 
+    229: 'Bénin', 
+    228: 'Togo', 
+    224: 'Guinée', 
+    226: 'Burkina Faso', 
+    0: 'Autres / International',
+};
+
+/** Convertit un code de pays numérique en nom. */
+const getCountryName = (countryCode) => {
+    return COUNTRY_CODE_TO_NAME[countryCode] || 'Pays Inconnu';
+};
+
 export const authContext = createContext({});
 
 export function AuthContextProvider({ children }) {
@@ -34,7 +56,7 @@ export function AuthContextProvider({ children }) {
             // Le corps de la requête est { refreshToken: "..." }
             const response = await api.post('/api/v1/users/refresh-token-admin', { refreshToken });
             localStorage.setItem('accessToken', response.data.accessToken);
-      
+        
             localStorage.setItem('refreshToken', response.data.refreshToken);
             return true;
         } catch (error) {
@@ -60,7 +82,7 @@ export function AuthContextProvider({ children }) {
     };
 
     // ###################################################
-    // LOGIQUE DE GÉOLOCALISATION ET PAYS PAR DÉFAUT
+    // LOGIQUE DE GÉOLOCALISATION ET PAYS PAR DÉFAUT (CORRIGÉE)
     // ###################################################
 
     const fetchDefaultCountry = async () => {
@@ -86,12 +108,27 @@ export function AuthContextProvider({ children }) {
                 latitude: coords.lat,
                 longitude: coords.lng
             });
-            setDefaultCountry(response.data);
-            toast.info(`Pays détecté : ${response.data.countryName || 'Inconnu'}`, { duration: 1500 });
+            
+            // 🚨 CORRECTION : response.data contient uniquement le code (nombre)
+            const countryCode = response.data; 
+            const countryName = getCountryName(countryCode); // Utilisation du mapping
+            
+            const detectedCountry = {
+                countryCode: countryCode,
+                countryName: countryName 
+            };
+            
+            setDefaultCountry(detectedCountry);
+            toast.info(`Pays détecté : ${countryName}`, { duration: 1500 });
+
         } catch (err) {
             console.warn("Échec de la géolocalisation ou de l'API get-country:", err.message || err);
-            // Pays par défaut en cas d'échec
-            setDefaultCountry({ countryCode: 237, countryName: "Cameroun (Par défaut)" }); 
+            
+            // Pays par défaut : Cameroun (237)
+            const defaultCountryValue = { countryCode: 237, countryName: getCountryName(237) }; 
+            
+            setDefaultCountry(defaultCountryValue); 
+            toast.info(`Pays par défaut : ${defaultCountryValue.countryName}`, { duration: 1500 });
         }
     };
 
