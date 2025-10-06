@@ -49,10 +49,13 @@ const MyChats = () => {
     // =====================================================
     const loadConversationsPage = useCallback(
         async (pageToLoad = 1) => {
-            if (!hasMore || loadingConversations) return;
+            // Empêche le chargement si on est déjà en train de charger ou s'il n'y a plus de données
+            if (!hasMore || loadingConversations) return; 
 
             try {
-                const nextHasMore = await fetchConversations(pageToLoad);
+                // Appel à la fonction du ChatContext, qui met à jour l'état 'conversations'
+                const nextHasMore = await fetchConversations(pageToLoad); 
+                
                 setHasMore(nextHasMore);
                 setCurrentPage(pageToLoad);
             } catch (error) {
@@ -60,42 +63,52 @@ const MyChats = () => {
                 setHasMore(false);
             }
         },
-        [hasMore,]
+        // CORRECTION IMPORTANTE : Ajout de loadingConversations et fetchConversations
+        [hasMore, loadingConversations, fetchConversations] 
     );
 
     // =====================================================
     // Chargement initial
     // =====================================================
+    // Déclenche le chargement de la première page au montage ou après la connexion de l'utilisateur
     useEffect(() => {
-        if (user) {
-            setCurrentPage(1);
-            setHasMore(true);
+        // S'assurer que le premier chargement se fait uniquement une fois et non à chaque re-rendu
+        if (user && conversations.length === 0 && hasMore && !loadingConversations) {
+            // Réinitialiser les états pour un nouveau chargement (utile si l'utilisateur change)
+            setCurrentPage(1); 
+            setHasMore(true); 
             loadConversationsPage(1);
         }
-    }, [user, loadConversationsPage]);
+    }, [user, loadConversationsPage, conversations.length, hasMore, loadingConversations]); 
 
     // =====================================================
     // Scroll infini via Intersection Observer
     // =====================================================
     useEffect(() => {
-        if (!loadMoreRef.current || !user || !hasMore) return;
+        // Arrête si la référence n'est pas attachée, si l'utilisateur n'est pas là, ou s'il n'y a plus de pages
+        if (!loadMoreRef.current || !user || !hasMore) return; 
 
         const observer = new IntersectionObserver(
             (entries) => {
+                // Si l'élément est visible ET qu'aucun chargement n'est en cours
                 if (entries[0].isIntersecting && !loadingConversations) {
                     loadConversationsPage(currentPage + 1);
                 }
             },
-            { threshold: 1.0 }
+            { threshold: 1.0 } // Déclenche l'action lorsque 100% de l'élément est visible
         );
 
         const currentRef = loadMoreRef.current;
         observer.observe(currentRef);
 
         return () => {
+            // Nettoyage de l'observateur au démontage ou au changement des dépendances
             observer.unobserve(currentRef);
         };
-    }, [hasMore, currentPage, user]);
+        // Dépendances de l'Observer : hasMore, currentPage et user sont corrects pour gérer le cycle de vie.
+        // On inclut loadConversationsPage et loadingConversations (via useChat()) dans les dépendances 
+        // pour que l'Observer soit recréé avec les dernières versions des fonctions/états.
+    }, [hasMore, currentPage, user, loadingConversations, loadConversationsPage]); 
 
     // =====================================================
     // Rendu

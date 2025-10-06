@@ -33,7 +33,7 @@ export function ChatContextProvider({ children }) {
         
         try {
             const response = await api.get(`/api/v1/messages/conversations/${pageNumber}`);
-            
+     
             // Destructuration pour obtenir les items et l'indicateur de pagination (structure attendue)
             const { items, hasNextPage: apiHasNextPage } = response.data;
 
