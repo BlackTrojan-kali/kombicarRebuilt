@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faCar, faTag, faChair, faPalette, faIdCard, faSpinner, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faCar, faTag, faChair, faPalette, faIdCard, faSpinner, faShieldAlt, faWind } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 
-const CarForm = ({ initialCarData, onSave, isEditing, textColorPrimary, textColorSecondary, inputBg, inputBorder }) => {
+const CarForm = ({ initialCarData, onSave, isEditing, textColorPrimary, textColorSecondary, inputBg, inputBorder ,theme}) => {
   const [formData, setFormData] = useState({
     brand: '',
     model: '',
     numberPlaces: '',
     color: '',
     registrationCode: '',
-    isVerified: false, // Valeur par défaut
+    airConditionned: false,
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,7 +22,7 @@ const CarForm = ({ initialCarData, onSave, isEditing, textColorPrimary, textColo
         numberPlaces: initialCarData.numberPlaces || '',
         color: initialCarData.color || '',
         registrationCode: initialCarData.registrationCode || '',
-        isVerified: initialCarData.isVerified ?? false,
+        airConditionned: initialCarData.airConditionned ?? false,
       });
     } else {
       // Réinitialiser le formulaire si on passe en mode création
@@ -62,7 +62,7 @@ const CarForm = ({ initialCarData, onSave, isEditing, textColorPrimary, textColo
           numberPlaces: '',
           color: '',
           registrationCode: '',
-          isVerified: false,
+          airConditionned: false,
         });
       }
     } catch (error) {
@@ -152,19 +152,21 @@ const CarForm = ({ initialCarData, onSave, isEditing, textColorPrimary, textColo
           className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
         />
       </div>
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isVerified"
-          name="isVerified"
-          checked={formData.isVerified}
-          onChange={handleChange}
-          className={`h-5 w-5 text-blue-600 rounded focus:ring-blue-500 ${inputBg} ${inputBorder}`}
-        />
-        <label htmlFor="isVerified" className={`ml-2 block text-sm font-medium ${textColorPrimary}`}>
-          <FontAwesomeIcon icon={faShieldAlt} className="mr-2" /> Véhicule Vérifié
-        </label>
-      </div>
+      {/* Climatisation (airConditionned) */}
+         <div className="md:col-span-2 flex items-center mt-2">
+           <input
+             type="checkbox"
+             id="airConditionned"
+             name="airConditionned"
+             checked={FormData.airConditionned}
+             onChange={handleChange}
+             className={`h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white'}`}
+           />
+           <label htmlFor="airConditionned" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+               <FontAwesomeIcon icon={faWind} className="mr-2" />
+               Véhicule climatisé
+           </label>
+         </div>
       <button
         type="submit"
         className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200 ${

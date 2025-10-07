@@ -155,7 +155,7 @@ const CarForm = ({ onSave, initialCarData, isEditing, isLoading, theme }) => {
               {color.name}
             </option>
           ))}
-        </select>
+        </select> 
       </div>
 
       {/* Numéro d'Immatriculation (registrationCode) */}
