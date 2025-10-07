@@ -108,7 +108,7 @@ const Home = () => {
       page: 1,
       tripStatus: 0, // "Published" status
     });
-  }, []);
+  }, [defaultCountry]);
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';

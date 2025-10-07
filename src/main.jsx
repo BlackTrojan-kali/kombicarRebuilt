@@ -21,19 +21,21 @@ createRoot(document.getElementById('root')).render(
     <WithdrawContextProvider>
       <ColorSchemeProvider>
         <CarContextProvider>
+          
+                <MapContextProvider>
           <TripContextProvider> {/* TripContextProvider enveloppe App */}
             <UserContextProvider>
                 <DrivingLicenceProvider>
                 <PromoCodeContextProvider> 
                 <ReservationContextProvider> 
-                <MapContextProvider>
                 <App />
-               </MapContextProvider>
                </ReservationContextProvider>
             </PromoCodeContextProvider>
             </DrivingLicenceProvider>
             </UserContextProvider>
           </TripContextProvider>
+          
+               </MapContextProvider>
         </CarContextProvider>
       </ColorSchemeProvider>
 

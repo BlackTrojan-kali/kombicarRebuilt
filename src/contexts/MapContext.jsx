@@ -23,7 +23,7 @@ export function MapContextProvider({ children }) {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); 
     setPlaces([]); // Suggestion: réinitialiser les lieux pour éviter de voir les anciens pendant le chargement
     setError(null);
     try {
