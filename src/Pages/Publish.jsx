@@ -372,7 +372,9 @@ const Publish = () => {
                   <option value="" disabled>Erreur de chargement des véhicules</option>
                 ) : (
                   cars.map(v => (
-                    <option key={v.id} value={v.id}>{v.brand} {v.model}</option>
+                    v.isVerified ?     <option key={v.id} value={v.id}>{v.brand} {v.model}</option>
+                         :   <option key={v.id} disabled value={v.id}>{v.brand} {v.model} Non verifie</option>
+                  
                   ))
                 )}
               </select>
