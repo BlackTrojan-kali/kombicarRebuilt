@@ -5,7 +5,7 @@ import {
     faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet,
     faEdit, faTimesCircle, faTrash, faIdCard, faBookmark,
     faSpinner, faCamera, faCalendarAlt, faMoneyBillWave,
-    faArrowLeft, faArrowRight
+    faArrowLeft, faArrowRight, faUsers // Nouveau : Icône pour les réservations/passagers
 } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -125,11 +125,22 @@ const Profile = () => {
         loadUserTrips(completedPage, 2, setCompletedTrips, setCompletedTotalPages);
     };
 
+    // NOUVEAU : Fonction de redirection vers la liste des réservations du trajet
+    const handleViewReservations = (tripId) => {
+        // Redirige vers une page spécifique pour visualiser les réservations du trajet (par exemple /reservations/trip/:tripId)
+        navigate(`driver-reservations/${tripId}`);
+    };
+
     // ===========================================
     // NOUVEAU : Fonctions pour la modal de profil
     // ===========================================
     const handleOpenEditProfileModal = () => setIsEditProfileModalOpen(true);
-    const handleCloseEditProfileModal = () => setIsEditProfileModalOpen(false);
+    const handleCloseEditProfileModal = () => {
+        setIsEditProfileModalOpen(false);
+        // Recharger les trajets si le profil est mis à jour (car le nom pourrait changer, affectant le SVG)
+        loadUserTrips(publishedPage, 0, setPublishedTrips, setPublishedTotalPages);
+        loadUserTrips(completedPage, 2, setCompletedTrips, setCompletedTotalPages);
+    }
 
     const handleCancelTrip = async (tripId) => {
         const result = await Swal.fire({
@@ -205,9 +216,6 @@ const Profile = () => {
     const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
     const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
     
-    // NOTE : Le `renderTripCard` a été commenté dans votre code initial,
-    // mais la logique est réintégrée directement dans le JSX pour l'exemple.
-    
     if (loadingUser || loadingSpecificTrips) {
         return (
             <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
@@ -272,7 +280,7 @@ const Profile = () => {
                             </div>
                         </div>
                         
-                        {/* NOUVEAU : Bouton Modifier le Profil */}
+                        {/* Bouton Modifier le Profil */}
                         <div className='mt-4 sm:mt-0 flex-shrink-0'>
                             <button
                                 onClick={handleOpenEditProfileModal}
@@ -367,8 +375,8 @@ const Profile = () => {
                                 {publishedTrips.map(tripData => {
                                     const isPublished = tripData.trip.status === 0;
                                     return (
-                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
-                                            <div className="flex-1">
+                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-start transition-transform transform hover:scale-[1.01] duration-200`}>
+                                            <div className="flex-1 w-full">
                                                 <h3 className={`text-lg font-bold ${textColorPrimary}`}>
                                                     {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
                                                 </h3>
@@ -378,30 +386,38 @@ const Profile = () => {
                                                 </div>
                                             </div>
                                             
-                                            <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-4 md:mt-0 flex-shrink-0">
+                                            {/* Actions : Changement de 'flex-wrap justify-center md:justify-end gap-2' */}
+                                            {/* en 'flex-col gap-2 w-full md:w-auto mt-4 md:mt-0' pour une mise en page verticale */}
+                                            <div className="flex flex-col gap-2 w-full sm:w-1/2 md:w-auto mt-4 md:mt-0 flex-shrink-0">
                                                 {isPublished && (
                                                     <>
                                                         <button
+                                                            onClick={() => handleViewReservations(tripData.trip.id)} // Nouveau bouton
+                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors w-full"
+                                                        >
+                                                            <FontAwesomeIcon icon={faUsers} /> Voir les réservations
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleEditTrip(tripData)}
-                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors w-full"
                                                         >
                                                             <FontAwesomeIcon icon={faEdit} /> Modifier
                                                         </button>
                                                         <button
                                                             onClick={() => handleCancelTrip(tripData.trip.id)}
-                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full"
                                                         >
                                                             <FontAwesomeIcon icon={faTimesCircle} /> Annuler
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteTrip(tripData)}
-                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors w-full"
                                                         >
                                                             <FontAwesomeIcon icon={faTrash} /> Supprimer
                                                         </button>
                                                         <button
                                                             onClick={() => handleViewReviews(tripData.trip.id)}
-                                                            className="flex items-center gap-1 px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
+                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors w-full"
                                                         >
                                                             <FontAwesomeIcon icon={faStar} /> Voir les avis
                                                         </button>

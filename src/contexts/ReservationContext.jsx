@@ -43,8 +43,10 @@ export function ReservationContextProvider({ children }) {
         setIsLoading(true);
         setError(null);
         try {
+            // Utilisation d'un paramètre de requête pour promoCode si vide est supporté, sinon la version initiale
+            const promoCodeSegment = promoCode ? `/${promoCode}` : '';
             const response = await api.get(
-                `/api/v1/reservations/get-price/${tripId}/${numberPlaces}/${promoCode || ''}`
+                `/api/v1/reservations/get-price/${tripId}/${numberPlaces}${promoCodeSegment}`
             );
             return response.data.price;
         } catch (err) {
@@ -225,13 +227,70 @@ export function ReservationContextProvider({ children }) {
         }
     }
 
+    /**
+     * @description Récupère la liste paginée des réservations pour un trajet spécifique (pour le chauffeur).
+     */
+    async function getReservationsForDriver(tripId, page) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(
+                `/api/v1/reservations/list-for-driver/${tripId}/${page}`
+            );
+            toast.success(`Réservations du trajet ${tripId} récupérées.`);
+            return response.data; 
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || "Échec de la récupération des réservations pour le chauffeur.";
+            setError(errorMessage);
+            console.error(err);
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    // 🚩 NOUVELLE FONCTION : Génère et retourne l'URL de téléchargement d'une facture PDF
+    /**
+     * @description Génère la facture d'une réservation et retourne son URL de téléchargement.
+     * @param {number} reservationId L'ID de la réservation.
+     * @returns {string} L'URL de téléchargement du PDF.
+     */
+    async function generateBill(reservationId) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            // NOTE: Assurez-vous que l'API utilise un chemin correct, ici je suppose
+            // qu'elle prend l'ID en tant que paramètre de requête ou de chemin pour identifier la facture.
+            // Si l'API retourne directement l'URL de téléchargement, pas de manipulation de header nécessaire.
+            const response = await api.get(`/api/v1/reservations/generate-bill?reservationId=${reservationId}`);
+            
+            // On suppose que l'API retourne un objet avec l'URL de téléchargement
+            // S'il retourne l'URL directement, utilisez `return response.data;`
+            toast.success("URL de facture générée !");
+            
+            // Retourne l'URL de téléchargement (ajustez 'downloadUrl' selon le format de votre API)
+            return response.data.downloadUrl; 
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.message || "Échec de la génération de la facture.";
+            setError(errorMessage);
+            console.error("Erreur de génération de facture:", err);
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    // -----------------------------------------------------------------------------------
+
+
     const value = {
         reservations,
         setReservations,
         reservationDetails,
         setReservationDetails,
         getPrice,
-        addReservation, // <--- Logique de pays mise à jour ici
+        addReservation, 
         getAllReservations,
         getReservationStatus,
         confirmReservationAsDriver,
@@ -239,9 +298,11 @@ export function ReservationContextProvider({ children }) {
         cancelReservationByDriver,
         confirmAllReservations,
         getReservationsWithStatus,
+        getReservationsForDriver, 
+        // 🚩 AJOUT DE LA NOUVELLE FONCTION AU CONTEXTE
+        generateBill, 
         isLoading,
         error,
-        // Ajout du pays actif pour le debug ou l'affichage
         getActiveCountryId, 
     };
 

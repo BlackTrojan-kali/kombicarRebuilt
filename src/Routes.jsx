@@ -50,6 +50,7 @@ import Reviews from "./Pages/Client/Reviews";
 // NOUVEAUX IMPORTS POUR LES AVIS
 import SubmitReview from "./Pages/Client/SubmitReview";
 import CarDocuments from "./Pages/Dashboard/CarDocuments";
+import DriverReservations from "./Pages/Client/DriverReservations";
 
 
 const Routes = () => {
@@ -106,6 +107,10 @@ const Routes = () => {
         {
           path: "profile/reservations",
           element: <MyReservations />,
+        },
+        {
+          path: "profile/driver-reservations/:id",
+          element: <DriverReservations />,
         },
         {
           path: "profile/licence",
