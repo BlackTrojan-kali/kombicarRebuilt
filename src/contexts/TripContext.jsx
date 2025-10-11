@@ -43,28 +43,10 @@ export function TripContextProvider({ children }) {
         setLoading(true);
         setError(null);
         
-        let countryToFilter = searchCriteria.country;
 
-        // Détermination du pays à utiliser si le critère 'country' n'est pas spécifié (ou vaut 0)
-        if (countryToFilter === 0 || countryToFilter === null || countryToFilter === undefined) {
-            if (user?.country) {
-                // Utilisateur authentifié : Utilise le pays du profil
-                countryToFilter = user.country;
-            } else if (defaultCountry?.countryCode) {
-                // Utilisateur non authentifié : Utilise le pays par défaut détecté
-                countryToFilter = defaultCountry.countryCode;
-            }
-        }
-        
-        // Création des critères de recherche finaux
-        const finalSearchCriteria = {
-            ...searchCriteria,
-            // S'assure que le champ est inclus, même avec la valeur par défaut ou trouvée
-            country: countryToFilter || 0,
-        };
 
         try {
-            const response = await api.post('/api/v1/trips/list-public', finalSearchCriteria);
+            const response = await api.post('/api/v1/trips/list-public', searchCriteria);
             const data = response.data;
             
             if (data && Array.isArray(data.items) && data.items.length > 0) {

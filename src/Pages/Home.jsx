@@ -103,12 +103,43 @@ const Home = () => {
     ]
   };
 
+  // ###################################################
+  // LOGIQUE DE RÉCUPÉRATION DES TRAJETS PUBLICS PAR PAYS
+  // ###################################################
   useEffect(() => {
-    listPublicTrips({
-      page: 1,
-      tripStatus: 0, // "Published" status
-    });
-  }, [defaultCountry]);
+    // 1. Attendre que l'état d'authentification soit chargé
+    if (authLoading) {
+      return; 
+    }
+
+    // 2. Détermination du code pays à envoyer
+    let countryCodeToSend = null;
+
+    // Si l'utilisateur est connecté, utiliser son pays (user.country est un number)
+    if (user && user.country) {
+      countryCodeToSend = user.country; 
+    } 
+    // Si l'utilisateur n'est PAS connecté ET que le pays par défaut est chargé
+    else if (defaultCountry && defaultCountry.countryCode !== undefined) {
+      // defaultCountry.countryCode est un number
+      countryCodeToSend = defaultCountry.countryCode;
+    }
+    
+    // 3. Exécution de la requête seulement si le code pays est déterminé
+    if (countryCodeToSend !== null) {
+      // Construction des critères de recherche
+      const searchCriteria = {
+        page: 1,
+        tripStatus: 0, // "Published" status
+        country: countryCodeToSend, // 👈 Ajout de la propriété country
+      };
+
+      // Appel de la fonction pour lister les trajets publics
+      listPublicTrips(searchCriteria);
+    }
+    
+  }, [authLoading, user, defaultCountry]); // listPublicTrips est une dépendance stable car vient de useTrips.
+  // ###################################################
 
   const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
   const sectionBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
@@ -255,6 +286,7 @@ const Home = () => {
           <div className='w-full md:w-1/2 md:p-8'>
             <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColor} leading-tight`}>
               Votre sécurité, notre priorité. Voyagez sereinement.
+            
             </h2>
             <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
               Chez Kombicar, chaque trajet est pensé pour votre tranquillité. Nous nous engageons à construire une communauté de confiance où chaque membre est vérifié et évalué. Profitez d'une expérience de voyage agréable et fiable, à chaque fois.
@@ -350,49 +382,26 @@ const Home = () => {
       </section>
       
       {/* ==================================== */}
-{/* NOUVELLE SECTION: Gestion du Profil */}
-{/* ==================================== */}
-<section className='mt-24 bg-gray-50 dark:bg-gray-800 py-20 px-4 sm:px-6 lg:px-12 xl:px-24'>
-    <div className='max-w-7xl mx-auto text-center'>
-        <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${textColor}`}>
-            Votre espace personnel
-        </h2>
-        <p className={`leading-relaxed text-lg mb-8 max-w-2xl mx-auto ${paragraphColor}`}>
-            Gérez vos trajets, suivez vos réservations et construisez votre réputation au sein de la communauté Kombicar. Votre profil est la clé d'une expérience de voyage personnalisée.
-        </p>
-        <Link to="/profile">
-            <Button className='px-8 py-4 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105'>
-                Gérer mon profil
-            </Button>
-        </Link>
-    </div>
-</section>
-{/*
-   <section className='mt-24 flex flex-col md:flex-row gap-12 items-center px-4 sm:px-6 lg:px-12 xl:px-24 pb-20 max-w-7xl mx-auto'>
-        <img
-          src="/default/map-cameroon.png"
-          alt="Carte du Cameroun avec les principales villes"
-          className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
-        />
-        <div className='w-full md:w-1/2 md:p-8'>
-          <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 ${textColor} leading-tight`}>
-            Le Cameroun à portée de main avec Kombicar
-          </h2>
-          <p className={`leading-relaxed text-lg mb-8 ${paragraphColor}`}>
-            Que vous voyagiez pour le travail, les études ou les loisirs, Kombicar vous connecte aux villes clés du Cameroun. Découvrez de nouvelles régions et vivez des expériences authentiques grâce à notre réseau de covoiturage fiable et étendu.
-          </p>
-          <div className='text-center md:text-left'>
-            
-              <Link to="/results">
-            <Button className='px-8 py-3 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75'>
-              Voir toutes nos destinations
-            </Button>
+      {/* NOUVELLE SECTION: Gestion du Profil */}
+      {/* ==================================== */}
+      <section className='mt-24 bg-gray-50 dark:bg-gray-800 py-20 px-4 sm:px-6 lg:px-12 xl:px-24'>
+        <div className='max-w-7xl mx-auto text-center'>
+            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${textColor}`}>
+                Votre espace personnel
+            </h2>
+            <p className={`leading-relaxed text-lg mb-8 max-w-2xl mx-auto ${paragraphColor}`}>
+                Gérez vos trajets, suivez vos réservations et construisez votre réputation au sein de la communauté Kombicar. Votre profil est la clé d'une expérience de voyage personnalisée.
+            </p>
+            <Link to="/profile">
+                <Button className='px-8 py-4 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105'>
+                    Gérer mon profil
+                </Button>
             </Link>
-          </div>
         </div>
       </section>
-*/} 
-   </div>
+      
+      
+    </div>
   );
 };
 

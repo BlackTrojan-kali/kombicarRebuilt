@@ -1,11 +1,11 @@
-import { faCalendarDays, faLocationDot, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faLocationDot, faMoneyBillWave, faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-// Importations pour DatePicker de MUI
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+// Importations pour TimePicker de MUI (remplace DatePicker)
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -13,20 +13,22 @@ import 'dayjs/locale/fr';
 
 // Importation du hook personnalisé pour le contexte de la carte
 import useMape from '../../hooks/useMap';
+import { TextField } from '@mui/material'; // Pour améliorer le style du TimePicker
 
 const SearchBar = () => {
     const navigate = useNavigate();
     const { places, searchPlaces, loading, error } = useMape();
 
+    // Mise à jour des états pour l'heure et le prix
     const [departure, setDeparture] = useState('');
     const [destination, setDestination] = useState('');
-    const [date, setDate] = useState(dayjs());
-    const [passengers, setPassengers] = useState(1);
-    const [activeField, setActiveField] = useState(null); // 'departure' ou 'destination'
+    const [departureTime, setDepartureTime] = useState(dayjs().hour(0).minute(0)); // Nouvelle: Heure de départ (initialisé à minuit)
+    const [maxPrice, setMaxPrice] = useState(0); // Nouvelle: Prix maximal
+    const [activeField, setActiveField] = useState(null); 
 
     const debounceTimeout = useRef(null);
 
-    // Gère la saisie de l'input et la logique de debounce
+    // ... (handleSearchChange et handleSelectSuggestion restent inchangés)
     const handleSearchChange = (value, field) => {
         if (field === 'departure') {
             setDeparture(value);
@@ -42,10 +44,9 @@ const SearchBar = () => {
 
         debounceTimeout.current = setTimeout(() => {
             if (value.length > 2) {
-                // Appel à l'API de recherche
                 searchPlaces(value);
             }
-        }, 500);
+        }, 500); 
     };
 
     const handleSearch = (e) => {
@@ -58,8 +59,13 @@ const SearchBar = () => {
         const params = new URLSearchParams();
         params.append('departure', departure);
         params.append('destination', destination);
-        params.append('date', date.toISOString());
-        params.append('passengers', passengers);
+        
+        // ✨ Changement 1 : Utilisation de l'heure de départ (format ISO pour l'heure)
+        // Note: Votre backend peut préférer un format plus simple (ex: HH:mm)
+        params.append('departureTime', departureTime.format('HH:mm')); 
+        
+        // ✨ Changement 2 : Utilisation du prix maximal
+        params.append('maxPrice', maxPrice);
 
         navigate(`/results?${params.toString()}`);
     };
@@ -70,11 +76,11 @@ const SearchBar = () => {
         } else {
             setDestination(place.description);
         }
-        // Masquer les suggestions après la sélection
         setActiveField(null);
     };
+
     return (
-        <LocalizationProvider dateAdapter={AdapterDayjs} locale="fr">
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
             <form
                 onSubmit={handleSearch}
                 className='absolute -bottom-[160px] z-10 lg:bottom-0 left-1/2 -translate-x-1/2
@@ -84,7 +90,8 @@ const SearchBar = () => {
                            text-gray-800 border border-gray-100'
             >
                 <div className='flex flex-col lg:flex-row w-full lg:flex-grow'>
-                    {/* Champ Départ */}
+                    
+                    {/* Champ Départ (inchangé) */}
                     <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
                         <FontAwesomeIcon icon={faLocationDot} className='text-xl text-blue-500 mr-3' />
                         <input
@@ -119,7 +126,7 @@ const SearchBar = () => {
                         )}
                     </div>
 
-                    {/* Champ Destination */}
+                    {/* Champ Destination (inchangé) */}
                     <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
                         <FontAwesomeIcon icon={faLocationDot} className='text-xl text-green-500 mr-3' />
                         <input
@@ -154,15 +161,15 @@ const SearchBar = () => {
                         )}
                     </div>
 
-                    {/* Champ Date */}
+                    {/* ✨ Champ Heure de Départ (remplace Date) */}
                     <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faCalendarDays} className='text-xl text-purple-500 mr-3' />
-                        <DatePicker
-                            label="Date"
-                            value={date}
-                            onChange={(newValue) => setDate(newValue)}
+                        <FontAwesomeIcon icon={faClock} className='text-xl text-purple-500 mr-3' />
+                        <TimePicker
+                            label="Heure de départ"
+                            value={departureTime}
+                            onChange={(newValue) => setDepartureTime(newValue)}
                             className='flex-grow w-full'
-                            format="DD/MM/YYYY"
+                            ampm={false} // Format 24h
                             slotProps={{
                                 textField: {
                                     variant: 'standard',
@@ -180,23 +187,22 @@ const SearchBar = () => {
                         />
                     </div>
 
-                    {/* Champ Nombre de personnes */}
+                    {/* ✨ Champ Prix Maximal (remplace Nombre de personnes) */}
                     <div className='relative flex items-center p-3 sm:p-4 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faUserGroup} className='text-xl text-orange-500 mr-3' />
+                        <FontAwesomeIcon icon={faMoneyBillWave} className='text-xl text-orange-500 mr-3' />
                         <input
                             type="number"
-                            min="1"
-                            max="10"
-                            placeholder='Nb Personnes'
-                            value={passengers}
-                            onChange={(e) => setPassengers(Number(e.target.value))}
+                            min="0"
+                            placeholder='Prix Max (ex: 50€)'
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(Number(e.target.value))}
                             className='flex-grow outline-none bg-transparent placeholder-gray-500 text-lg py-1'
-                            aria-label="Nombre de personnes"
+                            aria-label="Prix Maximal"
                         />
                     </div>
                 </div>
 
-                {/* Bouton de recherche */}
+                {/* Bouton de recherche (inchangé) */}
                 <button
                     type="submit"
                     className='w-full lg:w-32 bg-green-500 hover:bg-green-600 text-white font-bold

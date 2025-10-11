@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import useStats from '../../hooks/useStats'; 
 import useColorScheme from '../../hooks/useColorScheme';
+import useAuth from '../../hooks/useAuth';
 
 ChartJS.register(
   CategoryScale,
@@ -29,7 +30,6 @@ const Dashboard = () => {
   // ✅ Utilisation des hooks pour accéder au contexte
   const { carpoolingStats, getCarpoolingMonthlyStats, loading } = useStats();
   const { theme } = useColorScheme();
-
   // ✅ Déclenchement de la récupération des données au chargement du composant
   useEffect(() => {
     getCarpoolingMonthlyStats();

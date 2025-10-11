@@ -20,13 +20,14 @@ import {
     faHandHoldingUsd,
     faGlobeAfrica,
 } from '@fortawesome/free-solid-svg-icons';
+// Ces imports sont nécessaires et doivent pointer vers vos hooks réels
 import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 import useUser from '../../hooks/useUser'; 
 import { toast } from 'sonner';
 
 // ###################################################
-// Énumération des pays
+// Énumération des pays (Utilitaires inclus dans le fichier)
 // ###################################################
 const COUNTRIES = {
     OTHERS: { code: 0, name: 'International' },
@@ -42,7 +43,7 @@ const COUNTRIES = {
 };
 
 
-// Fonction utilitaire pour générer les initiales SVG
+// Fonction utilitaire pour générer les initiales SVG (Inclus dans le fichier)
 const generateInitialsSvg = (firstName, lastName, theme) => {
     const initials = `${firstName?.charAt(0) || '?'}${lastName?.charAt(0) || '?'}`.toUpperCase();
     const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
@@ -59,7 +60,7 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
 };
 
 
-// Composant DropDown (Aucune modification nécessaire)
+// Composant interne DropDown
 const DropDown = ({ icon, title, sublinks = [] }) => {
     const [active, setActive] = useState(false);
     
@@ -117,25 +118,23 @@ const DropDown = ({ icon, title, sublinks = [] }) => {
 
 // ----------------------------------------------------------------------
 
-// Composant CountrySwitcher (MODIFIÉ)
+// Composant interne CountrySwitcher
 const CountrySwitcher = () => {
-    // MODIFICATION 1: Ajout de refreshAdminToken et logout
+    // Récupération des fonctions nécessaires
     const { user, setUser, refreshAdminToken, logout } = useAuth(); 
     const { updateAdminCountryAccess } = useUser(); 
 
     const [active, setActive] = useState(false);
 
-    // Le pays actuellement sélectionné, en utilisant adminAccesCountry
-    // Note: Correction de adminCountryAccess à adminAccesCountry pour cohérence avec le code précédent.
+    // Le pays actuellement sélectionné
     const currentCountryCode = user?.adminAccesCountry || COUNTRIES.OTHERS.code; 
     
     const currentCountryObject = Object.values(COUNTRIES).find(c => c.code === currentCountryCode);
     const currentCountryName = currentCountryObject?.name || 'Inconnu';
 
-
     /** Gère l'appel API pour changer le pays d'accès ET force le rafraîchissement du token Admin */
     const handleCountryChange = async (newCountryCode) => {
-        if (!user || !user.id || !user.role.includes('Admin')) {
+        if (!user || !user.role.includes('Admin')) {
             toast.error("Action non autorisée. Vous devez être administrateur.");
             return;
         }
@@ -146,9 +145,8 @@ const CountrySwitcher = () => {
             // 1. Appel API pour mettre à jour la BDD
             await updateAdminCountryAccess(user.id, newCountryCode);
             
-            // 2. Mise à jour locale du contexte (pour feedback immédiat avant le refresh)
+            // 2. Mise à jour locale du contexte 
             if (setUser) {
-                // Assurez-vous que la clé est correcte
                 setUser(prevUser => ({
                     ...prevUser,
                     adminAccesCountry: newCountryCode 
@@ -156,7 +154,7 @@ const CountrySwitcher = () => {
             }
             
             // 3. Rafraîchissement du Access Token 
-            const refreshToken = localStorage.getItem('accessToken');
+            const refreshToken = localStorage.getItem('refreshToken');
           
             if (refreshToken) {
                 const refreshSuccess = await refreshAdminToken(refreshToken);
@@ -165,21 +163,20 @@ const CountrySwitcher = () => {
                     const newCountry = Object.values(COUNTRIES).find(c => c.code === newCountryCode);
                     toast.success(`Pays d'accès mis à jour à ${newCountry?.name || 'Inconnu'} et token rafraîchi.`, { duration: 3000 });
                 } else {
-                    // Si le refresh échoue, le token est expiré, on force la déconnexion
+                    // Si le refresh échoue, on force la déconnexion
                     toast.warning("Changement de pays enregistré, mais la session a expiré. Veuillez vous reconnecter.");
-                    logout(false); // Utiliser logout du contexte pour effacer les tokens
+                    logout(false); 
                 }
             } else {
-                 const newCountry = Object.values(COUNTRIES).find(c => c.code === newCountryCode);
-                 toast.success(`Pays d'accès mis à jour à : ${newCountry?.name || 'Inconnu'}`);
+                toast.warning("Session terminée, veuillez vous reconnecter pour finaliser les permissions.");
+                logout(false); 
             }
 
         } catch (error) {
-            // Les erreurs de updateAdminCountryAccess sont gérées par le hook useUser/AuthContext
             console.error("Échec du processus de changement de pays:", error);
+            toast.error("Une erreur s'est produite lors de la mise à jour du pays.");
         }
     };
-
     return (
         <div className='mb-4'>
             <div
@@ -230,7 +227,7 @@ const CountrySwitcher = () => {
 
 // ----------------------------------------------------------------------
 
-// Composant principal DashSideBar (Aucune modification nécessaire ici, car le CountrySwitcher est déjà appelé)
+// Composant principal DashSideBar
 const DashSideBar = () => {
     const { user, API_URL } = useAuth();
     const location = useLocation();
@@ -238,6 +235,9 @@ const DashSideBar = () => {
     const { theme } = useColorScheme();
     const activeLinkClass = "flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200";
     const defaultLinkClass = "flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2";
+
+    // Correction: utilisation des rôles ADMIN ou SUPER_ADMIN pour afficher le CountrySwitcher
+    const isAdmin = user?.role && (user.role.includes('Admin') || user.role.includes('SUPER_ADMIN'));
 
     return (
         <div className='flex flex-col w-[280px] py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20 overflow-y-auto'>
@@ -265,8 +265,8 @@ const DashSideBar = () => {
                 </div>
             )}
             
-            {/* SÉLECTEUR DE PAYS (affiché pour les rôles admin) */}
-            {(user?.role === 'SUPER_ADMIN' || user?.role === 'Admin') && <CountrySwitcher />} 
+            {/* SÉLECTEUR DE PAYS (affiché uniquement pour les administrateurs) */}
+            {isAdmin && <CountrySwitcher />} 
             
             <nav className='flex flex-col flex-grow space-y-2'>
                 

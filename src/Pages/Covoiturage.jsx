@@ -6,6 +6,7 @@ import Button from '../Components/ui/Button';
 import useTrips from '../hooks/useTrips';
 import useColorScheme from '../hooks/useColorScheme';
 import { Link } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 
 const Covoiturage = () => {
     const truncateLocationName = (name) => {
@@ -18,9 +19,35 @@ const Covoiturage = () => {
   // 🔄 Remplacement de `fetchTrips` par `listPublicTrips`
   const { trips, loading, error, listPublicTrips } = useTrips();
   const { theme } = useColorScheme();
+  const { user, defaultCountry, loading: authLoading } = useAuth(); // <-- Changement ici
   // 🔄 Appel à listPublicTrips avec un objet vide pour récupérer tous les trajets
   useEffect(() => {
-    listPublicTrips({page:1,tripStatus:0});
+    // 2. Détermination du code pays à envoyer
+    let countryCodeToSend = null;
+
+    // Si l'utilisateur est connecté, utiliser son pays (user.country est un number)
+    if (user && user.country) {
+      countryCodeToSend = user.country; 
+    } 
+    // Si l'utilisateur n'est PAS connecté ET que le pays par défaut est chargé
+    else if (defaultCountry && defaultCountry.countryCode !== undefined) {
+      // defaultCountry.countryCode est un number
+      countryCodeToSend = defaultCountry.countryCode;
+    }
+    
+    // 3. Exécution de la requête seulement si le code pays est déterminé
+    if (countryCodeToSend !== null) {
+      // Construction des critères de recherche
+      const searchCriteria = {
+        page: 1,
+        tripStatus: 0, // "Published" status
+        country: countryCodeToSend, // 👈 Ajout de la propriété country
+      };
+
+      // Appel de la fonction pour lister les trajets publics
+      listPublicTrips(searchCriteria);
+    }
+    
   }, [])//listPublicTrips]);
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
   const textColorSecondary = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';

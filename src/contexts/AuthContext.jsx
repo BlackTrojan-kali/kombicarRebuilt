@@ -51,11 +51,10 @@ export function AuthContextProvider({ children }) {
      * POST /api/v1/users/refresh-token-admin
      */
     const refreshAdminToken = async (refreshToken) => {
-        console.log(refreshToken)
         try {
             // Le corps de la requête est { refreshToken: "..." }
             const response = await api.post('/api/v1/users/refresh-token-admin', { refreshToken });
-            localStorage.setItem('accessToken', response.data.accessToken);
+            localStorage.setItem('accessToken', response.data.token);
         
             localStorage.setItem('refreshToken', response.data.refreshToken);
             return true;
