@@ -1,6 +1,7 @@
 import { createContext, useState } from "react";
 import api from "../api/api";
 import { toast } from "sonner";
+import useAuth from "../hooks/useAuth";
 
 export const UserContext = createContext({});
 
@@ -17,7 +18,7 @@ export function UserContextProvider({ children }) {
     });
     const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
     const [adminListError, setAdminListError] = useState(null);
-
+    const { refreshUserToken} = useAuth();
     // ===================================
     // 2. GESTION DES CONDUCTEURS (Unverified Conductor List)
     // ===================================
@@ -294,9 +295,12 @@ export function UserContextProvider({ children }) {
     const updateProfile = async (profileData) => {
         setIsUpdatingProfile(true);
         setUpdateProfileError(null);
+            const refreshToken = localStorage.getItem("refreshToken");
+      
         try {
             // Le payload contient firstName, lastName, phoneNumber, country, etc.
             const response = await api.put('/api/v1/users/update', profileData); 
+            const res = await  refreshUserToken(refreshToken);
             
             toast.success("Votre profil a été mis à jour avec succès !");
 

@@ -24,9 +24,10 @@ const COUNTRY_REFERENCES = [
 
 const EditProfileModal = ({ isOpen, onClose }) => {
     // 1. Récupération des données et fonctions du contexte
-    const { user, defaultCountry, loading: authLoading, setUser } = useAuth(); // Récupérer l'utilisateur actuel
+    // NOTE : Le setUser est exporté par useAuth, mais il n'est plus nécessaire ici 
+    // si fetchUserInfo a été intégré à updateProfile dans UserContext.
+    const { user, defaultCountry, loading: authLoading } = useAuth(); 
     const { updateProfile, isUpdatingProfile, updateProfileError } = useUser();
-
     // 2. Initialisation de l'état local du formulaire
     const [formData, setFormData] = useState({
         firstName: '',
@@ -39,6 +40,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     useEffect(() => {
         if (isOpen && user) {
             // Déterminer la valeur du pays : utilisateur > pays par défaut > 0 (OTHERS)
+            // L'API renvoie le code numérique, qui correspond à la valeur des options.
             const initialCountryValue = user.country || (defaultCountry ? defaultCountry.countryCode : COUNTRY_REFERENCES[0].value);
 
             setFormData({
@@ -72,12 +74,10 @@ const EditProfileModal = ({ isOpen, onClose }) => {
         };
 
         try {
-            const updatedUser = await updateProfile(payload);
+            // updateProfile met à jour les infos et rafraîchit l'état 'user' via AuthContext (comme discuté précédemment)
+            await updateProfile(payload);
             
-            // Mise à jour de l'état de l'utilisateur dans l'AuthContext après succès
-            if (setUser) { 
-                setUser(prevUser => ({...prevUser, ...updatedUser}));
-            }
+            // Le rafraîchissement de l'état 'user' est maintenant géré par updateProfile dans UserContext.
             
             onClose(); // Fermer la modal après succès
         } catch (error) {
@@ -150,6 +150,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
                             id="phoneNumber"
                             value={formData.phoneNumber}
                             onChange={handleChange}
+                            required
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                     </div>
@@ -166,6 +167,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             {COUNTRY_REFERENCES.map((country) => (
+                            
                                 <option key={country.code} value={country.value}>
                                     {country.name} ({country.code === 'OTHERS' ? '0' : `+${country.value}`})
                                 </option>

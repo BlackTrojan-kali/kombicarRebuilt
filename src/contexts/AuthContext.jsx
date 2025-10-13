@@ -71,7 +71,7 @@ export function AuthContextProvider({ children }) {
     const refreshUserToken = async (refreshToken) => {
         try {
             const response = await api.post('/api/v1/users/refresh-token', { refreshToken });
-            localStorage.setItem('accessToken', response.data.accessToken);
+            localStorage.setItem('accessToken', response.data.token);
             localStorage.setItem('refreshToken', response.data.refreshToken);
             return true;
         } catch (error) {
@@ -450,6 +450,7 @@ export function AuthContextProvider({ children }) {
         loginGoogle,
         uploadProfilePicture,
         refreshAdminToken,
+        refreshUserToken,
         API_URL
     };
 

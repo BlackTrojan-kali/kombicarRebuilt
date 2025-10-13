@@ -247,7 +247,7 @@ export default function Signup() {
                   placeholder="699888777"
                   type="tel"
                   name="phoneNumber"
-                  required={false}
+                  required={true}
                   className="formInput"
                   value={formData.phoneNumber}
                   onChange={handleChange}

@@ -66,7 +66,7 @@ const PaymentStatusComponent = ({ userId, reservationId, onPaymentComplete }) =>
     return (
         <div>
             <h2>Statut de la transaction</h2>
-            <p>{status}</p>
+            <p>{status} composez *126# ou #150#</p>
         </div>
     );
 };

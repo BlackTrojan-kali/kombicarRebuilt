@@ -51,6 +51,7 @@ import Reviews from "./Pages/Client/Reviews";
 import SubmitReview from "./Pages/Client/SubmitReview";
 import CarDocuments from "./Pages/Dashboard/CarDocuments";
 import DriverReservations from "./Pages/Client/DriverReservations";
+import ReservationSuccess from "./Pages/Client/ReservationSuccess";
 
 
 const Routes = () => {
@@ -73,6 +74,10 @@ const Routes = () => {
         {
           path: "taxi",
           element: <Taxi />,
+        },
+        {
+          path:"/reservation/success",
+          element:<ReservationSuccess/>
         },
         {
           path: "trip-detail/:tripId",

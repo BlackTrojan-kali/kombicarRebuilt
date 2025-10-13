@@ -58,51 +58,56 @@ export function ReservationContextProvider({ children }) {
         }
     }
 
-    async function addReservation(reservationData) {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const activeCountryId = getActiveCountryId(); 
-            
-            let endpoint = "/api/v1/reservations/add-reservation"; // Trustpayway (Cameroun)
-            let isCinetPayFlow = false;
+// ... (imports et fonctions inchangées)
 
-            // Logique de choix du endpoint basée sur le pays
-            if (activeCountryId && activeCountryId !== CAMEROON_ID) {
-                endpoint = "/api/v1/reservations/add-reservation-v2"; // Cinetpay (Autres pays)
-                isCinetPayFlow = true;
-            }
+async function addReservation(reservationData) {
+    setIsLoading(true);
+    setError(null);
+    try {
+        const activeCountryId = getActiveCountryId(); 
+        
+        let endpoint = "/api/v1/reservations/add-reservation"; // Trustpayway (Cameroun)
+        let isCinetPayFlow = false;
 
-            const response = await api.post(endpoint, reservationData);
-            const data = response.data;
-            
-            if (isCinetPayFlow) {
-                 // Gère le cas de Cinetpay (redirection)
-                 if (data.redirectUrl) {
-                    toast.success("Réservation initiée. Redirection vers le paiement...");
-                    // Retourne l'objet avec l'URL de redirection pour être géré par le composant appelant
-                    return { ...data, isRedirect: true }; 
-                 } else {
-                     throw new Error("Lien de redirection Cinetpay manquant.");
-                 }
-            }
-            
-            // Gère le cas standard (Trustpayway)
-            setReservationDetails(data);
-            toast.success("Réservation ajoutée avec succès !");
-            return data;
-
-        } catch (err) {
-            const errorMessage = err.response?.data?.description || err.message || "Échec de la réservation.";
-            setError(errorMessage);
-            console.error("Erreur lors de l'ajout de la réservation:", err);
-            toast.error(errorMessage);
-            throw err;
-        } finally {
-            setIsLoading(false);
+        // Logique de choix du endpoint basée sur le pays
+        if (activeCountryId && activeCountryId !== CAMEROON_ID) {
+            endpoint = "/api/v1/reservations/add-reservation-v2"; // Cinetpay (Autres pays)
+            isCinetPayFlow = true;
         }
-    }
 
+        const response = await api.post(endpoint, reservationData);
+        const data = response.data;
+        
+        if (isCinetPayFlow) {
+            // 🚩 MODIFICATION APPORTÉE ICI
+            if (data.cinetpayRedirectUrl) { 
+                toast.success("Réservation initiée. Redirection vers le paiement Cinetpay...");
+                // Retourne l'objet avec l'URL de redirection pour être géré par le composant appelant
+                // Note : On utilise la propriété 'redirectUrl' dans l'objet de retour pour uniformiser le traitement client
+                return { redirectUrl: data.cinetpayRedirectUrl, isRedirect: true }; 
+            } else {
+                // Le endpoint est censé utiliser Cinetpay, mais l'URL de redirection est manquante
+                throw new Error("Lien de redirection Cinetpay manquant dans la réponse.");
+            }
+        }
+        
+        // Gère le cas standard (Trustpayway)
+        setReservationDetails(data);
+        toast.success("Réservation ajoutée avec succès !");
+        return data;
+
+    } catch (err) {
+        const errorMessage = err.response?.data?.description || err.message || "Échec de la réservation.";
+        setError(errorMessage);
+        console.error("Erreur lors de l'ajout de la réservation:", err);
+        toast.error(errorMessage);
+        throw err;
+    } finally {
+        setIsLoading(false);
+    }
+}
+
+// ... (reste du code inchangé)
     async function getAllReservations() {
         setIsLoading(true);
         setError(null);
