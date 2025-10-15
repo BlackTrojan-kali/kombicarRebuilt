@@ -3,7 +3,21 @@ import useAuth from "../../hooks/useAuth";
 // Assurez-vous d'avoir ce hook disponible
 import useUser from "../../hooks/useUser"; 
 
-// Composant Modale pour la saisie des informations manquantes
+// Liste des codes pays avec leurs noms
+const COUNTRY_CODE_TO_NAME = {
+    237: 'Cameroun', 
+    225: "Côte d'Ivoire", 
+    221: 'Sénégal', 
+    243: 'République Démocratique du Congo', 
+    223: 'Mali', 
+    229: 'Bénin', 
+    228: 'Togo', 
+    224: 'Guinée', 
+    226: 'Burkina Faso', 
+    0: 'Autres / International',
+};
+
+// Composant Modale pour la saisie des informations manquantes (MIS À JOUR)
 function ProfileUpdateModal({ isVisible, onClose, onSubmit, countryValue, phoneValue, setCountry, setPhone, isLoading }) {
     if (!isVisible) return null;
 
@@ -14,35 +28,44 @@ function ProfileUpdateModal({ isVisible, onClose, onSubmit, countryValue, phoneV
 
     return (
         // Overlay (fond noir)
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={handleModalClick}>
+        // La classe bg-black/10 est conservée du code utilisateur, mais bg-black/50 est plus typique pour un overlay
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleModalClick}>
             {/* Contenu de la Modale */}
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4" onClick={handleModalClick}>
                 <h3 className="text-lg font-bold text-gray-900 mb-4">
                     Mise à jour du profil requise 🔔
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">
-                    Pour accéder à toutes les fonctionnalités, veuillez compléter votre pays et votre numéro de téléphone.
+                    Pour accéder à toutes les fonctionnalités, veuillez compléter votre **pays** et votre **numéro de téléphone**.
                 </p>
 
                 <form onSubmit={onSubmit}>
                     <div className="mb-4">
                         <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                            Code Pays (Ex: 225)
+                            Pays
                         </label>
-                        <input
-                            type="number"
+                        {/* Champ de sélection pour le pays */}
+                        <select
                             id="country"
                             value={countryValue}
                             onChange={(e) => setCountry(e.target.value)}
                             required
-                            placeholder="Ex: 225"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-                        />
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border bg-white"
+                        >
+                            <option value="" disabled>Sélectionnez un pays</option>
+                            {/* Mappage de la liste des pays : la valeur est le code, le texte est le nom */}
+                            {Object.entries(COUNTRY_CODE_TO_NAME).map(([code, name]) => (
+                                <option key={code} value={code}>
+                                    {name} (+{code})
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className="mb-6">
                         <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
                             Numéro de Téléphone
                         </label>
+                        {/* Champ de saisie pour le numéro de téléphone */}
                         <input
                             type="text"
                             id="phoneNumber"
@@ -73,28 +96,32 @@ function ProfileUpdateModal({ isVisible, onClose, onSubmit, countryValue, phoneV
 export function Footer() {
     // 1. Hooks d'état et de contexte
     const { user } = useAuth();
-    // Utiliser le hook useUser pour accéder à la fonction updateProfile et l'état de chargement
     const { updateProfile, isUpdatingProfile } = useUser(); 
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [country, setCountry] = useState('');
+    // 'country' stocke le code pays sous forme de chaîne (du <select>)
+    const [country, setCountry] = useState(''); 
     const [phoneNumber, setPhoneNumber] = useState('');
 
     // 2. useEffect pour vérifier si le profil est incomplet
     useEffect(() => {
-        // La modale ne doit s'afficher que si l'utilisateur est connecté ET que les champs sont vides.
-        // On vérifie si l'utilisateur est authentifié et si country OU phoneNumber sont manquants.
-        const isProfileIncomplete = user && (user.country === null || user.phoneNumber === null || user.country === "" || user.phoneNumber === "");
+        // La vérification doit inclure l'état où le code pays pourrait être 0 (Autres / International) 
+        // ou manquant (null, "", 0)
+        const isCountryMissing = user && (user.country === null || user.country === "" || user.country === 0);
+        const isPhoneMissing = user && (user.phoneNumber === null || user.phoneNumber === "");
+        
+        const isProfileIncomplete = user && (isCountryMissing || isPhoneMissing);
         
         if (isProfileIncomplete) {
             setIsModalVisible(true);
-            // Pré-remplir les champs si une valeur existe (par exemple, si seul le téléphone manque)
-            setCountry(user.country || '');
+            
+            // Pré-remplir les champs : le code pays est converti en chaîne pour le champ de sélection
+            setCountry(String(user.country || '')); 
             setPhoneNumber(user.phoneNumber || '');
         } else {
             setIsModalVisible(false);
         }
-    }, [user]); // Re-vérifie à chaque fois que l'objet 'user' change
+    }, [user]); 
 
     // 3. Fonction de soumission du formulaire
     const handleSubmit = async (e) => {
@@ -106,36 +133,26 @@ export function Footer() {
         }
 
         const profileData = {
-            country: country,
+            // On s'assure de convertir le code pays en nombre entier si votre backend l'attend comme tel
+            country: parseInt(country, 10), 
             phoneNumber: phoneNumber,
-            // Incluez les autres champs obligatoires pour l'endpoint updateProfile 
-            // si nécessaire, même s'ils ne sont pas modifiés ici.
-            // Ex: firstName: user.firstName, lastName: user.lastName, etc.
+            // ... autres champs si nécessaire
         };
 
         try {
-            // Appel de la fonction du hook useUser
             await updateProfile(profileData); 
-            
-            // Si l'appel réussit (la toast de succès est gérée dans useUser), on ferme la modale
             setIsModalVisible(false);
         } catch (error) {
-            // La toast d'erreur est gérée dans useUser.
             console.error("Échec de la mise à jour du profil:", error);
         }
     };
 
-    // La modale est rendue ici (elle se superposera au reste du contenu)
-    // Elle doit être placée en dehors du composant Footer pour s'afficher correctement 
-    // ou tout en haut du Footer si elle doit techniquement être dans ce composant.
-    // Pour un meilleur placement, elle devrait être dans le Layout/App, mais on la laisse ici.
-
     return (
         <>
-            {/* La Modale s'affiche si l'état est vrai */}
+            {/* La Modale est affichée si nécessaire */}
             <ProfileUpdateModal
                 isVisible={isModalVisible}
-                onClose={() => { /* On désactive la fermeture pour forcer la complétion */ }}
+                onClose={() => { /* Désactivé pour forcer la complétion */ }}
                 onSubmit={handleSubmit}
                 countryValue={country}
                 phoneValue={phoneNumber}
@@ -146,7 +163,6 @@ export function Footer() {
 
             {/* Le contenu original du Footer */}
             <footer className="bg-white dark:bg-gray-900">
-                {/* ... (Reste de votre code JSX pour le Footer) ... */}
                 <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
                     <div className="md:flex md:justify-between">
                         <div className="mb-6 md:mb-0">
@@ -228,5 +244,4 @@ export function Footer() {
     );
 }
 
-// Remplacez les chemins d'importation par les vôtres
 // export default Footer;
