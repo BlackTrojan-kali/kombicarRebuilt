@@ -220,22 +220,53 @@ export function AuthContextProvider({ children }) {
     // FONCTIONS D'AUTHENTIFICATION STANDARDS
     // ###################################################
 
-    const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
-        setLoading(true);
-        try {
-            await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
-            toast.success('Inscription réussie !');
-            toast('Veuillez vérifier votre email pour confirmer votre compte.', { icon: '📧' });
-            return true;
-        } catch (error) {
-            console.error("Échec de l'inscription:", error);
-            toast.error(error.response?.data || 'Échec de l\'inscription.');
-            return false;
-        } finally {
-            setLoading(false);
+  const register = async ({ email, password, firstName, lastName, phoneNumber, country }) => {
+    setLoading(true);
+    try {
+        await api.post('/api/v1/users/register', { email, password, firstName, lastName, phoneNumber, country });
+        toast.success('Inscription réussie !');
+        toast('Veuillez vérifier votre email pour confirmer votre compte.', { icon: '📧' });
+        return true;
+    } catch (error) {
+        console.error("Échec de l'inscription:", error);
+        
+        // --- LOGIQUE DE GESTION D'ERREUR MISE À JOUR ---
+        const apiError = error.response?.data;
+        let errorMessage = 'Échec de l\'inscription.'; // Message par défaut
+        
+        if (apiError) {
+            if (typeof apiError === 'string') {
+                // Cas 1: L'erreur est une simple chaîne de caractères (ex: 401 Unauthorized)
+                errorMessage = apiError;
+            } else if (apiError.errors) {
+                // Cas 2: L'erreur contient un objet de validation (error.response.data.errors)
+                // On essaie d'extraire le premier message de validation trouvé
+                const validationErrors = apiError.errors;
+                
+                // Parcourir les clés (Email, Password, etc.)
+                for (const key in validationErrors) {
+                    const messages = validationErrors[key];
+                    if (Array.isArray(messages) && messages.length > 0) {
+                        // On prend le premier message pour le premier champ en erreur
+                        errorMessage = messages[0];
+                        break; // Arrêter après avoir trouvé la première erreur
+                    }
+                }
+            } else if (apiError.message) {
+                // Cas 3: L'API renvoie un objet avec une clé 'message'
+                errorMessage = apiError.message;
+            }
         }
-    };
-
+        
+        // Afficher l'erreur extraite
+        toast.error(errorMessage);
+        // ---------------------------------------------
+        
+        return false;
+    } finally {
+        setLoading(false);
+    }
+};
     const login = async ({ email, password }) => {
         setLoading(true);
         try {
