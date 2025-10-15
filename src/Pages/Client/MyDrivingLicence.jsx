@@ -12,12 +12,7 @@ import { useNavigate } from 'react-router-dom';
 const MyDrivingLicence = () => {
   const { theme } = useColorScheme();
   const {user} = useAuth();
-  const navigate  = useNavigate()
-  useEffect(()=>{
-    if(!user){
-      navigate("/auth/signup")
-    }
-  },[user,navigate])
+ 
   const { 
     licenceInfo, 
     loading, 
