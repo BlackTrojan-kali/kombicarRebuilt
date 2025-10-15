@@ -177,20 +177,7 @@ const Drivers = () => {
       name: 'Actions',
       cell: row => (
         <div className="flex gap-2">
-          <button
-            onClick={() => toast(`Affichage des détails de ${row.firstName}`, { icon: 'ℹ️' })}
-            className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-            title="Voir les détails"
-          >
-            <FontAwesomeIcon icon={faEye} />
-          </button>
-          <button
-            onClick={() => toast(`Modification de ${row.firstName}...`, { icon: '✍️' })}
-            className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
-            title="Modifier"
-          >
-            <FontAwesomeIcon icon={faEdit} />
-          </button>
+          
           <button
             onClick={() => handleDeleteDriver(row.id, `${row.firstName} ${row.lastName}`)}
             className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
