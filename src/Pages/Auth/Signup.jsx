@@ -257,14 +257,14 @@ export default function Signup() {
                 </div>
               </div>
 
-              <div className="grid gap-2 dark:text-black">
+              <div className="grid gap-2 ">
                 <label htmlFor="country">Pays</label>
                 <Select
                   id="country"
                   name="country"
                   options={countries}
                   onChange={handleCountryChange}
-                  className="formInput w-full "
+                  className="formInput w-full dark:text-black "
                   placeholder="Sélectionnez votre pays"
                   isClearable={true}
                 />

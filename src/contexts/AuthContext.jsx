@@ -229,7 +229,7 @@ export function AuthContextProvider({ children }) {
             return true;
         } catch (error) {
             console.error("Échec de l'inscription:", error);
-            toast.error(error.response?.data?.message || 'Échec de l\'inscription.');
+            toast.error(error.response?.data || 'Échec de l\'inscription.');
             return false;
         } finally {
             setLoading(false);
