@@ -152,7 +152,7 @@ const DrivingLicences = () => {
                           <FontAwesomeIcon icon={faEye} />
                         </Link>
                         {/* The Update button will only appear if the license is pending */}
-                        {item.licenceDriving?.verificationState === 0 && (
+                        { (
                           <button
                             onClick={() => handleUpdateClick(item.licenceDriving)}
                             className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-500 mr-2"

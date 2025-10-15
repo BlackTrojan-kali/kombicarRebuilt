@@ -8,7 +8,7 @@ import GoogleLoginButton from "../../Components/ui/GoogleLoginButton";
 import { toast } from "sonner";
 
 export default function Signup() {
-  const { register, externalLoginGoogle, loading } = useAuth();
+  const { register,user, externalLoginGoogle, loading } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -19,6 +19,11 @@ export default function Signup() {
     acceptConditions: false,
   });
 
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
   // Liste complète des pays avec leurs codes téléphoniques
   const countries = [
     { value: 93, label: "Afghanistan (+93)" },
