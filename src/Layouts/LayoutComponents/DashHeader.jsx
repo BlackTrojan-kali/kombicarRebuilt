@@ -121,7 +121,7 @@ const DashHeader = () => {
             aria-label="Menu du profil"
           >
             <img
-              src={user.pictureProfileUrl ? `${API_URL}`+ user.pictureProfileUrl : generateInitialsSvg(user.firstName, user.lastName, theme)}
+              src={user?.pictureProfileUrl ? `${API_URL}`+ user.pictureProfileUrl : generateInitialsSvg(user?.firstName || "N/A", user?.lastName || "N/A", theme)}
               alt='Profile'
               className='w-9 h-9 rounded-full object-cover border-2 border-transparent hover:border-blue-500 transition-colors duration-200'
             />

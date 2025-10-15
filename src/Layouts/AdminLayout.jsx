@@ -11,12 +11,10 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    if (!loading) {
       if (!user || user.role !== 'Admin') {
         console.log("Accès refusé. Redirection vers la page de connexion.");
         navigate('/admin/signin', { replace: true });
-      }
-    }
+          }
   }, [user, loading, navigate]);
 
   const toggleSidebar = () => {
