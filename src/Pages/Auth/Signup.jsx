@@ -1,12 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Select from 'react-select';
 import Input from "../../Components/form/Input";
 import FormButton from "../../Components/form/FormButton";
 import useAuth from '../../hooks/useAuth';
 import GoogleLoginButton from "../../Components/ui/GoogleLoginButton";
 import { toast } from "sonner";
-
+import { useNavigate } from "react-router-dom";
 export default function Signup() {
   const { register,user, externalLoginGoogle, loading } = useAuth();
   const [formData, setFormData] = useState({
@@ -19,6 +19,7 @@ export default function Signup() {
     acceptConditions: false,
   });
 
+  const navigate = useNavigate();
   useEffect(() => {
     if (user) {
       navigate('/');
