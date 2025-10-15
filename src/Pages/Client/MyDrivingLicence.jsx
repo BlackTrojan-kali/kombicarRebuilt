@@ -6,9 +6,18 @@ import dayjs from 'dayjs';
 import { toast } from "sonner";
 
 import useColorScheme from '../../hooks/useColorScheme';
+import useAuth from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const MyDrivingLicence = () => {
   const { theme } = useColorScheme();
+  const {user} = useAuth();
+  const navigate  = useNavigate()
+  useEffect(()=>{
+    if(!user){
+      navigate("/auth/signup")
+    }
+  },[user,navigate])
   const { 
     licenceInfo, 
     loading, 
