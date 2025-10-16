@@ -60,37 +60,41 @@ export function MapContextProvider({ children }) {
    * NOTE: On utilise setCountryLoading ici pour gérer le chargement.
    */
   const getCountryFromCoords = async (latitude, longitude) => {
-    if (!latitude || !longitude) {
-      console.error("Les paramètres 'latitude' et 'longitude' sont requis.");
-      return null;
-    }
+    if (!latitude || !longitude) {
+      console.error("Les paramètres 'latitude' et 'longitude' sont requis.");
+      setError("Coordonnées GPS manquantes.");
+      return;
+    }
 
-    setCountryLoading(true);
-    setUserCountry(null); 
-    // On évite de toucher à 'error' global ici, sauf si c'est une erreur critique
-    try {
-      const response = await api.post(
-        `/api/v1/maps/get-country`,
-        { latitude, longitude }
-      );
-      
-      setUserCountry(response.data);
-      // Supposons que l'API renvoie le code numérique dans `response.data.code`
-      if (response.data && response.data.code) { 
-        setCountryCode(response.data.code);
-      }
+    setLoading(true);
+    setUserCountry(null); // Réinitialiser l'ancien pays
+    setError(null);
+    try {
+      // Les paramètres sont envoyés dans le corps de la requête POST
+      const response = await api.post(
+        `/api/v1/maps/get-country`,
+        { latitude, longitude }
+      );
       
-      return response.data; 
-      
-    } catch (err) {
-      console.error("Erreur de l'API get-country:", err.response || err);
-      return null;
-      
-    } finally {
-      setCountryLoading(false);
-    }
-  };
-  
+      // Assurez-vous que la réponse contient les données attendues (ex: { countryCode: 'CM', countryName: 'Cameroun' })
+      setUserCountry(response.data);
+      return response.data; // Renvoyer les données pour une utilisation immédiate si nécessaire
+      
+    } catch (err) {
+      if (err.response) {
+        setError(err.response.data.message || "Erreur du serveur lors de la récupération du pays.");
+      } else if (err.request) {
+        setError("Problème de connexion pour la géolocalisation. Veuillez vérifier votre réseau.");
+      } else {
+        setError(err.message || "Une erreur inattendue est survenue lors de la géolocalisation.");
+      }
+      console.error("Erreur de l'API get-country:", err.response || err);
+      return null;
+      
+    } finally {
+      setLoading(false);
+    }
+  }; 
 // --- LOGIQUE DE DÉTERMINATION DU PAYS ---
   useEffect(() => {
     const determineCountry = async () => {
