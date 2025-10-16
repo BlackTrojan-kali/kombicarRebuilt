@@ -28,9 +28,8 @@ const ReservationModal = ({ trip, onClose }) => {
 
     // 🔹 Déterminer le pays actif à partir du code utilisateur
     const userCountryCode = user?.country || 'OTHERS';
-    const activeCountry = COUNTRY_REFERENCES.find(c => c.code === userCountryCode) || COUNTRY_REFERENCES[0];
+    const activeCountry = COUNTRY_REFERENCES.find(c => c.value === userCountryCode) || COUNTRY_REFERENCES[0];
     const isCameroon = activeCountry.code === 'CM';
-
     const [numberReservedPlaces, setNumberReservedPlaces] = useState(1);
     const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
     const [promoCode, setPromoCode] = useState('');

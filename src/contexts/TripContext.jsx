@@ -48,7 +48,6 @@ export function TripContextProvider({ children }) {
         try {
             const response = await api.post('/api/v1/trips/list-public', searchCriteria);
             const data = response.data;
-        console.log(data);
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
             } else {
