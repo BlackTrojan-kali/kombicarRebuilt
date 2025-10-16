@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import useReservation from '../../hooks/useReservation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComments, faCheckDouble, faTimesCircle, faBan, faCalendarCheck } from '@fortawesome/free-solid-svg-icons';
+import { faComments, faCheckDouble, faTimesCircle, faBan, faCalendarCheck, faCheckCircle, faTimes } from '@fortawesome/free-solid-svg-icons'; // Ajout de faCheckCircle et faTimes
 import { toast } from 'sonner';
 
 // Définitions de constantes pour les statuts de réservation
@@ -195,12 +195,12 @@ const DriverReservations = () => {
     // 3. Il n'y a aucune réservation en attente à confirmer
     // 4. Une erreur d'action bloquante est présente (ex: véhicule non vérifié)
     const isDisabled = isAllConfirming || isLoading || !hasPendingReservations || actionError;
-console.log(reservationsToDisplay)
+
     return (
         <div className="driver-reservations-container p-6 rounded-lg">
             <br /><br />
             <h1 className="text-2xl font-bold mb-4 text-gray-800">
-                Réservations pour mon trajet **{displayTripType}**
+                Réservations pour mon  <span className="font-extrabold text-indigo-700">{displayTripType}</span>
             </h1>
             
             {/* AFFICHAGE DE L'ERREUR D'ACTION SPÉCIFIQUE (ex: Vehicle Not Verified) */}
@@ -220,6 +220,7 @@ console.log(reservationsToDisplay)
                 <button 
                     onClick={handleConfirmAll}
                     disabled={isDisabled}
+                    title={isDisabled && !actionError ? "Aucune réservation en attente à confirmer" : (actionError ? actionError : "Confirmer toutes les réservations en attente et clôturer le trajet")}
                     className={`text-sm px-4 py-2 font-semibold rounded-md flex items-center transition-colors duration-200 
                         ${isDisabled
                             ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
@@ -237,7 +238,7 @@ console.log(reservationsToDisplay)
             {/* --- SECTION FILTRE ET STATISTIQUES --- */}
             <div className="flex justify-between items-center mb-6 p-3 bg-gray-50 border rounded-md">
                 <h2 className="text-xl font-semibold text-gray-800">
-                    Passagers (**{reservationsToDisplay.length}** affichés / **{totalCount}** total)
+                    Passagers (<span className="font-extrabold text-indigo-600">{reservationsToDisplay.length}</span> affichés / <span className="font-extrabold text-indigo-600">{totalCount}</span> total)
                 </h2>
                 <div className="flex items-center space-x-2">
                     <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
@@ -278,16 +279,23 @@ console.log(reservationsToDisplay)
                         const status = getStatusDisplay(reservation.status);
                         const isCurrentActionLoading = isActionLoading === reservation.id;
                         const isActionDisabled = isCurrentActionLoading || isAllConfirming || actionError;
+                        
+                        // Condition pour afficher les boutons d'action (uniquement pour PENDING)
+                        const showActionButtons = reservation.status === RESERVATION_STATUS.PENDING;
 
                         return (
                             <div key={reservation.id} className="p-4 border rounded-lg bg-white flex justify-between items-center hover:shadow-lg transition duration-150">
                                 <div className='flex items-center space-x-4'>
+                                    {/* Placeholder pour un avatar si vous en avez un */}
+                                    {/* <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-semibold'>
+                                        {client.firstName[0]}
+                                    </div> */}
                                     <div>
                                         <p className="font-semibold text-lg text-gray-800">
-                                            Passager: **{client.firstName} {client.lastName}**
+                                            Passager: <span className="font-bold text-gray-900">{client.firstName} {client.lastName}</span>
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            Places réservées: **{reservation.numberReservedPlaces}**
+                                            Places réservées: <span className="font-medium text-gray-700">{reservation.numberReservedPlaces}</span>
                                         </p>
                                         <p className="text-sm text-gray-500">
                                             Téléphone: {client.phoneNumber || 'Non spécifié'}
@@ -310,27 +318,35 @@ console.log(reservationsToDisplay)
                                         </Link>
                                         
                                         {/* Boutons d'action visibles uniquement pour le statut EN ATTENTE */}
-                                        {reservation.status === RESERVATION_STATUS.CONFIRMED && (
+                                        {showActionButtons && (
                                             <> 
                                                 <button 
                                                     onClick={() => handleConfirm(reservation.id)}
-                                                    className={`text-xs px-2 py-1 text-white rounded transition-colors duration-150 ${isActionDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
+                                                    className={`text-xs px-2 py-1 text-white rounded transition-colors duration-150 flex items-center 
+                                                        ${isActionDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
                                                     disabled={isActionDisabled}
                                                 >
-                                                    {isCurrentActionLoading ? 'Confirmation...' : 'Confirmer'}
+                                                    <FontAwesomeIcon 
+                                                        icon={isCurrentActionLoading ? faSpinner : faCheckCircle} 
+                                                        className={`mr-1 ${isCurrentActionLoading ? 'animate-spin' : ''}`} 
+                                                    />
+                                                    {isCurrentActionLoading ? 'Confirma...' : 'Confirmer'}
                                                 </button>
                                                 <button 
                                                     onClick={() => handleRefuse(reservation.id)}
-                                                    className={`text-xs px-2 py-1 text-white rounded transition-colors duration-150 ${isActionDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
+                                                    className={`text-xs px-2 py-1 text-white rounded transition-colors duration-150 flex items-center 
+                                                        ${isActionDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
                                                     disabled={isActionDisabled}
                                                 >
+                                                    <FontAwesomeIcon icon={faTimes} className="mr-1" />
                                                     Refuser
                                                 </button>
                                             </>
                                         )}
+                                        
                                         {/* Bouton pour les trajets terminés/confirmés si nécessaire, mais non demandé */}
                                         {reservation.status === RESERVATION_STATUS.COMPLETED && (
-                                            <span className='text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded flex items-center'>
+                                            <span className='text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded flex items-center font-medium'>
                                                 <FontAwesomeIcon icon={faCalendarCheck} className="mr-1" />
                                                 Archivée
                                             </span>
