@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUser, faEnvelope, faPhone, faArrowLeft, faArrowRight,
-    faEye, faEdit, faTrash, faUserPlus, faCheckCircle, faBan, faShieldHalved
+    faTrash, faUserPlus, faShieldHalved // Ajouté faShieldHalved pour la promotion/vérification
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
@@ -12,44 +12,40 @@ import { toast } from "sonner";
 const Utilisateurs = () => {
     const { theme } = useColorScheme();
 
-    // NOTE IMPORTANTE: J'ai ajouté 'deleteUser' ici. 
-    // Vous devez l'ajouter au UserContext pour que la suppression fonctionne pour les utilisateurs standards.
     const {
         standardUserList,
-        standardUserPagination, // Contient totalCount, page, hasNextPage, hasPreviousPage
+        standardUserPagination, 
         isLoadingStandardUsers,
         standardUserListError,
         listStandardUsers,
-        updateUserRole, // Ajouté pour promouvoir/rétrograder un utilisateur
-        // <--- Ligne à implémenter dans votre useUser/UserContext
-        deleteUser, // La fonction pour supprimer un utilisateur standard (ROLE NONE)
-        // La fonction deleteAdmin est uniquement pour les administrateurs.
+        updateUserRole, 
+        deleteUser, // Maintenant disponible après la mise à jour du contexte
     } = useUser();
 
     const [currentPage, setCurrentPage] = useState(1);
     
-    // La taille de page est gérée par le backend dans l'API, nous n'avons besoin que du numéro de page.
-    // useEffect pour charger les données lorsque la page change
+    // ===================================
+    // LIFECYCLE ET CHARGEMENT
+    // ===================================
     useEffect(() => {
         const fetchUsers = async () => {
-            // Le hook s'occupe de la gestion du chargement et de l'erreur
             await listStandardUsers(currentPage);
         };
         fetchUsers();
-    }, [currentPage]); // Dépendance essentielle: listStandardUsers, currentPage
+    }, [currentPage]); // Dépendance essentielle: listStandardUsers (statique), currentPage
 
-    // useEffect pour afficher l'erreur
     useEffect(() => {
         if (standardUserListError) {
             toast.error(standardUserListError);
         }
-    }, [standardUserListError]); // Dépendance essentielle: standardUserListError
+    }, [standardUserListError]); 
 
-
-    // Utilisation des données de pagination du hook
+    // ===================================
+    // PAGINATION
+    // ===================================
     const { totalCount, page, hasNextPage, hasPreviousPage } = standardUserPagination;
-    const totalPages = Math.ceil(totalCount / (standardUserList.length / (page > 0 ? page : 1))) || 1; // Approximation si perPage n'est pas connue
-    const currentListCount = standardUserList.length;
+    // On utilise standardUserList.length pour estimer le 'perPage' de la liste actuelle
+    const currentListCount = standardUserList.length; 
     
     const handleNextPage = () => {
         if (hasNextPage) {
@@ -63,15 +59,16 @@ const Utilisateurs = () => {
         }
     };
     
-    // #################################################
-    // # NOUVELLE FONCTION DE SUPPRESSION (À IMPLÉMENTER)
-    // #################################################
+    // ===================================
+    // GESTION DES ACTIONS
+    // ===================================
+
+    /** Supprime un utilisateur standard (ROLE NONE). */
     const handleDeleteUser = async (userId, userName) => {
-        // Validation que la fonction existe avant de continuer
-        if (!deleteUser) {
-            toast.error("Fonction de suppression d'utilisateur standard non implémentée dans le contexte.");
-            return;
-        }
+      //  if (!deleteUser) {
+         //   toast.error("Fonction de suppression d'utilisateur standard non implémentée dans le contexte.");
+           // return;
+        //}
 
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -87,7 +84,6 @@ const Utilisateurs = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // Utilisation de la nouvelle fonction deleteUser (doit être ajoutée au hook)
                     const deletePromise = deleteUser(userId); 
                 
                     await toast.promise(deletePromise, {
@@ -96,13 +92,12 @@ const Utilisateurs = () => {
                         error: (err) => `Erreur: ${err.message || "Échec de la suppression."}`,
                     });
                     
-                    // Rafraîchir la liste après la suppression (revenir à la page 1 si la page actuelle est vide)
+                    // Logique de rafraîchissement: Si la dernière personne de la page est supprimée, on recule d'une page
                     const newTotalCount = totalCount - 1;
                     const newPage = (newTotalCount > 0 && standardUserList.length === 1 && currentPage > 1) 
                         ? currentPage - 1 
                         : currentPage;
 
-                    // Mettre à jour la page si elle a changé ou forcer le rafraîchissement
                     if (newPage !== currentPage) {
                         setCurrentPage(newPage);
                     } else {
@@ -117,9 +112,7 @@ const Utilisateurs = () => {
         });
     };
 
-    // #################################################
-    // # FONCTION POUR PROMOUVOIR L'UTILISATEUR EN CONDUCTEUR
-    // #################################################
+    /** Proémet l'utilisateur au rôle de conducteur vérifié (DRIVER). */
     const handlePromoteToDriver = async (userId, userName) => {
         if (!updateUserRole) {
             toast.error("Fonction de mise à jour de rôle non implémentée dans le contexte.");
@@ -128,10 +121,10 @@ const Utilisateurs = () => {
 
         Swal.fire({
             title: 'Confirmer la promotion ?',
-            text: `Voulez-vous vraiment promouvoir ${userName} au rôle de CONDUCTEUR VÉRIFIÉ (DRIVER) ?`,
+            text: `Voulez-vous vraiment promouvoir ${userName} au rôle de CONDUCTEUR VÉRIFIÉ (DRIVER) ? Il disparaîtra de cette liste.`,
             icon: 'info',
             showCancelButton: true,
-            confirmButtonColor: '#10B981', // Vert émeraude
+            confirmButtonColor: '#10B981', 
             cancelButtonColor: '#6B7280',
             confirmButtonText: 'Oui, Promouvoir !',
             cancelButtonText: 'Annuler',
@@ -165,15 +158,6 @@ const Utilisateurs = () => {
             position: 'top-right',
         });
     };
-
-    // Fonction conservée mais inutilisée dans la table actuelle, enlever les colonnes inutiles pour la clarté.
-    // const getStatusInfo = (isActivated) => {
-    //     if (isActivated) {
-    //         return { text: 'Actif', icon: faCheckCircle, classes: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' };
-    //     } else {
-    //         return { text: 'Bloqué', icon: faBan, classes: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' };
-    //     }
-    // };
 
     return (
         <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
@@ -239,6 +223,15 @@ const Utilisateurs = () => {
                                                     </td>
                                                     <td className="py-4 px-4">
                                                         <div className="flex justify-center gap-2">
+                                                            {/* NOUVEAU: Bouton pour promouvoir en conducteur vérifié */}
+                                                            <button
+                                                                onClick={() => handlePromoteToDriver(user.id, user.firstName)}
+                                                                className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
+                                                                title="Promouvoir au rôle de Conducteur (DRIVER)"
+                                                            >
+                                                                <FontAwesomeIcon icon={faShieldHalved} />
+                                                            </button>
+                                                            {/* Bouton de suppression d'utilisateur */}
                                                             <button
                                                                 onClick={() => handleDeleteUser(user.id, user.firstName)}
                                                                 className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
@@ -268,7 +261,7 @@ const Utilisateurs = () => {
                         {/* Pagination */}
                         <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
                             <div className="mb-2 sm:mb-0">
-                                {/* Affichage basé sur la pagination réelle du backend, si totalCount est disponible */}
+                                {/* Affichage de 1 à 10 sur 50 utilisateurs */}
                                 Affichage de {totalCount === 0 ? 0 : (page - 1) * currentListCount + 1} à {Math.min(totalCount, page * currentListCount)} sur {totalCount} utilisateurs.
                             </div>
                             <div className="flex gap-2">

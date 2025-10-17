@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import useReservation from '../../hooks/useReservation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComments, faCheckDouble, faTimesCircle, faBan, faCalendarCheck, faCheckCircle, faTimes } from '@fortawesome/free-solid-svg-icons'; // Ajout de faCheckCircle et faTimes
+import { faComments, faCheckDouble, faTimesCircle, faBan, faCalendarCheck, faCheckCircle, faTimes, faSpinner } from '@fortawesome/free-solid-svg-icons'; // Ajout de faCheckCircle et faTimes
 import { toast } from 'sonner';
 
 // Définitions de constantes pour les statuts de réservation
