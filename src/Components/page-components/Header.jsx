@@ -1,18 +1,17 @@
 import { Link } from "react-router-dom";
-import useColorScheme from "../../hooks/useColorScheme";
+import useColorScheme from "../../hooks/useColorScheme"; // Ajustez le chemin
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faBars, faMoon, faSun, faCar, faTaxi, faUserCircle,
     faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass,
     faPlusCircle, faRoute, faComment,
     faBell 
-} from "@fortawesome/free-solid-svg-icons"; // faCircle n'est plus nécessaire car Tailwind le gère
+} from "@fortawesome/free-solid-svg-icons"; 
 import { useState, useEffect } from "react";
 import HeaderDropDown from "./HeaderDropDown";
-import useAuth from "../../hooks/useAuth";
+import useAuth from "../../hooks/useAuth"; // Ajustez le chemin
 
-// 💡 IMPORTATION DU HOOK DE NOTIFICATION RÉEL
-import { useNotification } from "../../hooks/useNotifications";
+import { useNotification } from "../../hooks/useNotifications"; // Ajustez le chemin
 
 
 const Header = () => {
@@ -20,18 +19,16 @@ const Header = () => {
     const [showNav, setShowNav] = useState(false);
     const { user, logout } = useAuth();
     
-    // 💡 UTILISATION DU HOOK DE NOTIFICATION : Récupérer le décompte et la fonction de chargement
-    // L'objet 'unreadCount' a été exposé dans votre contexte.
+    // UTILISATION DU HOOK DE NOTIFICATION
     const { unreadCount, getUnreadCount } = useNotification(); 
     
 
-    // 💡 LOGIQUE DE CHARGEMENT INITIAL DU DÉCOMPTE NON LU
+    // LOGIQUE DE CHARGEMENT INITIAL DU DÉCOMPTE NON LU
     useEffect(() => {
         // Charge le décompte uniquement si l'utilisateur est connecté.
         if (user) {
              getUnreadCount(); 
         }
-        // Le tableau de dépendances garantit que le décompte est rechargé si l'utilisateur change.
     }, [user, getUnreadCount]); 
 
 
@@ -45,13 +42,14 @@ const Header = () => {
 
     const handleLogout = () => {
         logout();
+        setShowNav(false); // 💡 Ferme la navigation mobile après déconnexion
     };
 
     // Composant du badge de notification (réutilisable)
     const NotificationBadge = ({ isMobile = false }) => (
         <Link
             to="/profile/notifications"
-            onClick={() => setShowNav(false)}
+            onClick={() => setShowNav(false)} // Ferme la nav mobile lors du clic
             // Classe de base
             className={`relative flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 ${
                 isMobile ? 'w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-semibold' : 'text-lg'
@@ -62,18 +60,15 @@ const Header = () => {
             <FontAwesomeIcon icon={faBell} className={isMobile ? 'text-base' : ''} />
             
             {/* Affichage du compteur non lu en exposant */}
-            {/* Utilise la valeur réelle 'unreadCount' du contexte */}
             {(unreadCount > 0) && (
                 <span 
                     // Positionnement du badge
                     className={`absolute ${isMobile ? 'top-0.5 left-5' : 'top-[-5px] right-[-10px]'} 
-                                // Style du badge (taille, couleur, forme)
-                                text-center text-[0.6rem] font-bold leading-tight px-[5px] min-w-[18px] h-4 flex items-center justify-center 
-                                text-red-100 bg-red-600 rounded-full shadow-md
-                                // Décalage pour l'effet "exposant"
-                                transform translate-x-1/2`}
+                                 // Style du badge
+                                 text-center text-[0.6rem] font-bold leading-tight px-[5px] min-w-[18px] h-4 flex items-center justify-center 
+                                 text-red-100 bg-red-600 rounded-full shadow-md
+                                 transform translate-x-1/2`}
                 >
-                    {/* Logique d'affichage: 99+ si > 99 */}
                     {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
             )}
@@ -92,7 +87,7 @@ const Header = () => {
 
             {/* Navigation Desktop */}
             <nav className="hidden md:flex items-center gap-6 text-kombiblue-500 font-semibold dark:text-blue-300">
-                <Link to="/covoiturage" onClick={()=>setShowNav(false)} className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
+                <Link to="/covoiturage" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
                     <FontAwesomeIcon icon={faCar} />
                     Covoiturage
                 </Link>
@@ -101,7 +96,6 @@ const Header = () => {
                 {user && (
                     <Link 
                         to="/profile/chats" 
-                        onClick={()=>setShowNav(false)} 
                         className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200"
                     >
                         <FontAwesomeIcon icon={faComment} />
@@ -125,7 +119,7 @@ const Header = () => {
             {/* Actions (Dropdown, Dark Mode Toggle, Burger Menu) */}
             <div className="flex items-center gap-4">
                 
-                {/* 💡 BOUTON NOTIFICATION DESKTOP */}
+                {/* BOUTON NOTIFICATION DESKTOP */}
                 {user && (
                     <div className="hidden sm:block">
                         <NotificationBadge />
@@ -171,14 +165,12 @@ const Header = () => {
                 className={`fixed top-[64px] left-0 w-full md:hidden flex flex-col px-4 sm:px-6 py-4 gap-4 text-kombiblue-500 font-semibold dark:text-blue-300 transition-all duration-300 ease-in-out z-40 bg-white dark:bg-gray-800 h-screen overflow-y-auto ${
                     showNav ? 'transform-none visible opacity-100' : 'transform -translate-x-full invisible opacity-0'
                 }`}
-                onClick={(e) => {
-                    // Ferme la nav seulement si l'utilisateur clique sur un élément non cliquable
-                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') { 
-                        toggleResponsiveNav();
-                    }
-                }}
             >
-                <Link to="/covoiturage" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                <Link 
+                    to="/covoiturage" 
+                    onClick={() => setShowNav(false)}
+                    className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                >
                     <FontAwesomeIcon icon={faCar} />
                     Covoiturage
                 </Link>
@@ -189,6 +181,7 @@ const Header = () => {
                     <>
                         <Link
                             to="/publish-trip"
+                            onClick={() => setShowNav(false)}
                             className="flex items-center gap-2 w-full p-2 bg-kombigreen-500 text-white rounded-md font-bold hover:bg-kombigreen-600 transition-colors duration-200 shadow-md"
                         >
                             <FontAwesomeIcon icon={faPlusCircle} />
@@ -202,13 +195,21 @@ const Header = () => {
                 {/* Liens conditionnels pour l'authentification en mobile */}
                 {user ? (
                     <>
-                        <Link to="/profile" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                        <Link 
+                            to="/profile" 
+                            onClick={() => setShowNav(false)}
+                            className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        >
                             <FontAwesomeIcon icon={faUserCircle} />
                             Mon Profil
                         </Link>
-                        {/* 💡 LIEN NOTIFICATIONS EN MOBILE (utilise le badge avec isMobile=true) */}
+                        {/* LIEN NOTIFICATIONS EN MOBILE */}
                         <NotificationBadge isMobile={true} />
-                        <Link to="/profile/chats" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                        <Link 
+                            to="/profile/chats" 
+                            onClick={() => setShowNav(false)}
+                            className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        >
                             <FontAwesomeIcon icon={faComment} />
                             Mes conversations
                         </Link>
@@ -219,11 +220,19 @@ const Header = () => {
                     </>
                 ) : (
                     <>
-                        <Link to="/auth/signin" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                        <Link 
+                            to="/auth/signin" 
+                            onClick={() => setShowNav(false)}
+                            className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        >
                             <FontAwesomeIcon icon={faSignInAlt} />
                             Connexion
                         </Link>
-                        <Link to="/auth/signup" className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200">
+                        <Link 
+                            to="/auth/signup" 
+                            onClick={() => setShowNav(false)}
+                            className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                        >
                             <FontAwesomeIcon icon={faUserPlus} />
                             S'inscrire
                         </Link>

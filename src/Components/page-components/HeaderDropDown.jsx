@@ -1,14 +1,15 @@
-import { faChevronDown, faChevronUp, faUserCircle, faRightFromBracket, faSignInAlt, faUserPlus, faComment } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp, faUserCircle, faRightFromBracket, faSignInAlt, faUserPlus, faComment, faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useAuth from "../../hooks/useAuth";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { useNotification } from "../../hooks/useNotifications"; // Ajustez le chemin
 
 const HeaderDropDown = () => {
-    // Importation de 'user' et de la nouvelle fonction 'logout'
     const { user, logout } = useAuth();
     const [showDrop, setShowDrop] = useState(false);
     const dropdownRef = useRef(null);
+    const { unreadCount } = useNotification(); 
 
     // Gère le clic en dehors pour fermer le dropdown
     useEffect(() => {
@@ -28,20 +29,51 @@ const HeaderDropDown = () => {
         setShowDrop(prev => !prev);
     };
 
-    // Nouvelle fonction qui gère le clic sur le lien ET la déconnexion si nécessaire
     const handleLogoutAndClose = () => {
         setShowDrop(false);
-        logout(); // Appel de la fonction de déconnexion ici
+        logout(); 
     };
+
+    // Composant utilitaire pour le style des liens
+    const DropdownLink = ({ to, icon, label, isDanger = false, onClick = () => setShowDrop(false) }) => (
+        <Link
+            to={to}
+            onClick={onClick}
+            className={`flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-150 ${isDanger ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50' : 'text-gray-800 dark:text-gray-200'}`}
+        >
+            <div className="relative flex items-center gap-1">
+                {label}
+                {/* Afficher un petit point si ce sont les notifications et qu'il y a un décompte */}
+                {(icon === faBell && unreadCount > 0) && (
+                    <span 
+                        className="absolute top-0 right-[-10px] w-2 h-2 bg-red-600 rounded-full"
+                        aria-label={`${unreadCount} notifications non lues`}
+                    ></span>
+                )}
+            </div>
+            <FontAwesomeIcon icon={icon} className={`text-sm ${isDanger ? 'text-red-400' : 'text-gray-500 dark:text-gray-400'}`} />
+        </Link>
+    );
+    
+    // Composant Bouton de Déconnexion
+    const LogoutButton = () => (
+        <button
+            onClick={handleLogoutAndClose} 
+            className="flex items-center justify-between w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 transition-colors duration-150"
+        >
+            Déconnexion
+            <FontAwesomeIcon icon={faRightFromBracket} className="text-sm text-red-400" />
+        </button>
+    );
 
     return (
         <div className="relative flex items-center" ref={dropdownRef}>
             <button
                 onClick={toggleDropDownMenu}
                 className="hidden md:flex items-center gap-2 p-2 rounded-full cursor-pointer
-                         bg-blue-100 text-blue-600 hover:bg-blue-200
-                         dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-600
-                         transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           bg-blue-100 text-blue-600 hover:bg-blue-200
+                           dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-600
+                           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-expanded={showDrop}
                 aria-haspopup="true"
                 aria-label="Ouvrir le menu utilisateur"
@@ -58,48 +90,19 @@ const HeaderDropDown = () => {
                 >
                     {user ? (
                         <>
-                            <Link
-                                to="/profile"
-                                onClick={() => setShowDrop(false)} // Ferme le dropdown
-                                className="flex items-center justify-between px-4 py-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
-                            >
-                                Profil
-                                <FontAwesomeIcon icon={faUserCircle} className="text-sm text-gray-500 dark:text-gray-400" />
-                            </Link>
-                            <Link
-                                to="/profile/chats"
-                                onClick={() => setShowDrop(false)} // Ferme le dropdown
-                                className="flex items-center justify-between px-4 py-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
-                            >
-                                Mes conversations
-                                <FontAwesomeIcon icon={faComment} className="text-sm text-gray-500 dark:text-gray-400" />
-                            </Link>
-                            <button
-                                onClick={handleLogoutAndClose} // Appel de la nouvelle fonction
-                                className="flex items-center justify-between w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-b-lg transition-colors duration-150"
-                            >
-                                Déconnexion
-                                <FontAwesomeIcon icon={faRightFromBracket} className="text-sm text-red-400" />
-                            </button>
+                            <DropdownLink to="/profile" icon={faUserCircle} label="Mon Profil" />
+                            
+                            {/* LIEN NOTIFICATIONS AVEC BADGE (desktop dropdown) */}
+                            <DropdownLink to="/profile/notifications" icon={faBell} label="Notifications" />
+
+                            <DropdownLink to="/profile/chats" icon={faComment} label="Mes conversations" />
+                            <hr className="my-1 border-gray-100 dark:border-gray-600" />
+                            <LogoutButton />
                         </>
                     ) : (
                         <>
-                            <Link
-                                to="/auth/signin"
-                                onClick={() => setShowDrop(false)}
-                                className="flex items-center justify-between px-4 py-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
-                            >
-                                Connexion
-                                <FontAwesomeIcon icon={faSignInAlt} className="text-sm text-gray-500 dark:text-gray-400" />
-                            </Link>
-                            <Link
-                                to="/auth/signup"
-                                onClick={() => setShowDrop(false)}
-                                className="flex items-center justify-between px-4 py-2 text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
-                            >
-                                S'inscrire
-                                <FontAwesomeIcon icon={faUserPlus} className="text-sm text-gray-500 dark:text-gray-400" />
-                            </Link>
+                            <DropdownLink to="/auth/signin" icon={faSignInAlt} label="Connexion" />
+                            <DropdownLink to="/auth/signup" icon={faUserPlus} label="S'inscrire" />
                         </>
                     )}
                 </div>
