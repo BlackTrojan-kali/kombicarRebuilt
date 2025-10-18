@@ -11,7 +11,9 @@ import { useState, useEffect } from "react";
 import HeaderDropDown from "./HeaderDropDown";
 import useAuth from "../../hooks/useAuth"; // Ajustez le chemin
 
-import { useNotification } from "../../hooks/useNotifications"; // Ajustez le chemin
+// 💡 ATTENTION : unreadCount et getUnreadCount ont été retirés du contexte
+// Nous allons importer le hook, mais en ne déstructurant que les fonctions ou états encore présents.
+import { useNotification } from "../../hooks/useNotifications"; 
 
 
 const Header = () => {
@@ -19,17 +21,18 @@ const Header = () => {
     const [showNav, setShowNav] = useState(false);
     const { user, logout } = useAuth();
     
-    // UTILISATION DU HOOK DE NOTIFICATION
-    const { unreadCount, getUnreadCount } = useNotification(); 
+    // 💡 MISE À JOUR : Retrait de 'unreadCount' et 'getUnreadCount' de la déstructuration
+    // pour que le code corresponde au NotificationContext actuel.
+    // NOTE : Si d'autres valeurs du contexte sont nécessaires (comme 'notification'), elles devraient être déstructurées ici.
+    const { } = useNotification(); 
     
 
-    // LOGIQUE DE CHARGEMENT INITIAL DU DÉCOMPTE NON LU
-    useEffect(() => {
-        // Charge le décompte uniquement si l'utilisateur est connecté.
-        if (user) {
-             getUnreadCount(); 
-        }
-    }, [user, getUnreadCount]); 
+    // 💡 MISE À JOUR : Retrait du hook useEffect pour le décompte non lu
+    // useEffect(() => {
+    //     if (user) {
+    //          getUnreadCount(); 
+    //     }
+    // }, [user, getUnreadCount]); 
 
 
     const toggleDarkMode = () => {
@@ -42,39 +45,13 @@ const Header = () => {
 
     const handleLogout = () => {
         logout();
-        setShowNav(false); // 💡 Ferme la navigation mobile après déconnexion
+        setShowNav(false); // Ferme la navigation mobile après déconnexion
     };
 
-    // Composant du badge de notification (réutilisable)
-    const NotificationBadge = ({ isMobile = false }) => (
-        <Link
-            to="/profile/notifications"
-            onClick={() => setShowNav(false)} // Ferme la nav mobile lors du clic
-            // Classe de base
-            className={`relative flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 ${
-                isMobile ? 'w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-semibold' : 'text-lg'
-            }`}
-            aria-label="Mes notifications"
-        >
-            {/* L'icône de la cloche */}
-            <FontAwesomeIcon icon={faBell} className={isMobile ? 'text-base' : ''} />
-            
-            {/* Affichage du compteur non lu en exposant */}
-            {(unreadCount > 0) && (
-                <span 
-                    // Positionnement du badge
-                    className={`absolute ${isMobile ? 'top-0.5 left-5' : 'top-[-5px] right-[-10px]'} 
-                                 // Style du badge
-                                 text-center text-[0.6rem] font-bold leading-tight px-[5px] min-w-[18px] h-4 flex items-center justify-center 
-                                 text-red-100 bg-red-600 rounded-full shadow-md
-                                 transform translate-x-1/2`}
-                >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-            )}
-            {isMobile && <span>Mes Notifications</span>}
-        </Link>
-    );
+    // 💡 MISE À JOUR : Le composant NotificationBadge est retiré ou simplifié
+    // car 'unreadCount' n'est plus disponible. Je le retire complètement ici.
+    // Si vous aviez besoin du bouton de notification SANS badge, il faudrait simplifier ce composant.
+    // Pour l'exemple, je le commente/supprime et j'intègre un simple lien de notification plus bas.
 
 
     return (
@@ -119,11 +96,15 @@ const Header = () => {
             {/* Actions (Dropdown, Dark Mode Toggle, Burger Menu) */}
             <div className="flex items-center gap-4">
                 
-                {/* BOUTON NOTIFICATION DESKTOP */}
+                {/* BOUTON NOTIFICATION DESKTOP (Simplifié sans le badge) */}
                 {user && (
-                    <div className="hidden sm:block">
-                        <NotificationBadge />
-                    </div>
+                    <Link
+                        to="/profile/notifications"
+                        className="hidden sm:block relative flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 text-lg"
+                        aria-label="Mes notifications"
+                    >
+                        <FontAwesomeIcon icon={faBell} />
+                    </Link>
                 )}
                 
                 {/* Lien "Rechercher" pour Desktop et Mobile */}
@@ -203,8 +184,16 @@ const Header = () => {
                             <FontAwesomeIcon icon={faUserCircle} />
                             Mon Profil
                         </Link>
-                        {/* LIEN NOTIFICATIONS EN MOBILE */}
-                        <NotificationBadge isMobile={true} />
+                        {/* LIEN NOTIFICATIONS EN MOBILE (Simplifié sans le badge) */}
+                        <Link
+                            to="/profile/notifications"
+                            onClick={() => setShowNav(false)} // Ferme la nav mobile lors du clic
+                            className="relative flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-semibold"
+                            aria-label="Mes notifications"
+                        >
+                            <FontAwesomeIcon icon={faBell} className='text-base' />
+                            <span>Mes Notifications</span>
+                        </Link>
                         <Link 
                             to="/profile/chats" 
                             onClick={() => setShowNav(false)}

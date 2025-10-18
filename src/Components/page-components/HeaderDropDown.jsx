@@ -3,13 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import useAuth from "../../hooks/useAuth";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { useNotification } from "../../hooks/useNotifications"; // Ajustez le chemin
+// 💡 MISE À JOUR : On importe le hook mais on ne déstructure rien, car le contexte est vide de valeurs immédiates
+import { useNotification } from "../../hooks/useNotifications"; 
 
 const HeaderDropDown = () => {
     const { user, logout } = useAuth();
     const [showDrop, setShowDrop] = useState(false);
     const dropdownRef = useRef(null);
-    const { unreadCount } = useNotification(); 
+    // 💡 MISE À JOUR : Retrait de 'unreadCount' de la déstructuration.
+    const { } = useNotification(); 
 
     // Gère le clic en dehors pour fermer le dropdown
     useEffect(() => {
@@ -43,13 +45,7 @@ const HeaderDropDown = () => {
         >
             <div className="relative flex items-center gap-1">
                 {label}
-                {/* Afficher un petit point si ce sont les notifications et qu'il y a un décompte */}
-                {(icon === faBell && unreadCount > 0) && (
-                    <span 
-                        className="absolute top-0 right-[-10px] w-2 h-2 bg-red-600 rounded-full"
-                        aria-label={`${unreadCount} notifications non lues`}
-                    ></span>
-                )}
+                {/* 💡 MISE À JOUR : La logique d'affichage du badge de notification a été retirée. */}
             </div>
             <FontAwesomeIcon icon={icon} className={`text-sm ${isDanger ? 'text-red-400' : 'text-gray-500 dark:text-gray-400'}`} />
         </Link>
@@ -92,7 +88,7 @@ const HeaderDropDown = () => {
                         <>
                             <DropdownLink to="/profile" icon={faUserCircle} label="Mon Profil" />
                             
-                            {/* LIEN NOTIFICATIONS AVEC BADGE (desktop dropdown) */}
+                            {/* LIEN NOTIFICATIONS (désormais sans badge) */}
                             <DropdownLink to="/profile/notifications" icon={faBell} label="Notifications" />
 
                             <DropdownLink to="/profile/chats" icon={faComment} label="Mes conversations" />

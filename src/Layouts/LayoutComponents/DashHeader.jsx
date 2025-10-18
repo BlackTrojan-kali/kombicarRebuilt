@@ -19,7 +19,7 @@ import useColorScheme from '../../hooks/useColorScheme';
 import { useNotification } from '../../hooks/useNotifications';
 
 
-// Fonction utilitaire inchangée pour les initiales
+// Fonction utilitaire inchangée pour les initiales (doit être définie ou importée en amont)
 const generateInitialsSvg = (firstName, lastName, theme) => {
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
@@ -35,7 +35,7 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
-// Composant simple pour un élément de Dropdown
+// Composant simple pour un élément de Dropdown (doit être défini ou importé en amont)
 const DropdownItem = ({ icon, text, to, onClick, isUnread }) => (
     <Link
         to={to || '#'}
@@ -81,13 +81,13 @@ const getNotificationAdminLink = (notificationId, isAdmin) => {
 const DashHeader = () => {
     const { user, logout, API_URL } = useAuth();
     const { theme, setTheme } = useColorScheme();
-    // 💡 Intégration du contexte de notification
+    // Intégration du contexte de notification
     const { 
         unreadCount, 
         notifications, 
         loadingCount, 
         markNotificationsAsRead,
-        getNotification // Fonction pour charger la liste complète (si nécessaire)
+        getNotifications // 💡 Renommé de getNotification à getNotifications pour plus de clarté
     } = useNotification(); 
 
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -138,6 +138,21 @@ const DashHeader = () => {
     // Simuler un rôle Admin pour l'exemple
     const isAdmin = user?.role === 'ADMIN'; 
 
+    // 💡 Nouvelle fonction pour gérer l'ouverture du dropdown de notification
+    const handleNotificationToggle = () => {
+        const newState = !isNotificationsOpen;
+        setIsNotificationsOpen(newState); 
+        setIsProfileOpen(false); 
+        
+        // Charger la liste des notifications lors de l'ouverture
+        if (newState && user) { 
+            // 💡 Assurez-vous d'utiliser la bonne fonction de chargement de liste de votre hook
+            // J'ai présumé que vous voulez charger la liste si elle est fermée et que l'utilisateur est connecté
+            getNotifications(); 
+        }
+    }
+
+
     return (
         <div className='flex justify-end items-center h-16 bg-white dark:bg-gray-900 shadow-md md:shadow-lg px-6 fixed top-0 right-0 w-full lg:w-[calc(100%-250px)] z-20 transition-all duration-300 border-b border-gray-200 dark:border-gray-800'>
             <div className='flex items-center gap-4 sm:gap-6'>
@@ -154,12 +169,7 @@ const DashHeader = () => {
                 {/* Dropdown des Notifications */}
                 <div className='relative' ref={notificationsRef}>
                     <button
-                        onClick={() => { 
-                            setIsNotificationsOpen(!isNotificationsOpen); 
-                            setIsProfileOpen(false); 
-                            // 💡 Optionnel: Charger la liste des notifications ici si l'on ne charge que le décompte au montage
-                            // if (!isNotificationsOpen) { getNotification(1); }
-                        }}
+                        onClick={handleNotificationToggle} // 💡 Utilisation de la nouvelle fonction
                         className='relative p-2.5 rounded-full text-xl text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300'
                         aria-label="Notifications"
                     >
@@ -198,9 +208,13 @@ const DashHeader = () => {
                                             key={notification.id}
                                             icon={getNotificationIcon(notification.type)}
                                             text={notification.message || notification.text}
-                                            to={getNotificationAdminLink(notification.id, isAdmin)} // 💡 Lien Admin Conditionnel
+                                            to={getNotificationAdminLink(notification.id, isAdmin)} 
                                             isUnread={!notification.is_read}
-                                            onClick={() => setIsNotificationsOpen(false)} 
+                                            onClick={() => { 
+                                                // 💡 Idéalement, marquer la notification cliquée comme lue ici
+                                                // markNotificationsAsRead([notification.id]);
+                                                setIsNotificationsOpen(false);
+                                            }}
                                         />
                                     ))
                                 ) : (

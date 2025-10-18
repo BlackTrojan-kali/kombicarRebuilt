@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEye, faPaperPlane, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useNotification } from '../../hooks/useNotifications'; // Assurez-vous que le chemin est correct
-
+import { Link } from 'react-router-dom';
 const AdminNotifications = () => {
     // 💡 Récupération des fonctions du contexte
     const { 
