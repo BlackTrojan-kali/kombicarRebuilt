@@ -19,6 +19,8 @@ import {
     faTimesCircle,
     faHandHoldingUsd,
     faGlobeAfrica,
+    faBell,
+    faBellConcierge,
 } from '@fortawesome/free-solid-svg-icons';
 // Ces imports sont nécessaires et doivent pointer vers vos hooks réels
 import useAuth from '../../hooks/useAuth';
@@ -341,6 +343,13 @@ const DashSideBar = () => {
                         { icon: faHourglassHalf, title: "En attente", link: `/admin/licences/0/1` },
                         { icon: faCheckCircle, title: "Vérifiés", link: `/admin/licences/1/1` },
                         { icon: faTimesCircle, title: "Rejetés", link: `/admin/licences/2/1` },
+                    ]}
+                />
+                      <DropDown
+                    icon={faBell}
+                    title="Notifiactions"
+                    sublinks={[
+                        { icon: faBellConcierge, title: "En attente", link: `/admin/notifications` },
                     ]}
                 />
 

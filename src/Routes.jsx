@@ -52,6 +52,8 @@ import SubmitReview from "./Pages/Client/SubmitReview";
 import CarDocuments from "./Pages/Dashboard/CarDocuments";
 import DriverReservations from "./Pages/Client/DriverReservations";
 import ReservationSuccess from "./Pages/Client/ReservationSuccess";
+import UserNotifications from "./Pages/Notifications/UserNotifications";
+import AdminNotifications from "./Pages/Notifications/AdminNotifications";
 
 
 const Routes = () => {
@@ -121,6 +123,11 @@ const Routes = () => {
           path: "profile/licence",
           element: <MyDrivingLicence />,
         },
+        // 💡 NOUVELLE ROUTE : Notifications utilisateur
+                {
+                    path: "profile/notifications", 
+                    element: <UserNotifications />,
+                },
         // --- Routes du Chat ---
         // 🚀 OPTIMISATION : Application du ChatContextProvider sur la route parent du chat
         {
@@ -211,6 +218,13 @@ const Routes = () => {
           path: "drivers",
           element: <Drivers />,
         },
+        
+        // 💡 NOUVELLE ROUTE : Notifications administrateur
+                {
+                    path: "notifications", 
+                    element: <AdminNotifications />,
+                },
+        
         {
           path: "users",
           element: <Utilisateurs />,

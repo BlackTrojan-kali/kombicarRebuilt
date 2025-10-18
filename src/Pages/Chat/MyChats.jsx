@@ -64,7 +64,7 @@ const MyChats = () => {
             }
         },
         // CORRECTION IMPORTANTE : Ajout de loadingConversations et fetchConversations
-        [hasMore, loadingConversations, fetchConversations] 
+        [hasMore, loadingConversations, conversations] 
     );
 
     // =====================================================

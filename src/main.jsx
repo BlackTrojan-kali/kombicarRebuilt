@@ -13,6 +13,7 @@ import { ReservationContextProvider } from './contexts/ReservationContext.jsx';
 import { MapContextProvider } from './contexts/MapContext.jsx';
 import { WithdrawContextProvider } from './contexts/withdrawContext.jsx';
 import { ReviewContextProvider } from './contexts/reviewContext.jsx';
+import { NotificationContextProvider } from './contexts/NotificationContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     
@@ -28,7 +29,9 @@ createRoot(document.getElementById('root')).render(
                 <DrivingLicenceProvider>
                 <PromoCodeContextProvider> 
                 <ReservationContextProvider> 
-                <App />
+                  <NotificationContextProvider>  <App />
+                  </NotificationContextProvider>
+              
                </ReservationContextProvider>
             </PromoCodeContextProvider>
             </DrivingLicenceProvider>
