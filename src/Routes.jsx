@@ -54,6 +54,7 @@ import DriverReservations from "./Pages/Client/DriverReservations";
 import ReservationSuccess from "./Pages/Client/ReservationSuccess";
 import UserNotifications from "./Pages/Notifications/UserNotifications";
 import AdminNotifications from "./Pages/Notifications/AdminNotifications";
+import PublishNotification from "./Pages/Notifications/PublishNotification";
 
 
 const Routes = () => {
@@ -85,6 +86,7 @@ const Routes = () => {
           path: "trip-detail/:tripId",
           element: <TripDetail />,
         },
+
         {
           path: "publish-trip",
           element: <Publish />,
@@ -217,6 +219,11 @@ const Routes = () => {
         {
           path: "drivers",
           element: <Drivers />,
+        },
+        //notification
+        {
+          path:"publish-notification",
+          element:<PublishNotification/>
         },
         
         // 💡 NOUVELLE ROUTE : Notifications administrateur

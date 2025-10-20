@@ -20,6 +20,7 @@ const COUNTRY_REFERENCES = [
     { code: 'TG', value: 228, name: "Togo" },
     { code: 'GN', value: 224, name: "Guinée" },
     { code: 'BF', value: 226, name: "Burkina Faso" },
+    { code: 'FR', value: 33, name: "France" },
 ];
 
 const EditProfileModal = ({ isOpen, onClose }) => {

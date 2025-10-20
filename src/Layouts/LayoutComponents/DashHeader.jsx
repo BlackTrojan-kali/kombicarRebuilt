@@ -18,10 +18,19 @@ import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 import { useNotification } from '../../hooks/useNotifications';
 
+// ******************************************************
+// SIMULATION: Vous devez remplacer cette ligne par votre hook
+// de Contexte réel qui expose l'état isCollapsed de la SideBar.
+// J'utilise un état local statique pour cet exemple de code complet.
+const useSidebarContext = () => ({
+    isCollapsed: false // À REMPLACER PAR LE VRAI CONTEXTE DE SIDEBAR
+});
+// ******************************************************
 
-// Fonction utilitaire inchangée pour les initiales (doit être définie ou importée en amont)
+
+// Fonction utilitaire inchangée pour les initiales
 const generateInitialsSvg = (firstName, lastName, theme) => {
-    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    const initials = `${firstName?.charAt(0) || '?'}${lastName?.charAt(0) || '?'}`.toUpperCase();
     const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
     const textColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
 
@@ -35,7 +44,7 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
-// Composant simple pour un élément de Dropdown (doit être défini ou importé en amont)
+// Composant simple pour un élément de Dropdown
 const DropdownItem = ({ icon, text, to, onClick, isUnread }) => (
     <Link
         to={to || '#'}
@@ -56,38 +65,36 @@ const DropdownItem = ({ icon, text, to, onClick, isUnread }) => (
 );
 
 const getNotificationIcon = (type) => {
-    // Adapter les icônes selon le type de notification renvoyé par l'API
     switch (type) {
         case 'MESSAGE':
             return faInbox;
         case 'TRIP_CONFIRMATION':
             return faCalendarCheck;
-        // Ajoutez d'autres types d'icônes ici
         default:
             return faBell;
     }
 }
 
-// Fonction pour déterminer le lien pour l'admin (exemple)
 const getNotificationAdminLink = (notificationId, isAdmin) => {
     if (isAdmin) {
-        // Lien vers la page d'administration des notifications
         return `/admin/notifications/${notificationId}`;
     }
-    // Lien utilisateur standard
     return `/notifications/${notificationId}`; 
 }
 
 const DashHeader = () => {
     const { user, logout, API_URL } = useAuth();
     const { theme, setTheme } = useColorScheme();
-    // Intégration du contexte de notification
+    
+    // 💡 RÉCUPÉRATION DE L'ÉTAT DE LA SIDEBAR (simulation pour l'exemple)
+    const { isCollapsed: isSidebarCollapsed } = useSidebarContext(); 
+
     const { 
         unreadCount, 
         notifications, 
         loadingCount, 
         markNotificationsAsRead,
-        getNotifications // 💡 Renommé de getNotification à getNotifications pour plus de clarté
+        getNotifications 
     } = useNotification(); 
 
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -122,12 +129,10 @@ const DashHeader = () => {
     // Gère le marquage de toutes les notifications non lues affichées
     const handleMarkAllAsRead = async (e) => {
         e.preventDefault();
-        // Collecter les IDs des notifications non lues (is_read === false)
         const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
         
         if (unreadIds.length > 0) {
             try {
-                // Appel à la fonction du contexte pour marquer comme lu
                 await markNotificationsAsRead(unreadIds);
             } catch (error) {
                 console.error("Erreur lors du marquage comme lu", error);
@@ -138,7 +143,7 @@ const DashHeader = () => {
     // Simuler un rôle Admin pour l'exemple
     const isAdmin = user?.role === 'ADMIN'; 
 
-    // 💡 Nouvelle fonction pour gérer l'ouverture du dropdown de notification
+    // Nouvelle fonction pour gérer l'ouverture du dropdown de notification
     const handleNotificationToggle = () => {
         const newState = !isNotificationsOpen;
         setIsNotificationsOpen(newState); 
@@ -146,15 +151,35 @@ const DashHeader = () => {
         
         // Charger la liste des notifications lors de l'ouverture
         if (newState && user) { 
-            // 💡 Assurez-vous d'utiliser la bonne fonction de chargement de liste de votre hook
-            // J'ai présumé que vous voulez charger la liste si elle est fermée et que l'utilisateur est connecté
             getNotifications(); 
         }
     }
+    
+    // 💡 CLASSE DE LARGEUR ET DE POSITION DYNAMIQUES POUR L'EN-TÊTE
+    // Largeur de la sidebar normale : 280px
+    // Largeur de la sidebar réduite : 70px
+    
+    // Détermination de la classe de largeur et de la position de départ (left)
+    const sidebarWidth = isSidebarCollapsed ? '70px' : '280px';
+    
+    const headerPositionClass = `lg:left-[${sidebarWidth}]`;
+    const headerWidthClass = `lg:w-[calc(100%-${sidebarWidth})]`;
+    // NOTE: Tailwind JIT peut avoir des difficultés avec les variables CSS dans calc(). 
+    // Pour une meilleure compatibilité, utilisez les classes pré-définies basées sur l'état booléen :
+    
+    const dynamicPositionClass = isSidebarCollapsed
+        ? 'lg:left-[70px]'
+        : 'lg:left-[280px]';
+        
+    const dynamicWidthClass = isSidebarCollapsed 
+        ? 'lg:w-[calc(100%-70px)]' 
+        : 'lg:w-[calc(100%-280px)]';
 
 
     return (
-        <div className='flex justify-end items-center h-16 bg-white dark:bg-gray-900 shadow-md md:shadow-lg px-6 fixed top-0 right-0 w-full lg:w-[calc(100%-250px)] z-20 transition-all duration-300 border-b border-gray-200 dark:border-gray-800'>
+        <div 
+            className={`flex justify-end items-center h-16 bg-white dark:bg-gray-900 shadow-md md:shadow-lg px-6 fixed top-0 right-0 w-full z-20 transition-all duration-300 border-b border-gray-200 dark:border-gray-800 ${dynamicPositionClass} ${dynamicWidthClass}`}
+        >
             <div className='flex items-center gap-4 sm:gap-6'>
                 
                 {/* Bouton Dark Mode */}
@@ -169,7 +194,7 @@ const DashHeader = () => {
                 {/* Dropdown des Notifications */}
                 <div className='relative' ref={notificationsRef}>
                     <button
-                        onClick={handleNotificationToggle} // 💡 Utilisation de la nouvelle fonction
+                        onClick={handleNotificationToggle}
                         className='relative p-2.5 rounded-full text-xl text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300'
                         aria-label="Notifications"
                     >
@@ -211,8 +236,7 @@ const DashHeader = () => {
                                             to={getNotificationAdminLink(notification.id, isAdmin)} 
                                             isUnread={!notification.is_read}
                                             onClick={() => { 
-                                                // 💡 Idéalement, marquer la notification cliquée comme lue ici
-                                                // markNotificationsAsRead([notification.id]);
+                                                // markNotificationsAsRead([notification.id]); // Décommenter si vous voulez marquer comme lu au clic
                                                 setIsNotificationsOpen(false);
                                             }}
                                         />

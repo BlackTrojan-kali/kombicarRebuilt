@@ -22,6 +22,7 @@ import {
     faBell,
     faBellConcierge,
 } from '@fortawesome/free-solid-svg-icons';
+
 // Ces imports sont nécessaires et doivent pointer vers vos hooks réels
 import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
@@ -42,10 +43,11 @@ const COUNTRIES = {
     TG: { code: 228, name: 'Togo' },
     GN: { code: 224, name: 'Guinée' },
     BF: { code: 226, name: 'Burkina Faso' },
+    FR: { code: 33, name: 'France' },
 };
 
 
-// Fonction utilitaire pour générer les initiales SVG (Inclus dans le fichier)
+// Fonction utilitaire pour générer les initiales SVG
 const generateInitialsSvg = (firstName, lastName, theme) => {
     const initials = `${firstName?.charAt(0) || '?'}${lastName?.charAt(0) || '?'}`.toUpperCase();
     const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
@@ -62,19 +64,36 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
 };
 
 
-// Composant interne DropDown
-const DropDown = ({ icon, title, sublinks = [] }) => {
+// Composant interne DropDown (Avec gestion de la réduction isCollapsed)
+const DropDown = ({ icon, title, sublinks = [], isCollapsed }) => {
     const [active, setActive] = useState(false);
-    
     const location = useLocation();
 
     const handleToggle = () => {
-      setActive(!active);
+         // Autoriser le basculement uniquement si la sidebar est ouverte
+         if (!isCollapsed) {
+              setActive(!active);
+         }
     };
 
     // Détermine si un des sous-liens est actif pour garder le menu ouvert
     const isSublinkActive = sublinks.some(sublink => location.pathname === sublink.link);
+    const shouldBeOpen = active || isSublinkActive;
 
+    // Rendu en mode réduit (juste l'icône, sans sous-menu cliquable)
+    if (isCollapsed) {
+        return (
+             <Link 
+                to={sublinks[0]?.link || '#'} // Lien vers le premier sous-élément par défaut (ou '#' si vide)
+                title={title}
+                className='flex items-center justify-center w-full h-14 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-1'
+             >
+                <FontAwesomeIcon icon={icon} className='text-2xl' />
+             </Link>
+        );
+    }
+    
+    // Rendu en mode étendu
     return (
       <div>
         <div
@@ -88,12 +107,12 @@ const DropDown = ({ icon, title, sublinks = [] }) => {
           {sublinks.length > 0 && (
             <FontAwesomeIcon
               icon={faChevronDown}
-              className={`text-xs transition-transform duration-300 ${active || isSublinkActive ? "rotate-180" : ""}`}
+              className={`text-xs transition-transform duration-300 ${shouldBeOpen ? "rotate-180" : ""}`}
             />
           )}
         </div>
 
-        {(active || isSublinkActive) && sublinks.length > 0 && (
+        {shouldBeOpen && sublinks.length > 0 && (
           <div
             className='flex flex-col pl-6 border-l-2 border-gray-200 dark:border-gray-700 mx-5 mb-2'
             role="menu"
@@ -120,8 +139,8 @@ const DropDown = ({ icon, title, sublinks = [] }) => {
 
 // ----------------------------------------------------------------------
 
-// Composant interne CountrySwitcher
-const CountrySwitcher = () => {
+// Composant interne CountrySwitcher (Avec gestion de la réduction isCollapsed)
+const CountrySwitcher = ({ isCollapsed }) => {
     // Récupération des fonctions nécessaires
     const { user, setUser, refreshAdminToken, logout } = useAuth(); 
     const { updateAdminCountryAccess } = useUser(); 
@@ -157,7 +176,7 @@ const CountrySwitcher = () => {
             
             // 3. Rafraîchissement du Access Token 
             const refreshToken = localStorage.getItem('refreshToken');
-          
+            
             if (refreshToken) {
                 const refreshSuccess = await refreshAdminToken(refreshToken);
                 
@@ -179,6 +198,17 @@ const CountrySwitcher = () => {
             toast.error("Une erreur s'est produite lors de la mise à jour du pays.");
         }
     };
+
+    // Rendu en mode réduit : affiche uniquement l'icône
+    if (isCollapsed) {
+        return (
+            <div className='mb-4 flex justify-center items-center h-14' title="Sélection de pays">
+                 <FontAwesomeIcon icon={faGlobeAfrica} className='text-2xl text-blue-600 dark:text-blue-400' />
+            </div>
+        );
+    }
+
+    // Rendu en mode étendu
     return (
         <div className='mb-4'>
             <div
@@ -235,58 +265,98 @@ const DashSideBar = () => {
     const location = useLocation();
 
     const { theme } = useColorScheme();
-    const activeLinkClass = "flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200";
-    const defaultLinkClass = "flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2";
+    
+    // NOUVEL ÉTAT pour gérer la réduction
+    const [isCollapsed, setIsCollapsed] = useState(false); 
 
-    // Correction: utilisation des rôles ADMIN ou SUPER_ADMIN pour afficher le CountrySwitcher
+    // Classes conditionnelles pour la largeur de la sidebar
+    const sidebarWidthClass = isCollapsed ? 'w-[70px] items-center' : 'w-[280px] items-start';
+    
+    // Classes de liens ajustées
+    const activeLinkClass = `flex items-center gap-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold mb-2 transition-colors duration-200 ${isCollapsed ? 'justify-center' : 'justify-start'}`;
+    const defaultLinkClass = `flex items-center gap-4 p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 mb-2 ${isCollapsed ? 'justify-center' : 'justify-start'}`;
+
+
+    // Rôle d'administration pour afficher le CountrySwitcher
     const isAdmin = user?.role && (user.role.includes('Admin') || user.role.includes('SUPER_ADMIN'));
+    
+    // Composant utilitaire pour les liens sans DropDown
+    const SidebarLink = ({ to, icon, title }) => (
+        <Link
+            to={to}
+            title={title}
+            className={location.pathname === to ? activeLinkClass : defaultLinkClass}
+        >
+            <div className='w-8 h-8 flex items-center justify-center text-lg text-gray-600 dark:text-gray-400'>
+                <FontAwesomeIcon icon={icon} className={isCollapsed ? 'text-2xl' : 'text-lg'} />
+            </div>
+            {/* Cacher le titre en mode réduit */}
+            {!isCollapsed && <span className='text-md font-medium'>{title}</span>} 
+        </Link>
+    );
 
     return (
-        <div className='flex flex-col w-[280px] py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20 overflow-y-auto'>
-            <div className='flex items-center justify-start h-16 mb-8'>
-                <h1 className='text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500'>
-                    KombiCar-Admin
-                </h1>
+        <div className={`flex flex-col py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20 overflow-y-auto ${sidebarWidthClass}`}>
+            
+            {/* Header et Bouton Toggle */}
+            <div className='flex items-center justify-between h-16 mb-8'>
+                {/* Cacher le titre de l'application en mode réduit */}
+                {!isCollapsed && (
+                    <h1 className='text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500'>
+                        KombiCar
+                    </h1>
+                )}
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    // Déplacer le bouton à droite en mode étendu et au centre en mode réduit
+                    className={`p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 ${isCollapsed ? 'w-full justify-center' : 'ml-auto'}`}
+                >
+                    {/* Inverser la flèche pour indiquer l'action */}
+                    <FontAwesomeIcon 
+                        icon={faChevronDown} 
+                        className={`text-xl transition-transform duration-300 ${isCollapsed ? "rotate-90" : "-rotate-90"}`} 
+                    />
+                </button>
             </div>
 
             {user && (
-                <div className='flex items-center gap-4 p-4 mb-6 rounded-xl bg-gray-100 dark:bg-gray-700'>
+                <div className={`flex items-center gap-4 p-4 mb-6 rounded-xl bg-gray-100 dark:bg-gray-700 ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
                     <img
                         src={user.pictureProfileUrl ? `${API_URL}` + user.pictureProfileUrl : generateInitialsSvg(user.firstName, user.lastName, theme)}
                         alt="User Profile"
                         className='w-12 h-12 rounded-full object-cover border-2 border-blue-500'
                     />
-                    <div className='flex flex-col'>
-                        <span className='font-bold text-gray-900 dark:text-gray-100 truncate'>
-                            {user.firstName}
-                        </span>
-                        <span className='text-sm text-gray-600 dark:text-gray-400'>
-                            {user.role}
-                        </span>
-                    </div>
+                    {/* Cacher les détails de l'utilisateur en mode réduit */}
+                    {!isCollapsed && (
+                        <div className='flex flex-col'>
+                            <span className='font-bold text-gray-900 dark:text-gray-100 truncate'>
+                                {user.firstName}
+                            </span>
+                            <span className='text-sm text-gray-600 dark:text-gray-400'>
+                                {user.role}
+                            </span>
+                        </div>
+                    )}
                 </div>
             )}
             
             {/* SÉLECTEUR DE PAYS (affiché uniquement pour les administrateurs) */}
-            {isAdmin && <CountrySwitcher />} 
+            {isAdmin && <CountrySwitcher isCollapsed={isCollapsed} />} 
             
             <nav className='flex flex-col flex-grow space-y-2'>
                 
                 {/* Tableau de bord */}
-                <Link
-                    to="/admin/dashboard"
-                    className={location.pathname === "/admin/dashboard" ? activeLinkClass : defaultLinkClass}
-                >
-                    <div className='w-8 h-8 flex items-center justify-center text-lg text-gray-600 dark:text-gray-400'>
-                        <FontAwesomeIcon icon={faTachometerAlt} />
-                    </div>
-                    <span className='text-md font-medium'>Tableau de bord</span>
-                </Link>
+                <SidebarLink 
+                    to="/admin/dashboard" 
+                    icon={faTachometerAlt} 
+                    title="Tableau de bord" 
+                />
 
                 {/* Utilisateurs */}
                 <DropDown
                     icon={faUsers}
                     title="Utilisateurs"
+                    isCollapsed={isCollapsed} 
                     sublinks={[
                         { icon: faUserTie, title: "Clients", link: "/admin/users" },
                         { icon: faCar, title: "Chauffeurs", link: "/admin/drivers" },
@@ -298,6 +368,7 @@ const DashSideBar = () => {
                 <DropDown
                     icon={faRoad}
                     title="Trajets"
+                    isCollapsed={isCollapsed} 
                     sublinks={[
                         { icon: faHourglassHalf, title: "Publiés", link: `/admin/trajets/0` },
                         { icon: faCalendarDay, title: "Terminé", link: `/admin/trajets/2` },
@@ -309,6 +380,7 @@ const DashSideBar = () => {
                 <DropDown
                     icon={faTruck}
                     title="Véhicules"
+                    isCollapsed={isCollapsed}
                     sublinks={[
                         { icon: faTags, title: "Vehicules", link: "/admin/cars" },
                     ]}
@@ -318,6 +390,7 @@ const DashSideBar = () => {
                 <DropDown
                     icon={faTicket}
                     title="Codes Promo"
+                    isCollapsed={isCollapsed}
                     sublinks={[
                         { icon: faCheckCircle, title: "Codes Actifs", link: `/admin/promocodes/list/active` },
                         { icon: faHourglassHalf, title: "Codes Expirés", link: `/admin/promocodes/list/expired` },
@@ -329,6 +402,7 @@ const DashSideBar = () => {
                 <DropDown
                     icon={faHandHoldingUsd}
                     title="Retraits"
+                    isCollapsed={isCollapsed}
                     sublinks={[
                         { icon: faHourglassHalf, title: "Demandes en attente", link: "/admin/withdrawals/pending" },
                         { icon: faCalendarDay, title: "Historique complet", link: "/admin/withdrawals/history" },
@@ -339,17 +413,21 @@ const DashSideBar = () => {
                 <DropDown
                     icon={faIdCard}
                     title="Permis de Conduire"
+                    isCollapsed={isCollapsed}
                     sublinks={[
                         { icon: faHourglassHalf, title: "En attente", link: `/admin/licences/0/1` },
                         { icon: faCheckCircle, title: "Vérifiés", link: `/admin/licences/1/1` },
                         { icon: faTimesCircle, title: "Rejetés", link: `/admin/licences/2/1` },
                     ]}
                 />
-                      <DropDown
+
+                {/* Notifications */}
+                <DropDown
                     icon={faBell}
-                    title="Notifiactions"
+                    title="Notifications"
+                    isCollapsed={isCollapsed}
                     sublinks={[
-                        { icon: faBellConcierge, title: "En attente", link: `/admin/notifications` },
+                        { icon: faBellConcierge, title: "Liste & Publier", link: `/admin/notifications` }, 
                     ]}
                 />
 
