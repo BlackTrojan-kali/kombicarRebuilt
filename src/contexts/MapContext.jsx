@@ -62,7 +62,7 @@ export function MapContextProvider({ children }) {
   const getCountryFromCoords = async (latitude, longitude) => {
     if (!latitude || !longitude) {
       console.error("Les paramètres 'latitude' et 'longitude' sont requis.");
-      setError("Coordonnées GPS manquantes.");
+      setError("Coordonnées GPS manquantes."); 
       return;
     }
 

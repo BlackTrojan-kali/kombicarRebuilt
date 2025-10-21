@@ -11,8 +11,7 @@ import { useState, useEffect } from "react";
 import HeaderDropDown from "./HeaderDropDown";
 import useAuth from "../../hooks/useAuth"; // Ajustez le chemin
 
-// 💡 ATTENTION : unreadCount et getUnreadCount ont été retirés du contexte
-// Nous allons importer le hook, mais en ne déstructurant que les fonctions ou états encore présents.
+// Import du hook de notification
 import { useNotification } from "../../hooks/useNotifications"; 
 
 
@@ -21,20 +20,25 @@ const Header = () => {
     const [showNav, setShowNav] = useState(false);
     const { user, logout } = useAuth();
     
-    // 💡 MISE À JOUR : Retrait de 'unreadCount' et 'getUnreadCount' de la déstructuration
-    // pour que le code corresponde au NotificationContext actuel.
-    // NOTE : Si d'autres valeurs du contexte sont nécessaires (comme 'notification'), elles devraient être déstructurées ici.
-    const { } = useNotification(); 
-    
+    // 💡 MISE À JOUR IMPORTANTE : Déstructurer le state 'notification' et la fonction 'getNotification'
+    const { notification, getNotification } = useNotification(); 
+    const [notifications,setNotifications]  = useState();
+    // 💡 NOUVEAU : Calculer le nombre de notifications non lues à partir du state 'notification'
+    // Nous utilisons 'is_read' qui est le nom de la propriété dans le contexte.
+    const unreadCount = notification.filter(n => !n.is_read).length; 
 
-    // 💡 MISE À JOUR : Retrait du hook useEffect pour le décompte non lu
-    // useEffect(() => {
-    //     if (user) {
-    //          getUnreadCount(); 
-    //     }
-    // }, [user, getUnreadCount]); 
+    // 💡 NOUVEAU : Ajouter un useEffect pour charger les notifications initiales (Page 1) 
+    // afin que le state 'notification' du contexte soit rempli et que le badge fonctionne.
+    useEffect(() => {
+        // Charger les notifications seulement si l'utilisateur est connecté et si le state 'notification' est vide
+        // On suppose que le state 'notification' contient les notifications de la Page 1 (récemment reçues)
+        if (user) {
+             // On ne gère pas le retour et l'erreur ici, juste l'appel pour remplir le state.
+             getNotification(1).catch(err => console.error("Erreur de chargement initial des notifs pour le badge:", err));
+        }
+    }, [user, notification.length]);
 
-
+console.log(notification.length);
     const toggleDarkMode = () => {
         setTheme(theme === "dark" ? "light" : "dark");
     };
@@ -48,11 +52,8 @@ const Header = () => {
         setShowNav(false); // Ferme la navigation mobile après déconnexion
     };
 
-    // 💡 MISE À JOUR : Le composant NotificationBadge est retiré ou simplifié
-    // car 'unreadCount' n'est plus disponible. Je le retire complètement ici.
-    // Si vous aviez besoin du bouton de notification SANS badge, il faudrait simplifier ce composant.
-    // Pour l'exemple, je le commente/supprime et j'intègre un simple lien de notification plus bas.
-
+    // --- Composant NotificationBadge ---
+    // Nous allons l'intégrer directement dans le JSX pour le rendre plus simple.
 
     return (
         <header className="fixed top-0 left-0 w-full z-50 py-3 px-4 sm:px-6 lg:px-12 xl:px-24 bg-white shadow-md flex items-center justify-between dark:bg-gray-800 dark:shadow-lg transition-colors duration-300">
@@ -96,14 +97,23 @@ const Header = () => {
             {/* Actions (Dropdown, Dark Mode Toggle, Burger Menu) */}
             <div className="flex items-center gap-4">
                 
-                {/* BOUTON NOTIFICATION DESKTOP (Simplifié sans le badge) */}
+                {/* BOUTON NOTIFICATION DESKTOP AVEC BADGE */}
                 {user && (
                     <Link
                         to="/profile/notifications"
-                        className="hidden sm:block relative flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 text-lg"
+                        className="hidden sm:block relative text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200 text-xl p-1"
                         aria-label="Mes notifications"
                     >
                         <FontAwesomeIcon icon={faBell} />
+                        {/* 💡 NOUVEAU : Affichage du badge si le compteur est > 0 */}
+                        {unreadCount > 0 && (
+                            <span 
+                                className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"
+                                aria-label={`${unreadCount} notifications non lues`}
+                            >
+                                {unreadCount > 9 ? '9+' : unreadCount} 
+                            </span>
+                        )}
                     </Link>
                 )}
                 
@@ -184,7 +194,7 @@ const Header = () => {
                             <FontAwesomeIcon icon={faUserCircle} />
                             Mon Profil
                         </Link>
-                        {/* LIEN NOTIFICATIONS EN MOBILE (Simplifié sans le badge) */}
+                        {/* LIEN NOTIFICATIONS EN MOBILE AVEC BADGE */}
                         <Link
                             to="/profile/notifications"
                             onClick={() => setShowNav(false)} // Ferme la nav mobile lors du clic
@@ -193,6 +203,15 @@ const Header = () => {
                         >
                             <FontAwesomeIcon icon={faBell} className='text-base' />
                             <span>Mes Notifications</span>
+                            {/* 💡 NOUVEAU : Affichage du badge si le compteur est > 0 */}
+                            {unreadCount > 0 && (
+                                <span 
+                                    className="ml-auto inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full"
+                                    aria-label={`${unreadCount} notifications non lues`}
+                                >
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                            )}
                         </Link>
                         <Link 
                             to="/profile/chats" 

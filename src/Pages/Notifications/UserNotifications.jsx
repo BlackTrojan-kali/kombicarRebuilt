@@ -1,21 +1,25 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNotification } from '../../hooks/useNotifications';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faCheckCircle, faSpinner } from '@fortawesome/free-solid-svg-icons'; // Importation d'icônes
+import { faTrash, faCheckCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const UserNotifications = () => {
-    // État local pour gérer la pagination et l'affichage
+    // État local pour gérer la pagination et l'affichage des données
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [notificationsData, setNotificationsData] = useState({
         items: [],
         totalCount: 0,
+        page: 1, // Assurez-vous que l'état initial correspond à la première page
         hasNextPage: false,
         hasPreviousPage: false,
     });
 
+
     // Récupérer les fonctions du contexte
-    const { getNotification, markNotificationsAsRead, deleteNotifications } = useNotification();
+    // NOTE : On récupère setNotification ici, même si on ne l'utilise pas pour les actions globales,
+    // car le contexte met à jour son propre state 'notification'.
+    const { getNotification, markNotificationsAsRead, deleteNotifications, setNotification } = useNotification();
 
     // Fonction pour charger les notifications (récupère les données depuis l'API)
     const loadNotifications = useCallback(async (page) => {
@@ -24,8 +28,12 @@ const UserNotifications = () => {
             const res = await getNotification(page); 
             
             if (res && res.data) {
+                // 💡 MISE À JOUR : Mise à jour de l'état local du composant avec la réponse paginée complète
                 setNotificationsData(res.data);
-                setCurrentPage(res.data.page);
+                
+                // 💡 CORRECTION : Mettre à jour currentPage uniquement si l'API renvoie le numéro de page
+                // mais on utilise 'page' directement dans le useEffect, donc on peut le laisser ainsi.
+                // setNotificationsData(prev => ({ ...prev, page: res.data.page }));
             }
         } catch (error) {
             console.error("Erreur lors du chargement des notifications:", error);
@@ -38,13 +46,21 @@ const UserNotifications = () => {
     useEffect(() => {
         loadNotifications(currentPage);
     }, [loadNotifications, currentPage]); 
-    
     // Fonction de rappel pour marquer comme lu (pour un seul élément)
     const handleMarkAsRead = async (id) => {
         try {
             await markNotificationsAsRead([id]);
-            // Recharger la page pour synchroniser l'affichage avec l'API
-            loadNotifications(currentPage); 
+            
+            // 💡 OPTIMISATION : Mettre à jour le state local immédiatement (sans recharger la page)
+            setNotificationsData(prev => ({
+                ...prev,
+                items: prev.items.map(n => 
+                    n.id === id ? { ...n, isRead: true } : n
+                )
+            }));
+            
+            // L'appel à loadNotifications(currentPage) n'est plus nécessaire ici,
+            // car le state local a été mis à jour pour une meilleure réactivité.
         } catch (error) {
             console.error("Erreur lors du marquage comme lu:", error);
         }
@@ -55,8 +71,25 @@ const UserNotifications = () => {
         if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette notification ?")) return;
         try {
             await deleteNotifications([id]);
-            // Recharger la page pour synchroniser l'affichage avec l'API
-            loadNotifications(currentPage); 
+            
+            // 💡 OPTIMISATION : Mettre à jour le state local immédiatement (sans recharger la page)
+            // 1. Filtrer l'élément supprimé
+            const newItems = notificationsData.items.filter(n => n.id !== id);
+            
+            // 2. Mettre à jour les données de pagination
+            setNotificationsData(prev => ({
+                ...prev,
+                items: newItems,
+                // On décrémente totalCount et le compte d'éléments sur la page courante
+                totalCount: prev.totalCount - 1, 
+            }));
+            
+            // 3. S'il n'y a plus d'éléments sur la page courante ET qu'il ne s'agit pas de la première page,
+            // on recule d'une page pour éviter un écran vide.
+            if (newItems.length === 0 && currentPage > 1) {
+                setCurrentPage(prev => prev - 1);
+            }
+            // L'appel à loadNotifications(currentPage) n'est plus nécessaire ici.
         } catch (error) {
             console.error("Erreur lors de la suppression:", error);
         }
@@ -64,13 +97,14 @@ const UserNotifications = () => {
     
     // Gestion du changement de page simplifié
     const handlePageChange = (newPage) => {
+        // Le useEffect détectera le changement de currentPage et appellera loadNotifications
         setCurrentPage(newPage);
     };
 
     // --- Rendu Conditionnel ---
 
-    if (loading) {
-        // Style Tailwind pour l'état de chargement
+    if (loading && notificationsData.items.length === 0) {
+        // Affiche le spinner seulement s'il n'y a pas encore de données
         return (
             <div className="flex justify-center items-center h-48 text-lg text-gray-600 dark:text-gray-400">
                 <FontAwesomeIcon icon={faSpinner} spin className="mr-3" />
@@ -79,10 +113,10 @@ const UserNotifications = () => {
         );
     }
 
-    if (notificationsData?.items?.length === 0) {
+    if (notificationsData?.length === 0 && !loading) {
         // Style Tailwind pour l'état vide
         return (
-            <div className="text-center p-8  dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg shadow-inner">
+            <div className="text-center p-8 dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg shadow-inner">
                 <p className="text-lg font-medium text-gray-500 dark:text-gray-300">
                     Vous n'avez aucune notification.
                 </p>
@@ -99,7 +133,7 @@ const UserNotifications = () => {
 
             {/* Liste des Notifications */}
             <div className="notifications-list space-y-3">
-                {notificationsData?.items?.map((notif) => (
+                {notificationsData?.map((notif) => (
                     <div 
                         key={notif.id} 
                         // Styles conditionnels Tailwind basés sur isRead
@@ -111,6 +145,9 @@ const UserNotifications = () => {
                             }
                         `}
                     >
+                        {/* Indicateur de chargement au niveau de l'élément si vous souhaitez */}
+                        {/* {loading && <FontAwesomeIcon icon={faSpinner} spin />} */}
+                        
                         <div className="flex justify-between items-start">
                             <h3 className={`text-lg font-semibold ${notif.isRead ? 'text-gray-700 dark:text-gray-200' : 'text-blue-800 dark:text-blue-300'}`}>
                                 {notif.title}
@@ -164,22 +201,22 @@ const UserNotifications = () => {
                     onClick={() => handlePageChange(currentPage - 1)} 
                     disabled={!notificationsData.hasPreviousPage || loading}
                     className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                               bg-gray-200 text-gray-700 hover:bg-gray-300 
-                               dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                             bg-gray-200 text-gray-700 hover:bg-gray-300 
+                             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
                     &larr; Précédent
                 </button>
                 
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Page {currentPage}
+                    Page {notificationsData.page} sur {Math.ceil(notificationsData.totalCount / notificationsData?.length) || 1}
                 </span>
                 
                 <button 
                     onClick={() => handlePageChange(currentPage + 1)} 
                     disabled={!notificationsData.hasNextPage || loading}
                     className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-                               bg-gray-200 text-gray-700 hover:bg-gray-300 
-                               dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                             bg-gray-200 text-gray-700 hover:bg-gray-300 
+                             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
                     Suivant &rarr;
                 </button>

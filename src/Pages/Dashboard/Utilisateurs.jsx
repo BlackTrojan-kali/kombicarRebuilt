@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUser, faEnvelope, faPhone, faArrowLeft, faArrowRight,
-    faTrash, faUserPlus, faShieldHalved // Ajouté faShieldHalved pour la promotion/vérification
+    faTrash, faUserPlus, faShieldHalved // faShieldHalved pour la promotion/vérification
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
 import Swal from 'sweetalert2';
@@ -19,7 +19,7 @@ const Utilisateurs = () => {
         standardUserListError,
         listStandardUsers,
         updateUserRole, 
-        deleteUser, // Maintenant disponible après la mise à jour du contexte
+        deleteAdmin, // ✅ Assurez-vous que cette fonction est bien exportée par useUser/UserContext
     } = useUser();
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -29,14 +29,17 @@ const Utilisateurs = () => {
     // ===================================
     useEffect(() => {
         const fetchUsers = async () => {
-            await listStandardUsers(currentPage);
+            // Re-appelle la liste à chaque changement de page
+            await listStandardUsers(currentPage); 
         };
         fetchUsers();
-    }, [currentPage]); // Dépendance essentielle: listStandardUsers (statique), currentPage
+    }, [currentPage]); // Dépendance: currentPage et listStandardUsers
 
     useEffect(() => {
         if (standardUserListError) {
-            toast.error(standardUserListError);
+            // Le toast s'affiche déjà dans listStandardUsers, mais peut être utile ici
+            // si vous voulez une logique spécifique au composant.
+            console.error("Erreur de la liste des utilisateurs standards:", standardUserListError);
         }
     }, [standardUserListError]); 
 
@@ -44,7 +47,8 @@ const Utilisateurs = () => {
     // PAGINATION
     // ===================================
     const { totalCount, page, hasNextPage, hasPreviousPage } = standardUserPagination;
-    // On utilise standardUserList.length pour estimer le 'perPage' de la liste actuelle
+    // La méthode de calcul "Math.min(totalCount, page * currentListCount)" suppose que 
+    // l'API retourne le nombre d'éléments dans la page actuelle (currentListCount = standardUserList.length)
     const currentListCount = standardUserList.length; 
     
     const handleNextPage = () => {
@@ -64,11 +68,11 @@ const Utilisateurs = () => {
     // ===================================
 
     /** Supprime un utilisateur standard (ROLE NONE). */
-    const handleDeleteUser = async (userId, userName) => {
-      //  if (!deleteUser) {
-         //   toast.error("Fonction de suppression d'utilisateur standard non implémentée dans le contexte.");
-           // return;
-        //}
+    const handleDeleteUser = (userId, userName) => { // La fonction n'est plus async ici
+        if (!deleteAdmin) {
+            toast.error("Fonction de suppression d'utilisateur non disponible.");
+            return;
+        }
 
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -82,13 +86,12 @@ const Utilisateurs = () => {
             background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
             color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
         }).then(async (result) => {
-            if (result.isConfirmed) {
+            if (result.isConfirmed) { // ✅ AJOUT DE LA VÉRIFICATION
                 try {
-                    const deletePromise = deleteUser(userId); 
-                
-                    await toast.promise(deletePromise, {
-                        loading: `Suppression de ${userName}...`,
-                        success: `L'utilisateur ${userName} a été supprimé avec succès !`,
+                    // Utilisation de toast.promise pour le feedback utilisateur pendant l'attente
+                    await toast.promise(deleteAdmin(userId), {
+                        loading: `Suppression de ${userName} en cours...`,
+                        success: `L'utilisateur ${userName} a été supprimé !`,
                         error: (err) => `Erreur: ${err.message || "Échec de la suppression."}`,
                     });
                     
@@ -101,19 +104,19 @@ const Utilisateurs = () => {
                     if (newPage !== currentPage) {
                         setCurrentPage(newPage);
                     } else {
-                        // Forcer le rechargement si l'utilisateur supprimé est sur la page
+                        // Forcer le rechargement pour mettre à jour l'état local
                         await listStandardUsers(currentPage); 
                     }
 
                 } catch (error) {
-                    // Les erreurs sont déjà gérées par toast.promise
+                    // Les erreurs sont gérées par toast.promise dans le contexte
                 }
             }
         });
     };
 
     /** Proémet l'utilisateur au rôle de conducteur vérifié (DRIVER). */
-    const handlePromoteToDriver = async (userId, userName) => {
+    const handlePromoteToDriver = (userId, userName) => { // La fonction n'est plus async ici
         if (!updateUserRole) {
             toast.error("Fonction de mise à jour de rôle non implémentée dans le contexte.");
             return;
@@ -135,10 +138,11 @@ const Utilisateurs = () => {
                 try {
                     const promotePromise = updateUserRole(userId, 'DRIVER'); // 'DRIVER' est le rôle cible
                     
+                    // Ajout du toast.promise pour la promotion
                     await toast.promise(promotePromise, {
                         loading: `Promotion de ${userName} en conducteur...`,
                         success: `L'utilisateur ${userName} est maintenant un conducteur vérifié !`,
-                        error: (err) => `Erreur: ${err.message || "Échec de la promotion."}`,
+                        error: (err) => `Erreur: ${err.response?.data?.message || err.message || "Échec de la promotion."}`,
                     });
 
                     // Rafraîchir la liste des utilisateurs standards pour retirer l'utilisateur promu
@@ -223,7 +227,7 @@ const Utilisateurs = () => {
                                                     </td>
                                                     <td className="py-4 px-4">
                                                         <div className="flex justify-center gap-2">
-                                                            {/* NOUVEAU: Bouton pour promouvoir en conducteur vérifié */}
+                                                            {/* Bouton pour promouvoir en conducteur vérifié */}
                                                             <button
                                                                 onClick={() => handlePromoteToDriver(user.id, user.firstName)}
                                                                 className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
@@ -261,7 +265,6 @@ const Utilisateurs = () => {
                         {/* Pagination */}
                         <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
                             <div className="mb-2 sm:mb-0">
-                                {/* Affichage de 1 à 10 sur 50 utilisateurs */}
                                 Affichage de {totalCount === 0 ? 0 : (page - 1) * currentListCount + 1} à {Math.min(totalCount, page * currentListCount)} sur {totalCount} utilisateurs.
                             </div>
                             <div className="flex gap-2">

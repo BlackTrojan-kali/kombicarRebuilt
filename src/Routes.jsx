@@ -132,10 +132,7 @@ const Routes = () => {
                 },
         // --- Routes du Chat ---
         // 🚀 OPTIMISATION : Application du ChatContextProvider sur la route parent du chat
-        {
-          path: "profile/chats",
-          element: <ChatContextProvider><MyChats /></ChatContextProvider>,
-        },
+        
         {
           path: "chat/:reservationId",
           // ⚠️ Le ChatContextProvider n'a pas besoin d'être répété ici s'il englobe déjà la route parente '/profile/chats'. 
@@ -169,6 +166,11 @@ const Routes = () => {
         },
       ],
     },
+    
+    {
+          path: "profile/chats",
+          element: <ChatContextProvider><MyChats /></ChatContextProvider>,
+        },
     {
       // ---------------------------------
       // SECTION AUTHENTIFICATION (Layout: AuthLayout)
