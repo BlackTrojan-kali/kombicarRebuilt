@@ -296,7 +296,7 @@ const DashSideBar = () => {
     );
 
     return (
-        <div className={`flex flex-col py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-20 overflow-y-auto ${sidebarWidthClass}`}>
+        <div className={`flex flex-col py-4 px-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 fixed h-full shadow-lg transition-all duration-300 z-[999] overflow-y-auto ${sidebarWidthClass}`}>
             
             {/* Header et Bouton Toggle */}
             <div className='flex items-center justify-between h-16 mb-8'>
