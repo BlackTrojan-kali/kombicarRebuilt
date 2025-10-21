@@ -153,7 +153,7 @@ export function UserContextProvider({ children }) {
         setIsLoadingAdmins(true);
         setAdminListError(null);
         try {
-            const response = await api.put(`/api/v1/users/admin/update-user-role/${userId}/${newRole}`);
+            const response = await api.put(`/api/v1/users/admin/change-role/${userId}/${newRole}`);
             toast.success("Rôle utilisateur mis à jour avec succès !");
             return response.data;
         } catch (error) {
