@@ -56,7 +56,7 @@ console.log(notification.length);
     // Nous allons l'intégrer directement dans le JSX pour le rendre plus simple.
 
     return (
-        <header className="fixed top-0 left-0 w-full  py-3 px-4 sm:px-6 lg:px-12 xl:px-24 bg-white shadow-md flex items-center justify-between dark:bg-gray-800 dark:shadow-lg transition-colors duration-300">
+        <header className="fixed top-0 left-0 w-full z-20  py-3 px-4 sm:px-6 lg:px-12 xl:px-24 bg-white shadow-md flex items-center justify-between dark:bg-gray-800 dark:shadow-lg transition-colors duration-300">
             {/* Logo et Nom de l'application */}
             <Link to="/" className="flex items-center text-xl font-bold text-gray-800 dark:text-white">
                 <img src="/default/logo.png" className="w-6 h-7 object-contain" alt="Kombicar Logo" />
