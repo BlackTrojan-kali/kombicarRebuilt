@@ -133,7 +133,28 @@ const Routes = () => {
         // --- Routes du Chat ---
         // 🚀 OPTIMISATION : Application du ChatContextProvider sur la route parent du chat
         
+
+        // --- Routes des Avis ---
         {
+          path: "profile/reviews", // Route existante conservée
+          element: <Reviews />,
+        },
+        {
+          path: "reviews/:tripId", // Afficher les avis pour un trajet
+          element: <Reviews />,
+        },
+        {
+          path: "reviews/create/:tripId", // Créer un avis pour un trajet
+          element: <SubmitReview />,
+        },
+        
+    {
+          path: "profile/chats",
+          element: <ChatContextProvider><MyChats /></ChatContextProvider>,
+        },
+      ],
+    },
+           {
           path: "chat/:reservationId",
           // ⚠️ Le ChatContextProvider n'a pas besoin d'être répété ici s'il englobe déjà la route parente '/profile/chats'. 
           // Mais dans votre structure actuelle, les deux routes sont des "siblings" directes de ClientLayout.
@@ -150,27 +171,7 @@ const Routes = () => {
           */
           // Pour la simplicité, j'ajoute le ChatContextProvider également ici
           element: <ChatContextProvider><ChatRoom /></ChatContextProvider>,
-        },
-        // --- Routes des Avis ---
-        {
-          path: "profile/reviews", // Route existante conservée
-          element: <Reviews />,
-        },
-        {
-          path: "reviews/:tripId", // Afficher les avis pour un trajet
-          element: <Reviews />,
-        },
-        {
-          path: "reviews/create/:tripId", // Créer un avis pour un trajet
-          element: <SubmitReview />,
-        },
-      ],
-    },
-    
-    {
-          path: "profile/chats",
-          element: <ChatContextProvider><MyChats /></ChatContextProvider>,
-        },
+        }, 
     {
       // ---------------------------------
       // SECTION AUTHENTIFICATION (Layout: AuthLayout)

@@ -116,7 +116,7 @@ const UserNotifications = () => {
     if (notificationsData?.length === 0 && !loading) {
         // Style Tailwind pour l'état vide
         return (
-            <div className="text-center p-8 dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg shadow-inner">
+            <div className="text-center px-8 py-[200px] dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg shadow-inner">
                 <p className="text-lg font-medium text-gray-500 dark:text-gray-300">
                     Vous n'avez aucune notification.
                 </p>
