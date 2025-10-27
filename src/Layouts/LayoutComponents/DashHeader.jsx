@@ -10,25 +10,23 @@ import {
     faCalendarCheck,
     faMoon,
     faSun,
-    faCheckDouble, // Icône pour Marquer comme lu
-    faSpinner // Icône pour le chargement
+    faCheckDouble, 
+    faSpinner, 
+    faBars // 💡 NOUVEL IMPORT : Icône de menu pour le mobile
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 import { useNotification } from '../../hooks/useNotifications';
 
-// ******************************************************
-// SIMULATION: Vous devez remplacer cette ligne par votre hook
-// de Contexte réel qui expose l'état isCollapsed de la SideBar.
-// J'utilise un état local statique pour cet exemple de code complet.
-const useSidebarContext = () => ({
-    isCollapsed: false // À REMPLACER PAR LE VRAI CONTEXTE DE SIDEBAR
-});
-// ******************************************************
+// 💡 IMPORT RÉEL DU HOOK DE CONTEXTE DE LA SIDEBAR
+import { useSidebarContext } from '../../contexts/SidebarContext'; 
 
 
-// Fonction utilitaire inchangée pour les initiales
+// ###################################################
+// Fonctions et Composants Internes (Inchangés)
+// ###################################################
+
 const generateInitialsSvg = (firstName, lastName, theme) => {
     const initials = `${firstName?.charAt(0) || '?'}${lastName?.charAt(0) || '?'}`.toUpperCase();
     const bgColor = theme === 'dark' ? '#374151' : '#E5E7EB';
@@ -44,7 +42,6 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
-// Composant simple pour un élément de Dropdown
 const DropdownItem = ({ icon, text, to, onClick, isUnread }) => (
     <Link
         to={to || '#'}
@@ -82,12 +79,15 @@ const getNotificationAdminLink = (notificationId, isAdmin) => {
     return `/notifications/${notificationId}`; 
 }
 
+// ###################################################
+// Composant Principal DashHeader (MIS À JOUR)
+// ###################################################
 const DashHeader = () => {
     const { user, logout, API_URL } = useAuth();
     const { theme, setTheme } = useColorScheme();
     
-    // 💡 RÉCUPÉRATION DE L'ÉTAT DE LA SIDEBAR (simulation pour l'exemple)
-    const { isCollapsed: isSidebarCollapsed } = useSidebarContext(); 
+    // 💡 IMPORT DE toggleMobile
+    const { isCollapsed: isSidebarCollapsed, toggleMobile } = useSidebarContext(); 
 
     const { 
         unreadCount, 
@@ -100,11 +100,10 @@ const DashHeader = () => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     
-    // Références pour gérer le clic à l'extérieur
     const notificationsRef = useRef(null);
     const profileRef = useRef(null);
     
-    // Logique de fermeture des menus au clic extérieur
+    // Logique de fermeture des menus au clic extérieur (Inchangée)
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
@@ -121,12 +120,10 @@ const DashHeader = () => {
         };
     }, []);
 
-    // Fonction pour basculer entre les modes clair et sombre
     const toggleDarkMode = () => {
         setTheme(theme === "dark" ? "light" : "dark");
     };
     
-    // Gère le marquage de toutes les notifications non lues affichées
     const handleMarkAllAsRead = async (e) => {
         e.preventDefault();
         const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
@@ -140,33 +137,20 @@ const DashHeader = () => {
         }
     };
     
-    // Simuler un rôle Admin pour l'exemple
-    const isAdmin = user?.role === 'ADMIN'; 
+    const isAdmin = user?.role && (user.role.includes('Admin') || user.role.includes('SUPER_ADMIN'));
 
-    // Nouvelle fonction pour gérer l'ouverture du dropdown de notification
     const handleNotificationToggle = () => {
         const newState = !isNotificationsOpen;
         setIsNotificationsOpen(newState); 
         setIsProfileOpen(false); 
         
-        // Charger la liste des notifications lors de l'ouverture
         if (newState && user) { 
             getNotifications(); 
         }
     }
     
-    // 💡 CLASSE DE LARGEUR ET DE POSITION DYNAMIQUES POUR L'EN-TÊTE
     // Largeur de la sidebar normale : 280px
     // Largeur de la sidebar réduite : 70px
-    
-    // Détermination de la classe de largeur et de la position de départ (left)
-    const sidebarWidth = isSidebarCollapsed ? '70px' : '280px';
-    
-    const headerPositionClass = `lg:left-[${sidebarWidth}]`;
-    const headerWidthClass = `lg:w-[calc(100%-${sidebarWidth})]`;
-    // NOTE: Tailwind JIT peut avoir des difficultés avec les variables CSS dans calc(). 
-    // Pour une meilleure compatibilité, utilisez les classes pré-définies basées sur l'état booléen :
-    
     const dynamicPositionClass = isSidebarCollapsed
         ? 'lg:left-[70px]'
         : 'lg:left-[280px]';
@@ -175,14 +159,26 @@ const DashHeader = () => {
         ? 'lg:w-[calc(100%-70px)]' 
         : 'lg:w-[calc(100%-280px)]';
 
-
     return (
         <div 
-            className={`flex justify-end items-center h-16 bg-white dark:bg-gray-900 shadow-md md:shadow-lg px-6 fixed top-0 right-0 w-full z-20 transition-all duration-300 border-b border-gray-200 dark:border-gray-800 ${dynamicPositionClass} ${dynamicWidthClass}`}
+            // 💡 CHANGEMENT ICI : Utilisation de justify-between/justify-end pour aligner le toggle mobile à gauche
+            className={`flex justify-between items-center h-16 bg-white dark:bg-gray-900 shadow-md md:shadow-lg px-4 sm:px-6 fixed top-0 right-0 w-full z-20 transition-all duration-300 border-b border-gray-200 dark:border-gray-800 ${dynamicPositionClass} ${dynamicWidthClass}`}
         >
-            <div className='flex items-center gap-4 sm:gap-6'>
+            
+            {/* 💡 BOUTON DE TOGGLE MOBILE */}
+            <button
+                onClick={toggleMobile} // 💡 Appel de la fonction pour ouvrir/fermer la sidebar mobile
+                className="p-2 rounded-full text-xl text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none transition-colors duration-300 lg:hidden"
+                aria-label="Ouvrir le menu de navigation"
+            >
+                <FontAwesomeIcon icon={faBars} />
+            </button>
+            
+            {/* Contenu de droite (Dark mode, Notifs, Profil) */}
+            {/* 💡 Utilisation de lg:ml-auto pour pousser le contenu à droite sur grand écran */}
+            <div className='flex items-center gap-4 sm:gap-6 lg:ml-auto'> 
                 
-                {/* Bouton Dark Mode */}
+                {/* Bouton Dark Mode (Inchangé) */}
                 <button
                     onClick={toggleDarkMode}
                     className="p-2.5 rounded-full text-xl text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-300 flex items-center justify-center"
@@ -191,7 +187,7 @@ const DashHeader = () => {
                     {theme === "dark" ? <FontAwesomeIcon icon={faSun} /> : <FontAwesomeIcon icon={faMoon} />}
                 </button>
 
-                {/* Dropdown des Notifications */}
+                {/* Dropdown des Notifications (Inchangé) */}
                 <div className='relative' ref={notificationsRef}>
                     <button
                         onClick={handleNotificationToggle}
@@ -236,7 +232,7 @@ const DashHeader = () => {
                                             to={getNotificationAdminLink(notification.id, isAdmin)} 
                                             isUnread={!notification.is_read}
                                             onClick={() => { 
-                                                // markNotificationsAsRead([notification.id]); // Décommenter si vous voulez marquer comme lu au clic
+                                                // markNotificationsAsRead([notification.id]); 
                                                 setIsNotificationsOpen(false);
                                             }}
                                         />
@@ -257,7 +253,7 @@ const DashHeader = () => {
                     )}
                 </div>
 
-                {/* Dropdown du Profil Utilisateur */}
+                {/* Dropdown du Profil Utilisateur (Inchangé) */}
                 <div className='relative' ref={profileRef}>
                     <button
                         onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotificationsOpen(false); }}

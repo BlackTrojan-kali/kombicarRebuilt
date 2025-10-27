@@ -14,6 +14,7 @@ import { MapContextProvider } from './contexts/MapContext.jsx';
 import { WithdrawContextProvider } from './contexts/withdrawContext.jsx';
 import { ReviewContextProvider } from './contexts/reviewContext.jsx';
 import { NotificationContextProvider } from './contexts/NotificationContext.jsx';
+import { SidebarProvider } from './contexts/SidebarContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     
@@ -29,7 +30,11 @@ createRoot(document.getElementById('root')).render(
                 <DrivingLicenceProvider>
                 <PromoCodeContextProvider> 
                 <ReservationContextProvider> 
-                  <NotificationContextProvider>  <App />
+                  <NotificationContextProvider>
+                  <SidebarProvider>  
+                      <App />
+                      </SidebarProvider>
+                  
                   </NotificationContextProvider>
               
                </ReservationContextProvider>

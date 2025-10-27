@@ -46,7 +46,7 @@ const Utilisateurs = () => {
     }, [currentPage]); // Ajout de listStandardUsers comme dépendance
     
     // ... (Logique de pagination handleNextPage et handlePreviousPage inchangée)
-    const { totalCount, page, hasNextPage, hasPreviousPage } = standardUserPagination;
+   // const { totalCount, page, hasNextPage, hasPreviousPage } = standardUserPagination;
     const currentListCount = standardUserList.length; 
     
     const handleNextPage = () => {
