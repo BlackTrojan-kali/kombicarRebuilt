@@ -224,7 +224,7 @@ const Utilisateurs = () => {
         <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-                    Gestion des Administrateurs et Super Administrateurs
+                    Gestion des Utilisateurs
                 </h1>
                 <button
                     onClick={handleAddUser}
