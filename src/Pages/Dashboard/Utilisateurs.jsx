@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUser, faEnvelope, faPhone, faArrowLeft, faArrowRight,
-    faTrash, faUserPlus, faShieldHalved, faUserShield, // faUserShield pour promotion Admin
+    faTrash, faUserPlus, 
+    faUserMinus, // Utilisé pour Rétrograder
+    faUserShield, // Utilisé pour la gestion des rôles Admin / Super Admin
     faCrown // Icône de couronne pour Super Admin
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
@@ -10,45 +12,56 @@ import Swal from 'sweetalert2';
 import useUser from '../../hooks/useUser';
 import { toast } from "sonner";
 
-// Définition des rôles disponibles (utile pour l'UI et la logique)
+// Définition des rôles disponibles
 const ROLES = {
     NONE: 0,
     ADMIN: 1,
     SUPER_ADMIN: 2,
-    DRIVER: 3, // Rôle déjà utilisé pour la promotion en conducteur
+    DRIVER: 3, 
 };
+
+/** Renvoie le nom lisible du rôle */
+const getRoleName = (roleId) => {
+    switch(roleId) {
+        case ROLES.ADMIN: return <span className="text-yellow-500 font-bold flex items-center gap-2"><FontAwesomeIcon icon={faUserShield} /> ADMIN</span>;
+        case ROLES.SUPER_ADMIN: return <span className="text-purple-500 font-bold flex items-center gap-2"><FontAwesomeIcon icon={faCrown} /> SUPER_ADMIN</span>;
+        case ROLES.DRIVER: return <span className="text-green-500 font-bold">DRIVER</span>;
+        case ROLES.NONE: default: return <span className="text-gray-400">NONE</span>;
+    }
+}
 
 const Utilisateurs = () => {
     const { theme } = useColorScheme();
     const isDark = theme === 'dark';
 
     const {
-        standardUserList,
-        standardUserPagination, 
-        isLoadingStandardUsers,
-        standardUserListError,
-        listStandardUsers,
+        // NOTE: On suppose que ces hooks retournent désormais la liste des ADMINISTRATEURS.
+        standardUserList: adminList, 
+        standardUserPagination: adminPagination, 
+        isLoadingStandardUsers: isLoadingAdmins,
+        standardUserListError: adminListError, 
+        listStandardUsers: listAdmins, // On suppose que cette fonction est maintenant listAdmins
         updateUserRole, 
-        deleteAdmin,
+        deleteAdmin, // On suppose que cette fonction peut supprimer un ADMIN
     } = useUser();
 
     const [currentPage, setCurrentPage] = useState(1);
+    
+    // Destructuration des données de pagination
+    const { totalCount, page, hasNextPage, hasPreviousPage } = adminPagination || {};
     
     // ===================================
     // LIFECYCLE ET CHARGEMENT
     // ===================================
     useEffect(() => {
-        const fetchUsers = async () => {
-            // Re-appelle la liste à chaque changement de page
-            await listStandardUsers(currentPage); 
+        const fetchAdmins = async () => {
+            // Re-appelle la liste des Administrateurs à chaque changement de page
+            await listAdmins(currentPage); 
         };
-        fetchUsers();
-    }, [currentPage]); // Ajout de listStandardUsers comme dépendance
+        fetchAdmins();
+    }, [currentPage,]);
     
-    // ... (Logique de pagination handleNextPage et handlePreviousPage inchangée)
-   // const { totalCount, page, hasNextPage, hasPreviousPage } = standardUserPagination;
-    const currentListCount = standardUserList.length; 
-    
+    // Logique de pagination
     const handleNextPage = () => {
         if (hasNextPage) {
             setCurrentPage(prev => prev + 1);
@@ -60,26 +73,114 @@ const Utilisateurs = () => {
             setCurrentPage(prev => prev - 1);
         }
     };
+    
     // ===================================
-    // GESTION DES ACTIONS
+    // GESTION DES ACTIONS ADMINISTRATIVES
     // ===================================
 
-    /** Supprime un utilisateur standard (ROLE NONE). (Fonction inchangée) */
-    const handleDeleteUser = (userId, userName) => {
-        // ... (Logique de handleDeleteUser inchangée)
+    /** Fonction utilitaire pour exécuter la mise à jour du rôle et le rafraîchissement. */
+    const performRoleUpdate = async (userId, newRole, userName) => {
+        const roleName = Object.keys(ROLES).find(key => ROLES[key] === newRole) || newRole;
+        try {
+            await toast.promise(updateUserRole(userId, newRole), {
+                loading: `Mise à jour de ${userName} en ${roleName} en cours...`,
+                success: `L'utilisateur ${userName} est maintenant ${roleName} avec succès !`,
+                error: (err) => `Erreur: ${err.response?.data?.message || err.message || "Échec de la mise à jour du rôle."}`,
+            });
+
+            // L'utilisateur ayant changé de rôle (ex: démote à NONE), il doit quitter cette liste ou son rôle doit être mis à jour.
+            // On rafraîchit la liste des administrateurs.
+            await listAdmins(currentPage); 
+
+        } catch (error) {
+            console.error("Erreur de mise à jour de rôle:", error);
+        }
+    }
+
+
+    /** Gère la RÉTROGRADATION d'un Admin/Super Admin en utilisateur Standard (ROLE NONE). */
+    const handleDemoteAdmin = async (userId, userName) => {
+        if (!updateUserRole) {
+            toast.error("Fonction de mise à jour de rôle non implémentée.");
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirmer la rétrogradation ?',
+            text: `Voulez-vous vraiment rétrograder l'administrateur ${userName} au rôle d'utilisateur STANDARD (ROLE: NONE) ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#F472B6', // Rose pour la rétrogradation
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Oui, Rétrograder !',
+            cancelButtonText: 'Annuler',
+            background: isDark ? '#1F2937' : '#FFFFFF',
+            color: isDark ? '#F9FAFB' : '#1F2937',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await performRoleUpdate(userId, ROLES.NONE, userName);
+            }
+        });
+    };
+    
+    /** Gère le CHANGEMENT DE RÔLE entre ADMIN et SUPER_ADMIN. */
+    const handlePromoteOrChangeRole = (userId, userName, currentRole) => {
+        if (!updateUserRole) {
+            toast.error("Fonction de mise à jour de rôle non implémentée.");
+            return;
+        }
+
+        const options = {};
+        if (currentRole === ROLES.ADMIN) {
+            options[ROLES.SUPER_ADMIN] = 'Promouvoir en Super Administrateur (SUPER_ADMIN)';
+        } else if (currentRole === ROLES.SUPER_ADMIN) {
+            options[ROLES.ADMIN] = 'Rétrograder en Administrateur (ADMIN)';
+        }
+
+        if (Object.keys(options).length === 0) {
+            toast.info(`L'utilisateur ${userName} ne peut pas changer de rôle admin/super_admin via cette interface (rôle actuel non géré : ${currentRole}).`);
+            return;
+        }
+
+        Swal.fire({
+            title: `Modifier le rôle de ${userName}`,
+            input: 'select',
+            inputOptions: options,
+            inputPlaceholder: 'Sélectionnez le nouveau rôle...',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmer le changement',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#1D4ED8', 
+            background: isDark ? '#1F2937' : '#FFFFFF',
+            color: isDark ? '#F9FAFB' : '#1F2937',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Vous devez sélectionner un rôle !'
+                }
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed && result.value) {
+                const newRole = parseInt(result.value); 
+                await performRoleUpdate(userId, newRole, userName);
+            }
+        });
+    };
+
+    /** Supprime un administrateur. */
+    const handleDeleteAdmin = (userId, userName) => {
         if (!deleteAdmin) {
-            toast.error("Fonction de suppression d'utilisateur non disponible.");
+            toast.error("Fonction de suppression d'administrateur non disponible.");
             return;
         }
 
         Swal.fire({
             title: 'Êtes-vous sûr ?',
-            text: `Vous êtes sur le point de supprimer l'utilisateur ${userName} (ID: ${userId}). Cette action est irréversible !`,
-            icon: 'warning',
+            text: `Vous êtes sur le point de SUPPRIMER L'ADMINISTRATEUR ${userName} (ID: ${userId}). Cette action est irréversible et supprime le compte.`,
+            icon: 'error',
             showCancelButton: true,
             confirmButtonColor: '#DC2626',
             cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Oui, supprimer !',
+            confirmButtonText: 'Oui, SUPPRIMER !',
             cancelButtonText: 'Annuler',
             background: isDark ? '#1F2937' : '#FFFFFF',
             color: isDark ? '#F9FAFB' : '#1F2937',
@@ -87,20 +188,21 @@ const Utilisateurs = () => {
             if (result.isConfirmed) {
                 try {
                     await toast.promise(deleteAdmin(userId), {
-                        loading: `Suppression de ${userName} en cours...`,
-                        success: `L'utilisateur ${userName} a été supprimé !`,
+                        loading: `Suppression de l'administrateur ${userName} en cours...`,
+                        success: `L'administrateur ${userName} a été supprimé !`,
                         error: (err) => `Erreur: ${err.message || "Échec de la suppression."}`,
                     });
                     
-                    const newTotalCount = totalCount - 1;
-                    const newPage = (newTotalCount > 0 && standardUserList.length === 1 && currentPage > 1) 
+                    // Logique de rafraîchissement ou de changement de page après suppression
+                    const newTotalCount = (totalCount || 0) - 1;
+                    const newPage = (newTotalCount > 0 && adminList.length === 1 && currentPage > 1) 
                         ? currentPage - 1 
                         : currentPage;
 
                     if (newPage !== currentPage) {
                         setCurrentPage(newPage);
                     } else {
-                        await listStandardUsers(currentPage); 
+                        await listAdmins(currentPage); 
                     }
 
                 } catch (error) {
@@ -110,90 +212,9 @@ const Utilisateurs = () => {
         });
     };
 
-    /** Gère la promotion au rôle de Conducteur VÉRIFIÉ (DRIVER). (Fonction légèrement simplifiée) */
-    const handlePromoteToDriver = async (userId, userName) => {
-        if (!updateUserRole) {
-            toast.error("Fonction de mise à jour de rôle non implémentée.");
-            return;
-        }
-
-        Swal.fire({
-            title: 'Confirmer la promotion ?',
-            text: `Voulez-vous vraiment promouvoir ${userName} au rôle de CONDUCTEUR VÉRIFIÉ (DRIVER) ?`,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonColor: '#10B981', 
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Oui, Promouvoir DRIVER !',
-            cancelButtonText: 'Annuler',
-            background: isDark ? '#1F2937' : '#FFFFFF',
-            color: isDark ? '#F9FAFB' : '#1F2937',
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                await performRoleUpdate(userId, ROLES.DRIVER, userName);
-            }
-        });
-    };
-    
-    /** Gère la promotion au rôle d'Admin ou Super Admin. */
-    const handlePromoteToAdmin = (userId, userName) => {
-        if (!updateUserRole) {
-            toast.error("Fonction de mise à jour de rôle non implémentée.");
-            return;
-        }
-
-        Swal.fire({
-            title: `Promouvoir ${userName} à quel rôle ?`,
-            input: 'select',
-            inputOptions: {
-                [ROLES.ADMIN]: 'Administrateur (ADMIN)',
-                [ROLES.SUPER_ADMIN]: 'Super Administrateur (SUPER_ADMIN)'
-            },
-            inputPlaceholder: 'Sélectionnez un rôle...',
-            showCancelButton: true,
-            confirmButtonText: 'Confirmer la promotion',
-            cancelButtonText: 'Annuler',
-            confirmButtonColor: '#F59E0B', 
-            background: isDark ? '#1F2937' : '#FFFFFF',
-            color: isDark ? '#F9FAFB' : '#1F2937',
-            inputValidator: (value) => {
-                if (!value || (value != ROLES.ADMIN && value != ROLES.SUPER_ADMIN)) {
-                    return 'Vous devez sélectionner un rôle !'
-                }
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed && result.value) {
-                const newRole = parseInt(result.value); // Le résultat de Swal.fire est une chaîne
-                await performRoleUpdate(userId, newRole, userName);
-            }
-        });
-    };
-
-    /** Fonction utilitaire pour exécuter la mise à jour du rôle et le rafraîchissement. */
-    const performRoleUpdate = async (userId, newRole, userName) => {
-        const roleName = Object.keys(ROLES).find(key => ROLES[key] === newRole) || newRole;
-        try {
-            await toast.promise(updateUserRole(userId, newRole), {
-                loading: `Promotion de ${userName} en ${roleName} en cours...`,
-                success: `L'utilisateur ${userName} a été promu au rôle ${roleName} avec succès !`,
-                error: (err) => `Erreur: ${err.response?.data?.message || err.message || "Échec de la promotion."}`,
-            });
-
-            // L'utilisateur ayant changé de rôle (de NONE à DRIVER/ADMIN/SUPER_ADMIN), il doit quitter cette liste.
-            // On rafraîchit la liste des utilisateurs standards.
-            await listStandardUsers(currentPage); 
-
-        } catch (error) {
-            // Les erreurs sont déjà gérées par toast.promise
-            console.error("Erreur de promotion:", error);
-        }
-    }
-
-
     const handleAddUser = () => {
-        // ... (Logique inchangée)
-        toast('Le formulaire pour ajouter un utilisateur de rôle NONE s\'ouvrira ici.', {
-            icon: '👨‍👩‍👧‍👦',
+        toast('Le formulaire pour ajouter un nouvel administrateur s\'ouvrira ici.', {
+            icon: '👑',
             duration: 3000,
             position: 'top-right',
         });
@@ -203,26 +224,26 @@ const Utilisateurs = () => {
         <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-                    Liste des Utilisateurs Standards (ROLE: NONE)
+                    Gestion des Administrateurs et Super Administrateurs
                 </h1>
                 <button
                     onClick={handleAddUser}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
                 >
                     <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-                    Ajouter un Utilisateur
+                    Ajouter un Administrateur
                 </button>
             </div>
 
             <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
-                <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Utilisateurs Enregistrés ({totalCount})</h2>
+                <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Administrateurs Enregistrés ({totalCount || 0})</h2>
                 
-                {isLoadingStandardUsers ? (
-                    <div className="p-4 text-center text-blue-500 dark:text-blue-400">Chargement des utilisateurs...</div>
-                ) : standardUserListError ? (
+                {isLoadingAdmins ? (
+                    <div className="p-4 text-center text-blue-500 dark:text-blue-400">Chargement des administrateurs...</div>
+                ) : adminListError ? (
                     <div className="p-4 text-center text-red-500 dark:text-red-400">
-                        <p>Une erreur est survenue lors du chargement des utilisateurs :</p> 
-                        <p className='font-mono italic mt-1'>{standardUserListError}</p>
+                        <p>Une erreur est survenue lors du chargement des administrateurs :</p> 
+                        <p className='font-mono italic mt-1'>{adminListError}</p>
                     </div>
                 ) : (
                     <>
@@ -231,15 +252,16 @@ const Utilisateurs = () => {
                                 <thead>
                                     <tr className={`uppercase text-sm font-semibold text-left ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                                         <th className="py-3 px-4 rounded-tl-lg">ID</th>
-                                        <th className="py-3 px-4">Nom de l'utilisateur</th>
+                                        <th className="py-3 px-4">Nom de l'administrateur</th>
                                         <th className="py-3 px-4">Email</th>
                                         <th className="py-3 px-4">Téléphone</th>
+                                        <th className="py-3 px-4">Rôle</th>
                                         <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {standardUserList && standardUserList.length > 0 ? (
-                                        standardUserList.map(user => {
+                                    {adminList && adminList.length > 0 ? (
+                                        adminList.map(user => {
                                             const userName = user.firstName + ' ' + user.lastName;
                                             return (
                                                 <tr key={user.id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}>
@@ -263,30 +285,33 @@ const Utilisateurs = () => {
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
+                                                        {getRoleName(user.role)}
+                                                    </td>
+                                                    <td className="py-4 px-4">
                                                         <div className="flex justify-center gap-2">
-                                                            {/* Bouton pour promouvoir en Conducteur VÉRIFIÉ (DRIVER) */}
+                                                            {/* Bouton pour GÉRER les rôles ADMIN/SUPER_ADMIN */}
                                                             <button
-                                                                onClick={() => handlePromoteToDriver(user.id, user.firstName)}
-                                                                className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors duration-200"
-                                                                title="Promouvoir au rôle de Conducteur (DRIVER)"
-                                                            >
-                                                                <FontAwesomeIcon icon={faShieldHalved} />
-                                                            </button>
-                                                            
-                                                            {/* NOUVEAU: Bouton pour promouvoir en ADMINISTRATEUR / SUPER_ADMIN */}
-                                                            <button
-                                                                onClick={() => handlePromoteToAdmin(user.id, user.firstName)}
-                                                                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
-                                                                title="Promouvoir au rôle d'Administrateur"
+                                                                onClick={() => handlePromoteOrChangeRole(user.id, user.firstName, user.role)}
+                                                                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+                                                                title="Gérer le rôle Administrateur/Super Administrateur"
                                                             >
                                                                 <FontAwesomeIcon icon={faUserShield} />
                                                             </button>
                                                             
-                                                            {/* Bouton de suppression d'utilisateur */}
+                                                            {/* Bouton pour RÉTROGRADER en Utilisateur Standard (NONE) */}
                                                             <button
-                                                                onClick={() => handleDeleteUser(user.id, user.firstName)}
+                                                                onClick={() => handleDemoteAdmin(user.id, user.firstName)}
+                                                                className="p-2 rounded-full bg-pink-500 text-white hover:bg-pink-600 transition-colors duration-200"
+                                                                title="Rétrograder au rôle Standard (NONE)"
+                                                            >
+                                                                <FontAwesomeIcon icon={faUserMinus} />
+                                                            </button>
+                                                            
+                                                            {/* Bouton de suppression d'administrateur */}
+                                                            <button
+                                                                onClick={() => handleDeleteAdmin(user.id, user.firstName)}
                                                                 className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
-                                                                title="Supprimer l'utilisateur"
+                                                                title="Supprimer l'administrateur (suppression de compte)"
                                                             >
                                                                 <FontAwesomeIcon icon={faTrash} />
                                                             </button>
@@ -297,10 +322,10 @@ const Utilisateurs = () => {
                                         })
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan="6" className="py-8 text-center text-gray-500 dark:text-gray-400">
                                                 <div className="flex flex-col items-center">
-                                                    <FontAwesomeIcon icon={faUser} className="text-4xl mb-2" />
-                                                    <p>Aucun utilisateur à afficher pour le moment.</p>
+                                                    <FontAwesomeIcon icon={faCrown} className="text-4xl mb-2" />
+                                                    <p>Aucun administrateur à afficher pour le moment.</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -312,13 +337,13 @@ const Utilisateurs = () => {
                         {/* Pagination */}
                         <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
                             <div className="mb-2 sm:mb-0">
-                                Affichage de {totalCount === 0 ? 0 : (page - 1) * 10 + 1} à {Math.min(totalCount, page * 10)} sur {totalCount} utilisateurs.
+                                Affichage de {totalCount === 0 ? 0 : (page - 1) * 10 + 1} à {Math.min(totalCount || 0, (page || 1) * 10)} sur {totalCount || 0} administrateurs.
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handlePreviousPage}
-                                    disabled={!hasPreviousPage || isLoadingStandardUsers}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!hasPreviousPage || isLoadingStandardUsers ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    disabled={!hasPreviousPage || isLoadingAdmins}
+                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!hasPreviousPage || isLoadingAdmins ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                                 >
                                     <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
                                     Précédent
@@ -328,8 +353,8 @@ const Utilisateurs = () => {
                                 </span>
                                 <button
                                     onClick={handleNextPage}
-                                    disabled={!hasNextPage || isLoadingStandardUsers}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!hasNextPage || isLoadingStandardUsers ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    disabled={!hasNextPage || isLoadingAdmins}
+                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!hasNextPage || isLoadingAdmins ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                                 >
                                     Suivant
                                     <FontAwesomeIcon icon={faArrowRight} className="ml-2" />

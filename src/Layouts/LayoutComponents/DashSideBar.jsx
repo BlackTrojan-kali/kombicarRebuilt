@@ -246,7 +246,7 @@ const DashSideBar = () => {
           <FontAwesomeIcon
             icon={faChevronDown}
             className={`text-xl transition-transform duration-300 ${
-              isCollapsed ? 'rotate-90' : '-rotate-90'
+              isCollapsed ? '-rotate-90' : 'rotate-90'
             }`}
           />
         </button>
