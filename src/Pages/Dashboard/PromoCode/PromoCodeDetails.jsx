@@ -59,7 +59,7 @@ const PromoCodeDetails = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="pl-12  pt-6 pb-40 w-full">
       {/* Boutons de navigation et d'action */}
       <div className="flex justify-between items-center mb-6">
         <Link to="/admin/promocodes/list/all" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">

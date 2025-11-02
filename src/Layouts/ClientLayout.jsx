@@ -5,13 +5,13 @@ import { Footer } from '../Components/page-components/Footer'
 
 const ClientLayout = () => {
   return (
-    <>
+    <div className='TheBody'>
     <Header/>
     <br />
     <Outlet/>
     <br /><br />
     <Footer/>
-    </>
+    </div>
   )
 }
 

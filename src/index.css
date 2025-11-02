@@ -9,7 +9,7 @@
   --color-kombiyellow-500:rgb(219, 206, 14);
   --color-kombiyellow-100:rgb(219, 206, 14,0.295);
 }
-body{
+.TheBody{
   transition: all 0.255s linear;
   
   @apply text-slate-900 dark:text-gray-200 bg-gradient-to-r from-kombiblue-100 from-10%  via-white via-30% to-kombiyellow-100 dark:from-slate-900 dark:from-100%

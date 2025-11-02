@@ -69,7 +69,7 @@ const PromoCode = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="pl-12  pt-6 pb-40">
       {/* Titre et bouton d'ajout */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Gestion des Codes Promotionnels</h1>
