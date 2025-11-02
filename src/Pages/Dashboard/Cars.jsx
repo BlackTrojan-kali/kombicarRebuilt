@@ -146,7 +146,7 @@ const Cars = () => {
   };
 
   return (
-    <div className='p-6 bg-gray-50 dark:bg-gray-900 min-h-full'>
+    <div className='pl-12  pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
           Gestion des Véhicules

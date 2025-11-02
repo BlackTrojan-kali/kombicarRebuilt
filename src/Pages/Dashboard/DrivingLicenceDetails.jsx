@@ -116,7 +116,7 @@ const DrivingLicenceDetails = () => {
 
     // --- Rendu principal ---
     return (
-        <div className='p-6 bg-gray-100 dark:bg-gray-900 min-h-screen'>
+        <div className='pl-12  pt-6 pb-40 bg-gray-100 dark:bg-gray-900 min-h-screen'>
             <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
                 <div className="flex justify-between items-center mb-6">
                     {/* Le lien de retour peut être amélioré pour revenir à la page exacte du filtre précédent */}

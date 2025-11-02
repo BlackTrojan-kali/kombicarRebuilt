@@ -18,7 +18,7 @@ const MainContent = () => {
 
     return (
         // Le conteneur englobant doit permettre le défilement et la croissance
-        <div className={`flex-1 flex flex-col overflow-hidden w-full`}>
+        <div className={`flex-1 flex flex-col overflow-hidden w-full h-full`}>
             
             {/* 1. Header se connecte via le hook useSidebarContext */}
             {/* Si DashHeader ne gère pas de marges, il devrait être positionné correctement par rapport au Main. */}
@@ -28,7 +28,7 @@ const MainContent = () => {
             {/* 2. Contenu principal (avec la marge dynamique) */}
             <main 
                 // Application de la marge par défaut et de la marge dynamique
-                className={`flex-1 overflow-x-scroll   overflow-y-auto pt-16 m lg:p-8 transition-all duration-300 ${defaultMarginClass} ${dynamicMarginClass}`}
+                className={`flex-1 overflow-x-scroll h-full    pt-16 m lg:p-8 transition-all duration-300 ${defaultMarginClass} ${dynamicMarginClass} `}
             >
                 {/* 💡 Outlet rend le composant de la route enfant (ex: DashboardContent) */}
                 <Outlet />

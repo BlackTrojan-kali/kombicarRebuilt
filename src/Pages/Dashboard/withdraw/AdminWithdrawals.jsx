@@ -178,7 +178,7 @@ const AdminWithdrawals = ({ type = "pending" }) => {
 
 
     return (
-        <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+        <div className="container mx-auto pl-12  pt-6 pb-40 bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 border-b pb-4">
                 <FontAwesomeIcon icon={getIcon()} className="mr-3 text-blue-500" />
                 {getTitle()}

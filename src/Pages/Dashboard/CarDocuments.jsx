@@ -46,7 +46,7 @@ const CarDocuments = () => {
     return <div className="text-center mt-8 text-gray-500">Aucun document trouvé pour ce véhicule.</div>;
   }
   return (
-    <div className="p-4 md:p-8">
+    <div className="pl-12  pt-6 pb-40 md:p-8">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Documents du Véhicule (Admin)</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <ul className="divide-y divide-gray-200">

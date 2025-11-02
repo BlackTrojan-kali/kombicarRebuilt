@@ -85,7 +85,7 @@ const DrivingLicences = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-100 dark:bg-gray-900 min-h-screen'>
+    <div className='pl-12  pt-6 pb-40 bg-gray-100 dark:bg-gray-900 min-h-screen'>
       <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Permis de Conduire</h2>

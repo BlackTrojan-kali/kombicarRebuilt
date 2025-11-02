@@ -101,7 +101,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-full transition-colors duration-300'>
+    <div className='pl-12  pt-6 pb-40 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-full transition-colors duration-300'>
 
       <h2 className='text-3xl font-extrabold mb-8 text-center'>Aperçu du Tableau de Bord</h2>
 

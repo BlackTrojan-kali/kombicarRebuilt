@@ -122,7 +122,7 @@ const AdminWithdrawalDetails = () => {
     const user = adminDetails.user || {}; // S'assurer que user existe
 
     return (
-        <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800 max-w-4xl">
+        <div className="container mx-auto pl-12  pt-6 pb-40 bg-white rounded-lg shadow-lg dark:bg-gray-800 max-w-4xl">
             <div className="flex justify-between items-center border-b pb-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                     Détails de la Demande de Retrait
