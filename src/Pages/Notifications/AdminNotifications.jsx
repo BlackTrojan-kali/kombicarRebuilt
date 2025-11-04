@@ -90,7 +90,7 @@ const AdminNotifications = () => {
     }
 
     return (
-        <div className="p-4 md:p-8 bg-white dark:bg-gray-800 min-h-[80vh]">
+        <div className="pl-12  pt-6 pb-40 bg-white dark:bg-gray-800 min-h-[80vh]">
             <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white border-b pb-3">
                 Administration des Notifications ({totalPages} pages)
             </h1>
