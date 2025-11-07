@@ -101,33 +101,37 @@ export function UserContextProvider({ children }) {
         }
     };
 
-    /** Ajoute un nouvel administrateur. */
-    const addAdmin = async (adminData) => {
-        setIsLoadingAdmins(true);
-        setAdminListError(null);
-        try {
-            const payload = {
-                email: adminData.email,
-                password: adminData.password,
-                firstName: adminData.firstName,
-                lastName: adminData.lastName,
-                phoneNumber: adminData.phoneNumber || "",
-                country: adminData.country || 225,
-                role: adminData.role,
-            };
-            const response = await api.post('/api/v1/users/admin/add-user', payload);
-            toast.success("Administrateur ajouté avec succès !");
-            return response.data;
-        } catch (error) {
-            console.error("Erreur lors de l'ajout de l'admin:", error);
-            const errorMessage = error.response?.data?.message || "Échec de l'ajout de l'administrateur.";
-            setAdminListError(errorMessage);
-            toast.error(errorMessage);
-            throw error;
-        } finally {
-            setIsLoadingAdmins(false);
-        }
-    };
+   /** Ajoute un nouvel administrateur. */
+const addAdmin = async (adminData) => {
+    setIsLoadingAdmins(true);
+    setAdminListError(null);
+
+    try {
+        // Construction du payload exactement selon le schéma attendu
+        const payload = {
+            email: adminData.email,
+            password: adminData.password,
+            firstName: adminData.firstName,
+            lastName: adminData.lastName,
+            phoneNumber: adminData.phoneNumber || "",
+            role: parseInt(adminData.role,10),           // numérique (0,1,2,...)
+            roleId: adminData.roleId || "", // UUID du rôle externe
+        };
+
+        console.log(payload)
+        const response = await api.post('/api/v1/users/admin/add-user', payload);
+        toast.success("Administrateur ajouté avec succès !");
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de l'ajout de l'admin:", error);
+        const errorMessage = error.response?.data?.message || "Échec de l'ajout de l'administrateur.";
+        setAdminListError(errorMessage); 
+        toast.error(errorMessage);
+        throw error;
+    } finally {
+        setIsLoadingAdmins(false);
+    }
+};
 
     /** Supprime un administrateur par son ID. */
     const deleteAdmin = async (userId) => {
@@ -149,11 +153,11 @@ export function UserContextProvider({ children }) {
     };
 
     /** Met à jour le rôle d'un utilisateur par un admin. */
-    const updateUserRole = async (userId, newRole) => {
+    const updateUserRole = async (userId,role ,newRole) => {
         setIsLoadingAdmins(true);
         setAdminListError(null);
         try {
-            const response = await api.put(`/api/v1/users/admin/change-role/${userId}/${newRole}`);
+            const response = await api.put(`/api/v1/users/admin/change-role/${userId}/${role}/${newRole}`);
             toast.success("Rôle utilisateur mis à jour avec succès !");
             return response.data;
         } catch (error) {

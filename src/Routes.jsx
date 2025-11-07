@@ -55,6 +55,8 @@ import ReservationSuccess from "./Pages/Client/ReservationSuccess";
 import UserNotifications from "./Pages/Notifications/UserNotifications";
 import AdminNotifications from "./Pages/Notifications/AdminNotifications";
 import PublishNotification from "./Pages/Notifications/PublishNotification";
+import RoleList from "./Pages/Dashboard/Roles/RoleList";
+import CreateOrEditRole from "./Pages/Dashboard/Roles/CreateOrEditRole";
 
 
 const Routes = () => {
@@ -283,6 +285,18 @@ const Routes = () => {
               path: "user-history/:userId", // Historique d'un utilisateur
               element: <AdminWithdrawals type="user-history" />,
             },
+          ],
+        },{
+          path: "roles",
+          children: [
+            {
+              index: true,
+              element: <RoleList />,
+            },
+            {
+              path:"create",
+              element:<CreateOrEditRole/>
+            }
           ],
         },
         // --- NOUVELLES ROUTES pour les permis de conduire (Admin) ---

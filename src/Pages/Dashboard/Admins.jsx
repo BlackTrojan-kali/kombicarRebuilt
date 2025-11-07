@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUserTie, faEnvelope, faPhone, faCalendarAlt, faKey, faEye, faEdit, faTrash, faUserPlus,
-    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown // Ajout de la couronne
+    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, // Ajout de la couronne
+    faUserShield
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
@@ -10,6 +11,8 @@ import { toast } from 'sonner';
 import useColorScheme from '../../hooks/useColorScheme';
 import useUser from '../../hooks/useUser';
 import AdminFormModal from '../../Components/Modals/CreateAdminModal';
+import { useRole } from '../../contexts/RoleContext';
+
 
 // --- MAPPING DES RÔLES ADMINISTRATIFS ---
 // Basé sur la règle : 1 (admin) et 2 (super_admin)
@@ -23,14 +26,23 @@ const Admins = () => {
     const { theme } = useColorScheme();
     const isDark = theme === 'dark';
     
+    const {roles,getRoles} = useRole();
     const { 
         adminList, 
         isLoadingAdmins, 
         listAdmins, 
         adminListError,
         addAdmin,
+        updateUserRole,
         deleteAdmin 
     } = useUser(); 
+
+const ROLES = {
+  NONE: 0,
+  ADMIN: 1,
+  SUPER_ADMIN: 2,
+  DRIVER: 3,
+};
 
     const [perPage, setPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
@@ -94,6 +106,79 @@ const Admins = () => {
         setAdminToEdit(null);
     };
 
+    useEffect(()=>{
+        getRoles(1)
+    },[roles])
+    
+      // Changer le rôle avec 2 selects
+      const handleChangeRole = (userId, userName, currentRole) => {
+        if (!roles || roles.length === 0) {
+          toast.error("La liste des rôles n'est pas chargée.");
+          return;
+        }
+    
+        const html = `
+          <div class="flex flex-col gap-2">
+            <label>Rôle interne :</label>
+            <select id="internalRole" class="swal2-input">
+              ${Object.entries(ROLES)
+                .map(
+                  ([key, value]) =>
+                    `<option value="${value}" ${
+                      currentRole === value ? "selected" : ""
+                    }>${key}</option>`
+                )
+                .join("")}
+            </select>
+    
+            <label>Rôle enregistré :</label>
+            <select id="externalRole" class="swal2-input">
+              ${roles
+                .map((r) => `<option value="${r.id}">${r.name.toUpperCase()}</option>`)
+                .join("")}
+            </select>
+          </div>
+        `;
+    
+        Swal.fire({
+          title: `Modifier le rôle de ${userName}`,
+          html,
+          showCancelButton: true,
+          confirmButtonText: "Confirmer",
+          cancelButtonText: "Annuler",
+          confirmButtonColor: "#2563EB",
+          background: isDark ? "#1F2937" : "#FFFFFF",
+          color: isDark ? "#F9FAFB" : "#1F2937",
+          preConfirm: () => {
+            const internal = parseInt(
+              Swal.getPopup().querySelector("#internalRole").value
+            );
+            const external =
+              Swal.getPopup().querySelector("#externalRole").value
+            ;
+            if (internal === null || external === null) {
+              Swal.showValidationMessage("Vous devez choisir les deux rôles.");
+            }
+            return { internal, external };
+          },
+        }).then(async (result) => {
+          if (result.isConfirmed && result.value) {
+            console.log(result)
+            const { internal, external } = result.value;
+            try {
+              await toast.promise(updateUserRole(userId, internal, external), {
+                loading: `Mise à jour du rôle de ${userName}...`,
+                success: `Le rôle de ${userName} a été changé.`,
+                error: "Échec de la mise à jour du rôle.",
+              });
+              await listStandardUsers(currentPage);
+            } catch (err) {
+              console.error("Erreur lors du changement de rôle :", err);
+            }
+          }
+        });
+      };
+    
     const handleDeleteAdmin = async (adminId, adminName) => {
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -269,13 +354,15 @@ const Admins = () => {
                                                             >
                                                                 <FontAwesomeIcon icon={faEye} />
                                                             </button>
-                                                            <button
-                                                                onClick={() => handleEditAdmin(admin)}
-                                                                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
-                                                                title="Modifier"
-                                                            >
-                                                                <FontAwesomeIcon icon={faEdit} />
-                                                            </button>
+                                                          <button
+                                                                  onClick={() =>
+                                                                    handleChangeRole(admin.id, admin.fullName, admin.role)
+                                                                                         }
+                                                                                         className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                                                                                         title="Changer le rôle"
+                                                                                       >
+                                                                                         <FontAwesomeIcon icon={faUserShield} />
+                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteAdmin(admin.id, `${admin.firstName} ${admin.lastName}`)}
                                                                 className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"

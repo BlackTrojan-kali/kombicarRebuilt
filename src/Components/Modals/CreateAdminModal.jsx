@@ -5,22 +5,34 @@ import {
     faUserPlus, faUser, faEnvelope, faLock, faUserTag, faCheckCircle, faTimesCircle, faPhone, faGlobe
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
+import { useRole } from '../../contexts/RoleContext';
 
 const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
     const { theme } = useColorScheme();
+const ROLES = [
+  {"id": 0,"value":"NONE"},
+  {"id":1,"value":"ADMIN"},
+  {"id":2,"value":"SUPER_ADMIN"},
+  {"id":3,"value":"DRIVER"}
+];
+const {roles,getRoles} = useRole();
+
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [country, setCountry] = useState(225); // Valeur par défaut
-    const [role, setRole] = useState('admin');
+    const [role, setRole] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [passwordError, setPasswordError] = useState('');
-
+    const [roleId,setRoleId] = useState("");
+    useEffect(()=>{
+         getRoles(1)
+    },[roles])
     useEffect(() => {
         if (isOpen) {
             if (initialAdminData) {
@@ -33,13 +45,13 @@ const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
                 
                 // --- CORRECTION DU MAPPING POUR LA LECTURE ---
                 // Si l'API renvoie 2, c'est 'super-admin'. Sinon (1 ou autre), 'admin'.
-                const initialRole = initialAdminData.role === 2 ? 'super-admin' : 'admin';
-                setRole(initialRole);
-                
+                setRole(initialAdminData.role || '');
+                setRoleId(initialAdminData.roleId || "")
                 setIsActive(initialAdminData.isActive !== undefined ? initialAdminData.isActive : initialAdminData.isVerified !== undefined ? initialAdminData.isVerified : true);
                 setPassword('');
                 setConfirmPassword('');
                 setIsEditing(true);
+        
             } else {
                 // Mode création
                 setFirstName('');
@@ -47,7 +59,8 @@ const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
                 setEmail('');
                 setPhoneNumber('');
                 setCountry(225);
-                setRole('admin'); // Par défaut au rôle 1
+                setRole(ROLES[0].id); // Par défaut au rôle 1
+                setRoleId(roles[0].id)
                 setPassword('');
                 setConfirmPassword('');
                 setIsActive(true);
@@ -94,7 +107,8 @@ const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
             email,
             phoneNumber,
             country,
-            role: roleToSend, // Valeur numérique 1 ou 2
+            role, // Valeur numérique 1 ou 2
+            roleId,
             // NOTE : L'état du composant précédent utilisait 'isVerified'. 
             // Si votre API attend 'isActive', cela est correct.
             isActive: isActive, 
@@ -103,8 +117,7 @@ const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
         if (password.trim()) {
             adminToSave.password = password;
         }
-
-        onSaveAdmin(adminToSave, isEditing);
+     onSaveAdmin(adminToSave, isEditing);
     };
 
     const modalTitle = isEditing ? "Modifier l'Administrateur" : "Ajouter un Nouvel Administrateur";
@@ -249,9 +262,32 @@ const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
                                 className={`pl-10 pr-3 py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500
                                     ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
                                 required
-                            >
-                                <option value="admin">Administrateur (Rôle 1)</option>
-                                <option value="super-admin">Super Administrateur (Rôle 2)</option>
+                            >{
+                                ROLES.map((role)=>(
+                                    <option  key={role.id} value={role.id}>{role.value}</option>
+                                ))
+                            }
+                            </select>
+                        </div>
+                    </div>  {/* Rôle */}
+                    <div>
+                        <label htmlFor="roleId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rôle</label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FontAwesomeIcon icon={faUserTag} className="h-5 w-5 text-gray-400" />
+                            </div>
+                            <select
+                                id="roleId"
+                                value={roleId}
+                                onChange={(e) => setRoleId(e.target.value)}
+                                className={`pl-10 pr-3 py-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500
+                                    ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
+                                required
+                            >{
+                                roles.map((roleid)=>(
+                                    <option  key={roleid.id} value={role.id}>{roleid.name}</option>
+                                ))
+                            }
                             </select>
                         </div>
                     </div>

@@ -21,6 +21,7 @@ import {
   faGlobeAfrica,
   faBell,
   faBellConcierge,
+  faRuler,
 } from '@fortawesome/free-solid-svg-icons';
 
 import useAuth from '../../hooks/useAuth';
@@ -350,6 +351,12 @@ const DashSideBar = () => {
           title="Notifications"
           isCollapsed={isCollapsed}
           sublinks={[{ icon: faBellConcierge, title: 'Liste & Publier', link: '/admin/notifications' }]}
+        />
+        <DropDown
+          icon={faRuler}
+          title="Roles"
+          isCollapsed={isCollapsed}
+          sublinks={[{ icon: faBellConcierge, title: 'roles', link: '/admin/roles' }]}
         />
       </nav>
     </aside>

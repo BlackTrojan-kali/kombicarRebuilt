@@ -15,11 +15,13 @@ import { WithdrawContextProvider } from './contexts/withdrawContext.jsx';
 import { ReviewContextProvider } from './contexts/reviewContext.jsx';
 import { NotificationContextProvider } from './contexts/NotificationContext.jsx';
 import { SidebarProvider } from './contexts/SidebarContext.jsx';
+import { RoleProvider } from './contexts/RoleContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     
     <AuthContextProvider>
       <ReviewContextProvider>
+      <RoleProvider>
     <WithdrawContextProvider>
       <ColorSchemeProvider>
         <CarContextProvider>
@@ -48,6 +50,7 @@ createRoot(document.getElementById('root')).render(
       </ColorSchemeProvider>
 
       </WithdrawContextProvider>
+      </RoleProvider>
       </ReviewContextProvider>
     </AuthContextProvider>
   </StrictMode>,
