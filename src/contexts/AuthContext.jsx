@@ -159,6 +159,7 @@ export function AuthContextProvider({ children }) {
                 balance: fullUserInfo.balance,
                 note: fullUserInfo.note,
                 createdAt: fullUserInfo.createdAt,
+                roleId: fullUserInfo.roleId,
                 adminAccesCountry:fullUserInfo.adminAccessCounrty, 
             });
             

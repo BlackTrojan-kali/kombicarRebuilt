@@ -57,6 +57,7 @@ import AdminNotifications from "./Pages/Notifications/AdminNotifications";
 import PublishNotification from "./Pages/Notifications/PublishNotification";
 import RoleList from "./Pages/Dashboard/Roles/RoleList";
 import CreateOrEditRole from "./Pages/Dashboard/Roles/CreateOrEditRole";
+import EditRole from "./Pages/Dashboard/Roles/EditRole";
 
 
 const Routes = () => {
@@ -296,6 +297,10 @@ const Routes = () => {
             {
               path:"create",
               element:<CreateOrEditRole/>
+            },
+            {
+              path:"edit/:roleId",
+              element:<EditRole/>
             }
           ],
         },

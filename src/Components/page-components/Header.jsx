@@ -5,7 +5,9 @@ import {
     faBars, faMoon, faSun, faCar, faTaxi, faUserCircle,
     faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass,
     faPlusCircle, faRoute, faComment,
-    faBell 
+    faBell, 
+    faSunPlantWilt,
+    faLightbulb
 } from "@fortawesome/free-solid-svg-icons"; 
 import { useState, useEffect } from "react";
 import HeaderDropDown from "./HeaderDropDown";
@@ -38,7 +40,6 @@ const Header = () => {
         }
     }, [user, notification.length]);
 
-console.log(notification.length);
     const toggleDarkMode = () => {
         setTheme(theme === "dark" ? "light" : "dark");
     };
@@ -135,7 +136,7 @@ console.log(notification.length);
                     className="p-2 rounded-full border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center text-lg"
                     aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
                 >
-                    {theme === "dark" ? <FontAwesomeIcon icon={faMoon} /> : <FontAwesomeIcon icon={faSun} />}
+                    {theme === "dark" ? <FontAwesomeIcon icon={faMoon} /> : <FontAwesomeIcon icon={faLightbulb} />}
                 </button>
 
                 {/* Bouton Burger (pour mobile) */}
