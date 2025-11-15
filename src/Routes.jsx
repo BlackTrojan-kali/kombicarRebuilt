@@ -58,6 +58,7 @@ import PublishNotification from "./Pages/Notifications/PublishNotification";
 import RoleList from "./Pages/Dashboard/Roles/RoleList";
 import CreateOrEditRole from "./Pages/Dashboard/Roles/CreateOrEditRole";
 import EditRole from "./Pages/Dashboard/Roles/EditRole";
+import TripAdminDetail from "./Pages/Dashboard/TripAdminDetail";
 
 
 const Routes = () => {
@@ -245,6 +246,10 @@ const Routes = () => {
         {
           path: "trajets/:type",
           element: <Trajets />,
+        },
+        {
+          path:"trajets/details/:tripId",
+          element:<TripAdminDetail/>
         },
         {
           path: "cars",

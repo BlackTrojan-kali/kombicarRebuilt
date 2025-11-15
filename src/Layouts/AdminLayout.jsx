@@ -1,18 +1,15 @@
 // src/layouts/AdminLayout.jsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import useAuth from '../../../hooks/useAuth';
 import DashSideBar from '../../components/DashSideBar';
 import DashHeader from '../../components/DashHeader';
 import { SidebarProvider, useSidebarContext } from '../../context/SidebarContext'; // Import du Provider et du Hook
-import { usePermission } from '../contexts/PermissionContext';
-import { useRole } from '../contexts/RoleContext';
 
 // Composant qui utilise le contexte pour déterminer la marge
 const MainContent = () => {
     const { isCollapsed } = useSidebarContext();
-
     
     // 💡 CORRECTION CLÉ : Ajout de 'ml-[70px]' par défaut (pour tous les écrans)
     // Et application de la marge dynamique 'lg:ml-[...]' pour les grands écrans.

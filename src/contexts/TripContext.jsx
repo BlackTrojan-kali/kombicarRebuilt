@@ -5,12 +5,15 @@ import { toast } from "sonner";
 
 
 export const tripContext = createContext({});
+
 export function TripContextProvider({ children }) {
     // 1. Récupération des données d'authentification et du pays par défaut
     const { user, loading: authLoading, defaultCountry } = useAuth();
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Fonction pour charger une liste de trajets (utilisateur ou admin)
     const fetchTrips = async ({pageIndex, status}) => {
         if (authLoading) return;
         setLoading(true);
@@ -39,14 +42,27 @@ export function TripContextProvider({ children }) {
     // ----------------------------------------------------------------------
     // 2. Mise à jour de listPublicTrips pour inclure la logique du pays par défaut
     // ----------------------------------------------------------------------
-    const listPublicTrips = async (searchCriteria) => {
+    const listPublicTrips = async (searchCriteria = {}) => {
         setLoading(true);
         setError(null);
         
-
+        let criteriaToSend = searchCriteria;
+        
+        // Déterminer si searchCriteria est "vide" ou sans pays
+        const isSearchCriteriaEmpty = Object.keys(searchCriteria).length === 0 || 
+                                     (Object.keys(searchCriteria).length === 1 && searchCriteria.pageIndex !== undefined) ||
+                                     !searchCriteria.country;
+        
+        if (isSearchCriteriaEmpty && defaultCountry) {
+            criteriaToSend = { 
+                ...searchCriteria, 
+                country: defaultCountry
+            };
+            console.log("Utilisation du pays par défaut pour la recherche publique:", defaultCountry);
+        }
 
         try {
-            const response = await api.post('/api/v1/trips/list-public', searchCriteria);
+            const response = await api.post('/api/v1/trips/list-public', criteriaToSend);
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
                 setTrips(data.items);
@@ -98,14 +114,34 @@ export function TripContextProvider({ children }) {
             return response.data;
         } catch (err) {
             setError(err);
-            // Ajout du toast ici pour uniformité
             toast.error(err.response?.data?.message || 'Échec du chargement du trajet.');
             throw err;
         } finally {
-        
             setLoading(false);
         }
     };
+
+    // ----------------------------------------------------------------------
+    // 3. Nouvelle fonction pour les informations détaillées (Admin)
+    // ----------------------------------------------------------------------
+    const getTripInfosAsAdmin = async (tripId) => {
+        if (authLoading) return;
+        setLoading(true);
+        setError(null);
+        try {
+            // Endpoint : /api/v1/trips/admin/list-trips-infos/{tripId}
+            const url = `/api/v1/trips/admin/list-trips-infos/${tripId}`; 
+            const response = await api.get(url);
+            return response.data;
+        } catch (err) {
+            setError(err);
+            toast.error(err.response?.data?.message || 'Échec du chargement des informations détaillées du trajet pour l\'administration.');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+    // ----------------------------------------------------------------------
 
     const deleteTrip = async (id) => {
         if (authLoading) return;
@@ -138,7 +174,8 @@ export function TripContextProvider({ children }) {
         try {
             await api.delete(`/api/v1/trips/admin/${tripId}`);
             toast.success('Le trajet a été supprimé par l\'administrateur.');
-            fetchTrips(); 
+            // Note: Vous pourriez vouloir rafraîchir la liste admin ici.
+            // fetchTrips(); 
             return true;
         } catch (err) {
             setError(err);
@@ -208,11 +245,7 @@ export function TripContextProvider({ children }) {
             const response = await api.get(`/api/v1/trips/list-by-reservation/${pageIndex}/${status}/${reservationStatus}`);
             const data = response.data;
             if (data && Array.isArray(data.items) && data.items.length > 0) {
-                // Note : Le toast de succès ici est correct
                 toast.success('Trajets réservés chargés avec succès !');
-            } else {
-                // Uniformisation : Utilisez setError(null) avant, donc le toast d'erreur pour une liste vide n'est pas optimal
-                // toast.error('Aucun trajet réservé trouvé.');
             }
             return data;
         } catch (err) {
@@ -240,6 +273,7 @@ export function TripContextProvider({ children }) {
         updateTrip,
         cancelTrip,
         listReservedTrips,
+        getTripInfosAsAdmin, // <-- LA NOUVELLE FONCTION
         userId: user?.id || null
     };
 
@@ -249,3 +283,10 @@ export function TripContextProvider({ children }) {
         </tripContext.Provider>
     );
 }
+
+// Exemple de hook personnalisé (souvent utilisé pour consommer le contexte)
+/*
+export const useTripContext = () => {
+    return useContext(tripContext);
+}
+*/
