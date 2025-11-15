@@ -24,7 +24,7 @@ const COUNTRY_CODE_TO_NAME = {
 
 /** Convertit un code de pays numérique en nom. */
 const getCountryName = (countryCode) => {
-    return COUNTRY_CODE_TO_NAME[countryCode] || 'Pays Inconnu';
+    return COUNTRY_CODE_TO_NAME[countryCode] || 'Pays non trouve';
 };
 
 /** Détermine le nom du rôle à partir du code numérique. (Fonction statique) */
