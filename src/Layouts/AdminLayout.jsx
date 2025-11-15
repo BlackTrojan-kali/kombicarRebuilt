@@ -45,9 +45,7 @@ const AdminLayout = () => {
 
     useEffect(() => {
         // Vérification du rôle 'Admin'
-        if (!loading && (!user || (user.role !== 'Admin' && user.role !== 'SUPER_ADMIN'))) {
-          
-        console.log(user)
+        if (!loading && (!user || (user.role !==2 && user.role !== 3))) {
             console.log("Accès refusé. Redirection vers la page de connexion.");
             navigate('/admin/signin', { replace: true });
         }
@@ -71,7 +69,7 @@ const AdminLayout = () => {
     }
 
     // Si l'utilisateur est un Admin, on rend le layout complet
-    if (user && (user.role === 'Admin' || user.role === 'SUPER_ADMIN')) {
+    if (user && (user.role ===2 || user.role ===3)) {
         return (
             // 💡 1. ENVELOPPEMENT avec le SidebarProvider
             <SidebarProvider>

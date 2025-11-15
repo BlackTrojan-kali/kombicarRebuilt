@@ -137,7 +137,7 @@ const DashHeader = () => {
         }
     };
     
-    const isAdmin = user?.role && (user.role.includes('Admin') || user.role.includes('SUPER_ADMIN'));
+    const isAdmin = user?.role && (user.role==2 || user.role == 3);
 
     const handleNotificationToggle = () => {
         const newState = !isNotificationsOpen;

@@ -17,7 +17,7 @@ const DashboardLayout = () => {
         if (!loading) {
             // Si l'utilisateur n'est pas connecté ou si son rôle n'est pas 'Admin',
             // on le redirige.
-            if (!user || user.role !== 'Admin') {
+            if (!user || user.role !== 'ADMIN' && user.role !== "SUPER_ADMIN") {
                 console.log("Accès refusé. Redirection vers la page de connexion.");
                 // 'replace: true' empêche l'utilisateur de revenir en arrière avec le bouton du navigateur.
                 navigate('/admin/signin', { replace: true });
