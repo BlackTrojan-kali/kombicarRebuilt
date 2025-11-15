@@ -46,6 +46,8 @@ const AdminLayout = () => {
     useEffect(() => {
         // Vérification du rôle 'Admin'
         if (!loading && (!user || (user.role !== 'Admin' && user.role !== 'SUPER_ADMIN'))) {
+          
+        console.log(user)
             console.log("Accès refusé. Redirection vers la page de connexion.");
             navigate('/admin/signin', { replace: true });
         }
