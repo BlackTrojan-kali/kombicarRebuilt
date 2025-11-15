@@ -8,7 +8,7 @@ const SignInAdmin = () => {
   const navigate = useNavigate();
   // Utilisation du hook useAuth pour accéder aux fonctions du contexte
   const { user,loginAdmin, loginAdminConfirmCode, loading } = useAuth();
- 
+ console.log(user)
   // États pour les champs du formulaire.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

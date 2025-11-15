@@ -29,9 +29,9 @@ const getCountryName = (countryCode) => {
 
 /** Détermine le nom du rôle à partir du code numérique. (Fonction statique) */
 const getRoleName = (roleCode) => {
-    if (roleCode === 3) return 'ADMIN';
+    if (roleCode === 1) return 'ADMIN';
     if (roleCode === 2) return "SUPER_ADMIN"
-    if (roleCode === 1) return 'DRIVER'; 
+    if (roleCode === 3) return 'DRIVER'; 
     return 'USER';
 };
 

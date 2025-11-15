@@ -18,7 +18,7 @@ export default function Signin() {
   const { user, login, loading } = useAuth();
   const { theme } = useColorScheme();
   const navigate = useNavigate();
-
+console.log(user)
   // Redirect if the user is already logged in
   useEffect(() => {
     if (user) {
