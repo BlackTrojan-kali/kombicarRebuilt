@@ -50,7 +50,8 @@ export function AuthContextProvider({ children }) {
     const refreshAdminToken = useCallback(async (refreshToken) => {
         try {
             const response = await api.post('/api/v1/users/refresh-token-admin', { refreshToken });
-            localStorage.setItem('accessToken', response.data.token);
+         // console.log(response)
+              localStorage.setItem('accessToken', response.data.token);
             localStorage.setItem('refreshToken', response.data.refreshToken);
             return true;
         } catch (error) {

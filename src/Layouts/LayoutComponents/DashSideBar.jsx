@@ -184,6 +184,7 @@ const CountrySwitcher = ({ isCollapsed }) => {
             await updateAdminCountryAccess(user.id, newCode);
             setUser(prev => ({ ...prev, adminAccesCountry: newCode }));
             await refreshAdminToken(localStorage.getItem('refreshToken'));
+            console.log(localStorage.getItem("refreshToken"));
             toast.success(`Pays d'accès mis à jour : ${newCountryName}`);
         } catch {
             toast.error('Erreur lors du changement de pays.');
