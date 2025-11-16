@@ -52,7 +52,7 @@ const DashboardLayout = () => {
           et que le 'ml-[250px]' est géré par la sidebar elle-même ou un wrapper.
           Si DashSideBar est statique, le 'ml-[250px]' devrait être sur ce div ici, mais pour les grands écrans uniquement.
         */}
-        <main className="flex-1 p-6 overflow-y-auto pt-20 lg:ml-[250px]">
+        <main className="flex-1 pl-12  pt-20 pb-40  md:pl-5 overflow-y-auto  lg:ml-[250px]">
           <Outlet />
         </main>
       </div>

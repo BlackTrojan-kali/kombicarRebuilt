@@ -174,7 +174,7 @@ const CountrySwitcher = ({ isCollapsed }) => {
 
     const handleChange = useCallback(async (newCode) => {
         // Utiliser le code (c.code) directement au lieu de la clé de l'objet (CM, CI, etc.)
-        if (!user || !user.role.includes('Admin')) return;
+        if (!user || !user.role.includes('ADMIN') || !user.role.includes("SUPER_ADMIN")) return;
         setActive(false);
         
         // Trouver le pays correspondant au nouveau code pour le toast
