@@ -124,23 +124,6 @@ export function TripContextProvider({ children }) {
     // ----------------------------------------------------------------------
     // 3. Nouvelle fonction pour les informations détaillées (Admin)
     // ----------------------------------------------------------------------
-    const getTripInfosAsAdmin = async (tripId) => {
-        if (authLoading) return;
-        setLoading(true);
-        setError(null);
-        try {
-            // Endpoint : /api/v1/trips/admin/list-trips-infos/{tripId}
-            const url = `/api/v1/trips/admin/list-trips-infos/${tripId}`; 
-            const response = await api.get(url);
-            return response.data;
-        } catch (err) {
-            setError(err);
-            toast.error(err.response?.data?.message || 'Échec du chargement des informations détaillées du trajet pour l\'administration.');
-            throw err;
-        } finally {
-            setLoading(false);
-        }
-    };
     // ----------------------------------------------------------------------
 
     const deleteTrip = async (id) => {
@@ -273,7 +256,6 @@ export function TripContextProvider({ children }) {
         updateTrip,
         cancelTrip,
         listReservedTrips,
-        getTripInfosAsAdmin, // <-- LA NOUVELLE FONCTION
         userId: user?.id || null
     };
 

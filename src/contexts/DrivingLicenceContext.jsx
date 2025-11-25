@@ -103,7 +103,7 @@ export function DrivingLicenceProvider({ children }) {
       throw err;
     } finally {
       setLoading(false);
-    }
+    } 
   };
 
   // Function to change verification state

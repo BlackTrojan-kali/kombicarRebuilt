@@ -27,7 +27,7 @@ import Colors from "./Pages/Dashboard/Colors";
 import Publish from "./Pages/Publish";
 import SignInAdmin from "./Pages/Auth/SignInAdmin";
 import ConfirmEmail from "./Pages/Auth/ConfirmEmail";
-import { StatsContextProvider } from "./contexts/StatsContext";
+import { StatsContextProvider } from "./contexts/Admin/StatsContext";
 
 // Nouveaux imports pour les pages des codes promo
 import PromoCode from "./Pages/Dashboard/PromoCode/PromoCode";
@@ -59,8 +59,14 @@ import RoleList from "./Pages/Dashboard/Roles/RoleList";
 import CreateOrEditRole from "./Pages/Dashboard/Roles/CreateOrEditRole";
 import EditRole from "./Pages/Dashboard/Roles/EditRole";
 import TripAdminDetail from "./Pages/Dashboard/TripAdminDetail";
-
-
+import { WithdrawContextProvider } from "./contexts/withdrawContext";
+import { DrivingLicenceProvider } from "./contexts/DrivingLicenceContext";
+import { TripAdminContextProvider } from "./contexts/Admin/TripAdminContext";
+import CarContextProvider from "./contexts/carContext";
+import CarAdminContextProvider from "./contexts/Admin/CarAdminContext";
+import PromoCodeLayout from "./Layouts/CustomAdminLayouts/PromoCodeLayout";
+import WithDrawalsLayout from "./Layouts/CustomAdminLayouts/WithDrawalsLayout";
+import DrivingLicenceLayout from "./Layouts/CustomAdminLayouts/DrivingLicenceLayout";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -68,7 +74,8 @@ const Routes = () => {
       // SECTION CLIENT (Layout: ClientLayout)
       // ------------------------------------
       path: "/",
-      element: <ClientLayout />,
+      element:  <ClientLayout />
+      ,
       children: [
         {
           index: true, // Chemin racine (Accueil)
@@ -115,7 +122,9 @@ const Routes = () => {
         // Historique des retraits utilisateur
         {
           path: "profile/withdrawals",
-          element: <UserWithdrawalHistory />,
+          element:<WithdrawContextProvider> 
+                     <UserWithdrawalHistory />
+            </WithdrawContextProvider>,
         },
         {
           path: "profile/reservations",
@@ -127,7 +136,7 @@ const Routes = () => {
         },
         {
           path: "profile/licence",
-          element: <MyDrivingLicence />,
+          element: <DrivingLicenceProvider><MyDrivingLicence /></DrivingLicenceProvider>,
         },
         // 💡 NOUVELLE ROUTE : Notifications utilisateur
                 {
@@ -201,6 +210,7 @@ const Routes = () => {
         },
       ],
     },
+    
     {
       // ------------------------------------
       // SECTION ADMIN (Connexion)
@@ -208,13 +218,17 @@ const Routes = () => {
       path: "admin/signin",
       element: <SignInAdmin />,
     },
+    
     {
       // ------------------------------------
       // SECTION ADMIN (Dashboard Layout)
       // ------------------------------------
       path: "admin",
-      element: <StatsContextProvider><DashboardLayout /></StatsContextProvider>,
-      children: [
+      element: <StatsContextProvider>
+                <DashboardLayout />
+        </StatsContextProvider>,
+    
+    children: [
         {
           path: "dashboard",
           element: <Dashboard />,
@@ -245,15 +259,15 @@ const Routes = () => {
         },
         {
           path: "trajets/:type",
-          element: <Trajets />,
+          element:<TripAdminContextProvider> <Trajets /></TripAdminContextProvider>,
         },
         {
           path:"trajets/details/:tripId",
-          element:<TripAdminDetail/>
+          element:<TripAdminContextProvider><TripAdminDetail/></TripAdminContextProvider> 
         },
         {
           path: "cars",
-          element: <Cars />,
+          element: <CarAdminContextProvider><Cars /></CarAdminContextProvider>,
         },
         {
           path: "car-documents/:vehiculeId",
@@ -270,6 +284,7 @@ const Routes = () => {
         // --- NOUVELLES ROUTES pour la gestion des retraits (Admin) ---
         {
           path: "withdrawals",
+          element:<WithDrawalsLayout/>,
           children: [
             {
               index: true,
@@ -312,6 +327,7 @@ const Routes = () => {
         // --- NOUVELLES ROUTES pour les permis de conduire (Admin) ---
         {
           path: "licences",
+          element:<DrivingLicenceLayout/>,
           children: [
             // Note: J'ai ajusté la structure des routes enfants pour une meilleure clarté.
             // La route principale 'licences' est maintenant un parent sans élément direct (utilisant un <Outlet/> dans le layout, si nécessaire).
@@ -342,13 +358,14 @@ const Routes = () => {
         // --- NOUVELLES ROUTES pour les codes promo (Admin) ---
         {
           path: "promocodes",
+          element:<PromoCodeLayout/>,
           children: [
             {
               index: true,
               element: <PromoCode />,
             },
             {
-              path: "list/:type",
+              path: "list/:type", 
               element: <PromoCode />,
             },
             {

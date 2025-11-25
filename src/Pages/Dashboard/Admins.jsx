@@ -1,92 +1,105 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faUserTie, faEnvelope, faPhone, faCalendarAlt, faKey, faEye, faEdit, faTrash, faUserPlus,
-    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, // Ajout de la couronne
-    faUserShield
+    faUserTie, faEnvelope, faPhone, faCalendarAlt, faKey, faEye, faTrash, faUserPlus,
+    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, faUserShield
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
+// Importations des Hooks et Contextes
 import useColorScheme from '../../hooks/useColorScheme';
-import useUser from '../../hooks/useUser';
+import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext'; // Utilisation du hook exporté du contexte
+import { useRole } from '../../contexts/Admin/RoleContext';
 import AdminFormModal from '../../Components/Modals/CreateAdminModal';
-import { useRole } from '../../contexts/RoleContext';
 
 
 // --- MAPPING DES RÔLES ADMINISTRATIFS ---
-// Basé sur la règle : 1 (admin) et 2 (super_admin)
 const ROLE_MAPPING = {
     1: { name: 'Administrateur', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', icon: faKey },
     2: { name: 'Super Administrateur', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', icon: faCrown },
     default: { name: 'Rôle Inconnu', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400', icon: faKey }
 };
 
+const ROLES = {
+    NONE: 0,
+    ADMIN: 1,
+    SUPER_ADMIN: 2,
+    DRIVER: 3,
+};
+
 const Admins = () => {
     const { theme } = useColorScheme();
     const isDark = theme === 'dark';
     
-    const {roles,getRoles} = useRole();
+    // Rôles context (inchangé)
+    const { roles, getRoles } = useRole();
+
+    // Récupération des données et fonctions du contexte `UsersAdminContext`
     const { 
-        adminList, 
-        isLoadingAdmins, 
+        userList: adminList, // Renommé `userList` en `adminList` pour la clarté locale
+        isLoading, 
         listAdmins, 
-        adminListError,
-        addAdmin,
-        updateUserRole,
-        deleteAdmin 
-    } = useUser(); 
-
-const ROLES = {
-  NONE: 0,
-  ADMIN: 1,
-  SUPER_ADMIN: 2,
-  DRIVER: 3,
-};
-
-    const [perPage, setPerPage] = useState(10);
+        error: adminListError,
+        pagination, // Récupération de l'objet de pagination
+        updateUserRoleAsSuperAdmin, // Fonction de mise à jour du rôle
+        addAdminUser: addAdmin, // Fonction d'ajout d'administrateur
+        deleteUserAsAdmin: deleteAdmin // Fonction de suppression d'utilisateur
+    } = useUserAdminContext(); 
+    
+    // États locaux
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalRows, setTotalRows] = useState(0);
-
     const [isFormModalOpen, setIsFormModalOpen] = useState(false); 
     const [adminToEdit, setAdminToEdit] = useState(null); 
 
-    /**
-     * Mappe la valeur numérique du rôle à l'objet de configuration défini dans ROLE_MAPPING.
-     * @param {number} roleValue 
-     * @returns {object}
-     */
+    // ATTENTION: La taille par page (perPage) est souvent gérée par l'API. 
+    // Ici, nous la laissons à 10 pour l'affichage de la plage, mais l'API devrait la fournir.
+    const perPage = 10; 
+
+    // Mappe la valeur numérique du rôle
     const getRoleInfo = (roleValue) => {
         return ROLE_MAPPING[roleValue] || ROLE_MAPPING.default;
     };
 
+    /**
+     * Charge les administrateurs pour la page spécifiée.
+     * Utilise listAdmins du contexte qui met à jour l'état global.
+     */
     const handleFetchAdmins = async (page) => {
         try {
-            const data = await listAdmins(page);
-            if (data) {
-                // S'assure de l'extraction correcte des données de pagination.
-                // Si votre API utilise `totalElements`, utilisez-le. Sinon, `totalCount`.
-                setTotalRows(data.totalCount || data.totalElements || adminList.length);
-            }
+            // listAdmins met à jour les états 'userList' et 'pagination' dans le contexte
+            await listAdmins(page);
         } catch (error) {
-            // Le toast dans le contexte gère déjà l'erreur
+            // L'erreur est déjà gérée par le toast dans le contexte.
+            // On peut logger ici si besoin.
+            console.log("Échec du fetch admin dans le composant", error);
         }
     };
 
+    // Charger les administrateurs au montage et au changement de page
     useEffect(() => {
         handleFetchAdmins(currentPage);
-    }, [currentPage]); // Ajout de listAdmins dans les dépendances
-    
-    // ... (Logique de pagination et gestion des Modals inchangées)
+    }, [currentPage]); 
+
+    // Charger la liste des rôles pour le modal
+    useEffect(() => {
+        getRoles(1); // Page 1 ou autre paramètre de pagination si nécessaire
+    }, []); // Dépendances ajustées : `roles` n'est pas nécessaire si on ne veut pas relancer le fetch quand les rôles changent
+
+    // Logique de navigation
+    const totalRows = pagination.totalCount || 0;
+    const totalPages = Math.ceil(totalRows / perPage);
 
     const handleNextPage = () => {
-        if (currentPage < Math.ceil(totalRows / perPage)) {
+        // La condition est basée sur l'objet pagination du contexte
+        if (pagination.hasNextPage) {
             setCurrentPage(prev => prev + 1);
         }
     };
 
     const handlePreviousPage = () => {
-        if (currentPage > 1) {
+        // La condition est basée sur l'objet pagination du contexte
+        if (pagination.hasPreviousPage) {
             setCurrentPage(prev => prev - 1);
         }
     };
@@ -96,7 +109,9 @@ const ROLES = {
         setIsFormModalOpen(true);
     };
 
+    // ATTENTION: L'édition n'est pas implémentée dans votre contexte API actuel (seulement `addAdminUser` et `updateUserRoleAsSuperAdmin`)
     const handleEditAdmin = (admin) => {
+        // Pour l'instant, on n'ouvre que le formulaire avec les données
         setAdminToEdit(admin);
         setIsFormModalOpen(true);
     };
@@ -106,79 +121,77 @@ const ROLES = {
         setAdminToEdit(null);
     };
 
-    useEffect(()=>{
-        getRoles(1)
-    },[roles])
-    
-      // Changer le rôle avec 2 selects
-      const handleChangeRole = (userId, userName, currentRole) => {
+    // Changer le rôle avec 2 selects (Utilise updateUserRoleAsSuperAdmin du contexte)
+    const handleChangeRole = (userId, userName, currentRole) => {
         if (!roles || roles.length === 0) {
-          toast.error("La liste des rôles n'est pas chargée.");
-          return;
+            toast.error("La liste des rôles n'est pas chargée.");
+            return;
         }
     
         const html = `
-          <div class="flex flex-col gap-2">
-            <label>Rôle interne :</label>
-            <select id="internalRole" class="swal2-input">
-              ${Object.entries(ROLES)
-                .map(
-                  ([key, value]) =>
-                    `<option value="${value}" ${
-                      currentRole === value ? "selected" : ""
-                    }>${key}</option>`
-                )
-                .join("")}
-            </select>
-    
-            <label>Rôle enregistré :</label>
-            <select id="externalRole" class="swal2-input">
-              ${roles
-                .map((r) => `<option value="${r.id}">${r.name.toUpperCase()}</option>`)
-                .join("")}
-            </select>
-          </div>
+            <div class="flex flex-col gap-2">
+                <label>Rôle interne (Numérique) :</label>
+                <select id="internalRole" class="swal2-input">
+                ${Object.entries(ROLES)
+                    .map(
+                        ([key, value]) =>
+                            `<option value="${value}" ${
+                            currentRole === value ? "selected" : ""
+                            }>${key}</option>`
+                    )
+                    .join("")}
+                </select>
+        
+                <label>Rôle enregistré (ID) :</label>
+                <select id="externalRole" class="swal2-input">
+                ${roles
+                    .map((r) => `<option value="${r.id}">${r.name.toUpperCase()}</option>`)
+                    .join("")}
+                </select>
+            </div>
         `;
     
         Swal.fire({
-          title: `Modifier le rôle de ${userName}`,
-          html,
-          showCancelButton: true,
-          confirmButtonText: "Confirmer",
-          cancelButtonText: "Annuler",
-          confirmButtonColor: "#2563EB",
-          background: isDark ? "#1F2937" : "#FFFFFF",
-          color: isDark ? "#F9FAFB" : "#1F2937",
-          preConfirm: () => {
-            const internal = parseInt(
-              Swal.getPopup().querySelector("#internalRole").value
-            );
-            const external =
-              Swal.getPopup().querySelector("#externalRole").value
-            ;
-            if (internal === null || external === null) {
-              Swal.showValidationMessage("Vous devez choisir les deux rôles.");
-            }
-            return { internal, external };
-          },
+            title: `Modifier le rôle de ${userName}`,
+            html,
+            showCancelButton: true,
+            confirmButtonText: "Confirmer",
+            cancelButtonText: "Annuler",
+            confirmButtonColor: "#2563EB",
+            background: isDark ? "#1F2937" : "#FFFFFF",
+            color: isDark ? "#F9FAFB" : "#1F2937",
+            preConfirm: () => {
+                const internal = parseInt(
+                    Swal.getPopup().querySelector("#internalRole").value
+                );
+                const external =
+                    Swal.getPopup().querySelector("#externalRole").value
+                ;
+                if (internal === null || external === null) {
+                    Swal.showValidationMessage("Vous devez choisir les deux rôles.");
+                }
+                return { internal, external };
+            },
         }).then(async (result) => {
-          if (result.isConfirmed && result.value) {
-            console.log(result)
-            const { internal, external } = result.value;
-            try {
-              await toast.promise(updateUserRole(userId, internal, external), {
-                loading: `Mise à jour du rôle de ${userName}...`,
-                success: `Le rôle de ${userName} a été changé.`,
-                error: "Échec de la mise à jour du rôle.",
-              });
-              await listStandardUsers(currentPage);
-            } catch (err) {
-              console.error("Erreur lors du changement de rôle :", err);
+            if (result.isConfirmed && result.value) {
+                const { internal, external } = result.value;
+                try {
+                    // Utilisation de updateUserRoleAsSuperAdmin du contexte
+                    await toast.promise(updateUserRoleAsSuperAdmin(userId, internal, external), {
+                        loading: `Mise à jour du rôle de ${userName}...`,
+                        success: `Le rôle de ${userName} a été changé.`,
+                        error: (err) => `Échec de la mise à jour du rôle : ${err.message}`,
+                    });
+                    // Rafraîchir la liste des administrateurs après la mise à jour
+                    await handleFetchAdmins(currentPage); 
+                } catch (err) {
+                    console.error("Erreur lors du changement de rôle :", err);
+                }
             }
-          }
         });
-      };
+    };
     
+    // Supprimer l'administrateur (utilise deleteUserAsAdmin du contexte)
     const handleDeleteAdmin = async (adminId, adminName) => {
         Swal.fire({
             title: 'Êtes-vous sûr ?',
@@ -194,6 +207,7 @@ const ROLES = {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
+                    // Utilisation de deleteUserAsAdmin du contexte
                     await toast.promise(deleteAdmin(adminId), {
                         loading: `Suppression de ${adminName} en cours...`,
                         success: `${adminName} a été supprimé !`,
@@ -201,60 +215,60 @@ const ROLES = {
                     });
                     
                     // Rafraîchir après la suppression
+                    // Note: Le contexte filtre déjà localement après la suppression réussie,
+                    // mais un rafraîchissement complet est plus sûr pour la pagination.
                     handleFetchAdmins(currentPage);
                 } catch (error) {
-                    // L'erreur est gérée par le toast dans la fonction `deleteAdmin` elle-même
+                    // L'erreur est gérée par le toast du contexte/promise
                 }
             }
         });
     };
 
+    // Gérer l'ajout/modification
     const handleSaveAdmin = async (adminData, isEditingMode) => {
         if (isEditingMode) {
-            // Logique de modification
+            // Logique de MODIFICATION (si vous avez un endpoint UPDATE spécifique pour l'admin)
+            // *** NOTE: Votre contexte actuel ne contient pas de fonction de MODIFICATION complète, 
+            // *** je garde donc votre simulation, mais utilisez la fonction API réelle ici.
             const updatePromise = new Promise(async (resolve, reject) => {
-                try {
-                    // ATTENTION: Remplacez cette simulation par votre véritable appel API de modification
-                    // await api.put(`/api/v1/users/admin/${adminData.id}`, adminData)
-                    await new Promise(res => setTimeout(res, 1000)); 
-                    resolve(`L'administrateur "${adminData.firstName} ${adminData.lastName}" a été mis à jour avec succès !`);
-                } catch (error) {
-                    reject(new Error(`Échec de la mise à jour de l'administrateur: ${error.message}`));
-                }
+                 try {
+                     // Remplacer par votre fonction API de mise à jour complète
+                     await new Promise(res => setTimeout(res, 1000)); 
+                     resolve(`L'administrateur "${adminData.firstName} ${adminData.lastName}" a été mis à jour avec succès !`);
+                 } catch (error) {
+                     reject(new Error(`Échec de la mise à jour de l'administrateur: ${error.message}`));
+                 }
             });
-        
+            
             toast.promise(updatePromise, {
-                loading: `Mise à jour de ${adminData.firstName} ${adminData.lastName}...`,
-                success: (message) => message,
-                error: (err) => `Erreur : ${err.message}`,
+                 loading: `Mise à jour de ${adminData.firstName} ${adminData.lastName}...`,
+                 success: (message) => message,
+                 error: (err) => `Erreur : ${err.message}`,
             }).then(() => {
-                handleFetchAdmins(currentPage);
+                 handleFetchAdmins(currentPage);
             }).finally(() => {
-                handleCloseFormModal();
+                 handleCloseFormModal();
             });
 
         } else {
-            // Logique d'ajout, en utilisant la fonction du contexte
+            // Logique d'AJOUT, en utilisant la fonction addAdminUser du contexte
             try {
-                // La fonction addAdmin doit retourner une promesse gérée par un toast interne ou ici
-                await addAdmin(adminData);
-                // Si l'ajout est réussi, rafraîchir la liste
-                handleFetchAdmins(currentPage);
+                await addAdmin(adminData); // Le toast est géré dans le contexte
+                handleFetchAdmins(currentPage); // Rafraîchir
                 handleCloseFormModal();
             } catch (error) {
-                // L'erreur est gérée par la fonction `addAdmin` elle-même
+                // L'erreur est déjà gérée par la fonction `addAdmin`
             }
         }
     };
-
-    const totalPages = Math.ceil(totalRows / perPage);
     
     // Pour l'affichage de la plage (par exemple, "1 à 10 sur 35")
     const startRange = Math.min(totalRows, (currentPage - 1) * perPage + 1);
     const endRange = Math.min(totalRows, currentPage * perPage);
 
     return (
-        <div className='pl-12  pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
+        <div className='pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
             {/* Header et bouton d'ajout */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
@@ -273,7 +287,7 @@ const ROLES = {
                 <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Administrateurs du Système</h2>
                 
                 {/* Gestion de l'état (Chargement/Erreur) */}
-                {isLoadingAdmins ? (
+                {isLoading ? ( // Utilisation de l'état `isLoading` du contexte
                     <div className="p-4 text-center text-blue-500 dark:text-blue-400">
                         Chargement des administrateurs...
                     </div>
@@ -292,7 +306,7 @@ const ROLES = {
                                         <th className="py-3 px-4">Nom Complet</th>
                                         <th className="py-3 px-4">Email</th>
                                         <th className="py-3 px-4">Téléphone</th>
-                                        <th className="py-3 px-4">Rôle</th> {/* CLÉ DE LA MISE À JOUR */}
+                                        <th className="py-3 px-4">Rôle</th>
                                         <th className="py-3 px-4">Statut</th>
                                         <th className="py-3 px-4">Dernière Connexion</th>
                                         <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
@@ -301,7 +315,7 @@ const ROLES = {
                                 <tbody>
                                     {adminList && adminList.length > 0 ? (
                                         adminList.map(admin => {
-                                            const roleInfo = getRoleInfo(admin.role); // Utilisation du MAPPING
+                                            const roleInfo = getRoleInfo(admin.role);
                                             const isActive = admin.isVerified;
 
                                             return (
@@ -326,14 +340,12 @@ const ROLES = {
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        {/* Affichage du rôle basé sur le MAPPING */}
                                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${roleInfo.class}`}>
                                                             <FontAwesomeIcon icon={roleInfo.icon} className="mr-1" />
                                                             {roleInfo.name}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        {/* Affichage du statut (inchangé) */}
                                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
                                                             <FontAwesomeIcon icon={isActive ? faCheckCircle : faTimesCircle} />
                                                             {isActive ? 'Vérifié' : 'Non Vérifié'}
@@ -354,15 +366,15 @@ const ROLES = {
                                                             >
                                                                 <FontAwesomeIcon icon={faEye} />
                                                             </button>
-                                                          <button
-                                                                  onClick={() =>
-                                                                    handleChangeRole(admin.id, admin.fullName, admin.role)
-                                                                                         }
-                                                                                         className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-                                                                                         title="Changer le rôle"
-                                                                                       >
-                                                                                         <FontAwesomeIcon icon={faUserShield} />
-                                                             </button>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleChangeRole(admin.id, `${admin.firstName} ${admin.lastName}`, admin.role)
+                                                                }
+                                                                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors" // Changé au jaune pour le rôle
+                                                                title="Changer le rôle"
+                                                            >
+                                                                <FontAwesomeIcon icon={faUserShield} />
+                                                            </button>
                                                             <button
                                                                 onClick={() => handleDeleteAdmin(admin.id, `${admin.firstName} ${admin.lastName}`)}
                                                                 className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
@@ -397,8 +409,8 @@ const ROLES = {
                             <div className="flex gap-2">
                                 <button
                                     onClick={handlePreviousPage}
-                                    disabled={currentPage === 1 || isLoadingAdmins}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage === 1 || isLoadingAdmins ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    disabled={!pagination.hasPreviousPage || isLoading}
+                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!pagination.hasPreviousPage || isLoading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                                 >
                                     <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
                                     Précédent
@@ -408,8 +420,8 @@ const ROLES = {
                                 </span>
                                 <button
                                     onClick={handleNextPage}
-                                    disabled={currentPage >= totalPages || isLoadingAdmins}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${currentPage >= totalPages || isLoadingAdmins ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    disabled={!pagination.hasNextPage || isLoading}
+                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!pagination.hasNextPage || isLoading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                                 >
                                     Suivant
                                     <FontAwesomeIcon icon={faArrowRight} className="ml-2" />

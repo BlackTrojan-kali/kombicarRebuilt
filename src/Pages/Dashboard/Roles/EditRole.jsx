@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useRole } from '../../../contexts/RoleContext'; // Ajustez le chemin
+import { useRole } from '../../../contexts/Admin/RoleContext'; // Ajustez le chemin
 import { toast } from 'sonner';
 
 // Simuler la liste complète des permissions disponibles

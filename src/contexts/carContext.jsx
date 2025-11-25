@@ -13,35 +13,10 @@ export function CarContextProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Nouveaux états pour la gestion des véhicules par l'administrateur
-    const [adminCars, setAdminCars] = useState([]);
-    const [adminCarPagination, setAdminCarPagination] = useState({
-        totalCount: 0,
-        page: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-    });
-    const [isLoadingAdminCars, setIsLoadingAdminCars] = useState(false);
-    const [adminCarListError, setAdminCarListError] = useState(null);
     const [carDetails, setCarDetails] = useState(null);
     const [isCarDetailsLoading, setIsCarDetailsLoading] = useState(false);
     const [carDocuments, setCarDocuments] = useState([]);
 
-    // Nouveaux états pour les permis de conduire de l'administrateur
-    const [adminLicences, setAdminLicences] = useState([]);
-    const [adminLicencePagination, setAdminLicencePagination] = useState({
-        totalCount: 0,
-        page: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-    });
-    const [isLoadingAdminLicences, setIsLoadingAdminLicences] = useState(false);
-    const [adminLicenceListError, setAdminLicenceListError] = useState(null);
-    
-    // Nouvel état pour les documents d'un véhicule spécifique pour l'admin
-    const [adminVehicleDocuments, setAdminVehicleDocuments] = useState([]);
-    const [isLoadingAdminVehicleDocuments, setIsLoadingAdminVehicleDocuments] = useState(false);
-    const [adminVehicleDocumentsError, setAdminVehicleDocumentsError] = useState(null);
 
     // 🌐 Récupère la liste de tous les véhicules (pour les admins)
     const fetchCars = async (params = {}) => {
@@ -60,97 +35,6 @@ export function CarContextProvider({ children }) {
             setLoading(false);
         }
     };
-
-    // 🆕 Fonction pour lister les véhicules pour les administrateurs
-    const fetchAdminCars = async (page = 1, isVerified) => {
-        setIsLoadingAdminCars(true);
-        setAdminCarListError(null);
-        console.log(isVerified)
-        try {
-            const response = await api.get(`/api/v1/vehicules/admin/list/${page}/${isVerified}`);
-
-            if (response.status !== 200) {
-                throw new Error("Échec de la récupération de la liste des véhicules.");
-            }
-
-            const data = response.data;
-            setAdminCars(data.items);
-            setAdminCarPagination({
-                totalCount: data.totalCount,
-                page: data.page,
-                hasNextPage: data.hasNextPage,
-                hasPreviousPage: data.hasPreviousPage,
-            });
-            return data;
-        } catch (error) {
-            console.error("Erreur lors de la liste des véhicules pour l'admin:", error);
-            const errorMessage = error.response?.data?.message || "Une erreur inattendue est survenue.";
-            setAdminCarListError(errorMessage);
-            toast.error(errorMessage);
-            setAdminCars([]);
-            throw error;
-        } finally {
-            setIsLoadingAdminCars(false);
-        }
-    };
-    
-    // 🆕 Fonction pour lister les permis de conduire pour les administrateurs
-    const fetchAdminDrivingLicences = async (page = 1, verificationState = 0) => {
-        setIsLoadingAdminLicences(true);
-        setAdminLicenceListError(null);
-        try {
-            const response = await api.get(`/api/v1/licence-driving/admin/list-licences-driving/${page}/${verificationState}`);
-            
-            if (response.status !== 200) {
-                throw new Error("Échec de la récupération de la liste des permis de conduire.");
-            }
-            
-            const data = response.data;
-            setAdminLicences(data.items);
-            setAdminLicencePagination({
-                totalCount: data.totalCount,
-                page: data.page,
-                hasNextPage: data.hasNextPage,
-                hasPreviousPage: data.hasPreviousPage,
-            });
-            return data;
-        } catch (error) {
-            console.error("Erreur lors de la liste des permis de conduire pour l'admin:", error);
-            const errorMessage = error.response?.data?.message || "Une erreur inattendue est survenue.";
-            setAdminLicenceListError(errorMessage);
-            toast.error(errorMessage);
-            setAdminLicences([]);
-            throw error;
-        } finally {
-            setIsLoadingAdminLicences(false);
-        }
-    };
-
-    // 🆕 Fonction pour lister les documents d'un véhicule spécifique (pour les admins)
-    const fetchAdminVehicleDocuments = async (vehiculeId) => {
-        setIsLoadingAdminVehicleDocuments(true);
-        setAdminVehicleDocumentsError(null);
-        try {
-            if (!user || user.role !== "Admin") {
-                throw new Error("Accès refusé. Cette action est réservée aux administrateurs.");
-            }
-            const response = await api.get(`/api/v1/vehicules/admin/${vehiculeId}/documents`);
-            if (response.status !== 200) {
-                throw new Error("Échec de la récupération des documents du véhicule.");
-            }
-            setAdminVehicleDocuments(response.data);
-            return response.data;
-        } catch (err) {
-            console.error(`Erreur lors de la récupération des documents pour le véhicule ${vehiculeId}:`, err);
-            setAdminVehicleDocumentsError(err.response?.data?.message || "Une erreur inattendue est survenue.");
-            toast.error(err.response?.data?.message || 'Échec du chargement des documents du véhicule.');
-            setAdminVehicleDocuments([]);
-            throw err;
-        } finally {
-            setIsLoadingAdminVehicleDocuments(false);
-        }
-    };
-
 
     // 👤 Récupère les véhicules de l'utilisateur authentifié
     const fetchUserCars = async () => {
@@ -385,28 +269,11 @@ export function CarContextProvider({ children }) {
         updateVehicleVerificationState,
         userId: user?.id || null,
         // Nouvelles valeurs pour la gestion par l'admin
-        adminCars,
-        adminCarPagination,
-        isLoadingAdminCars,
-        adminCarListError,
-        fetchAdminCars,
-        // Nouvelle fonction de téléchargement
         downloadDocument,
         // Nouvel état pour les détails et documents
         carDetails,
         isCarDetailsLoading,
         carDocuments,
-        // Nouvelles valeurs pour la gestion des permis de conduire par l'admin
-        adminLicences,
-        adminLicencePagination,
-        isLoadingAdminLicences,
-        adminLicenceListError,
-        fetchAdminDrivingLicences,
-        // Nouvelles valeurs pour les documents de véhicule d'admin
-        adminVehicleDocuments,
-        isLoadingAdminVehicleDocuments,
-        adminVehicleDocumentsError,
-        fetchAdminVehicleDocuments,
     };
 
     return (

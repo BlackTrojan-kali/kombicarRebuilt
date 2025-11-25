@@ -1,5 +1,5 @@
 import { useContext } from 'react'; 
-import { StatsContext } from '../contexts/StatsContext';
+import { StatsContext } from '../contexts/Admin/StatsContext';
 
 const useStats = () => {
     const context = useContext(StatsContext);

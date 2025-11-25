@@ -1,24 +1,26 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Select from 'react-select'; // Assurez-vous d'avoir installé react-select
-import { NotificationContext } from '../../contexts/NotificationContext'; // Chemin à ajuster
+import { NotificationContext } from '../../contexts/NotificationContext'; // Chemin ajusté pour l'exemple
 import { toast } from 'sonner';
 import api from '../../api/api'; // Nécessaire pour lister les utilisateurs
 
+// Composant pour la publication de notifications ciblées (un ou plusieurs utilisateurs)
 const PublishNotification = () => {
     // Utilisation du contexte de notification
-    const { publishNotification } = useContext(NotificationContext);
+    // Nous exportons les DEUX fonctions de publication pour choisir laquelle utiliser, 
+    // mais dans ce cas, nous allons utiliser la nouvelle fonction multi-utilisateur
+    const { publishToSelectedUsers } = useContext(NotificationContext);
 
     // États du formulaire
     const [title, setTitle] = useState('');
     const [message, setMessage] = useState('');
-    const [selectedUser, setSelectedUser] = useState(null); // Utilisateur sélectionné par React-Select
+    // selectedUsers est maintenant un TABLEAU d'objets sélectionnés par React-Select
+    const [selectedUsers, setSelectedUsers] = useState([]); 
     const [userOptions, setUserOptions] = useState([]); // Liste des options pour React-Select
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-    // Simuler le chargement des utilisateurs pour le sélecteur
-    // NOTE: Dans une vraie application, vous utiliseriez ici une fonction de votre UserContext
-    // pour lister tous les utilisateurs ou conducteurs. Par exemple : listStandardUsers, listVerifiedConductors.
+    // Chargement des utilisateurs pour le sélecteur
     const fetchUserOptions = async () => {
         setIsLoadingUsers(true);
         try {
@@ -49,31 +51,36 @@ const PublishNotification = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!title || !message || !selectedUser) {
-            toast.warning('Veuillez remplir tous les champs (titre, message et client).');
+        // Si selectedUsers est null ou un tableau vide
+        if (!title || !message || selectedUsers.length === 0) {
+            toast.warning('Veuillez remplir tous les champs (titre, message) et sélectionner au moins un client.');
             return;
         }
 
         setIsSubmitting(true);
         try {
+            // Extraction des UUIDs de la liste des objets sélectionnés
+            const userIds = selectedUsers.map(user => user.value);
+
             const data = {
                 title: title,
                 message: message,
-                userId: selectedUser.value, // Extraction de l'UUID de l'utilisateur
+                userIds: userIds, // Utilisation du tableau d'IDs
             };
 
-            await publishNotification(data);
+            // Utilisation de la nouvelle fonction pour la publication à plusieurs utilisateurs
+            await publishToSelectedUsers(data); 
 
-            toast.success('Notification publiée avec succès !');
+            toast.success(`Notification publiée avec succès pour ${userIds.length} client(s) !`);
 
             // Réinitialiser le formulaire
             setTitle('');
             setMessage('');
-            setSelectedUser(null);
+            setSelectedUsers([]);
 
         } catch (error) {
-            // La gestion d'erreur et le toast sont déjà dans votre NotificationContext,
-            // mais on peut ajouter un toast générique ici si l'erreur n'a pas été gérée plus tôt.
+            console.error("Erreur lors de l'envoi de la notification:", error);
+            // La gestion d'erreur plus précise est dans le NotificationContext
             toast.error("Échec de l'envoi de la notification.");
         } finally {
             setIsSubmitting(false);
@@ -81,39 +88,45 @@ const PublishNotification = () => {
     };
 
     return (
-        <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Publier une Notification Ciblée</h2>
+        <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-2xl space-y-6 mt-10 border border-gray-100">
+            <h2 className="text-3xl font-extrabold text-blue-800 border-b pb-3">
+                Publier une Notification Ciblée (Multi-Utilisateurs)
+            </h2>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 
-                {/* Champ Client (React-Select) */}
+                {/* Champ Client(s) (React-Select Multi) */}
                 <div>
-                    <label htmlFor="client-select" className="block text-sm font-medium text-gray-700 mb-1">
-                        Client Destinataire
+                    <label htmlFor="client-select" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Client(s) Destinataire(s)
                     </label>
                     <Select
                         id="client-select"
-                        value={selectedUser}
-                        onChange={setSelectedUser}
+                        value={selectedUsers}
+                        onChange={setSelectedUsers}
                         options={userOptions}
                         isLoading={isLoadingUsers}
-                        placeholder="Sélectionner un client..."
+                        placeholder="Sélectionner un ou plusieurs clients..."
+                        isMulti // <-- Permet la sélection multiple
                         isClearable
                         required
+                        classNamePrefix="react-select"
+                        isDisabled={isLoadingUsers}
                     />
+                    {isLoadingUsers && <p className="mt-1 text-xs text-gray-500">Chargement des utilisateurs...</p>}
                 </div>
 
                 {/* Champ Titre */}
                 <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                        Titre
+                    <label htmlFor="title" className="block text-sm font-semibold text-gray-700 mb-2">
+                        Titre de la Notification
                     </label>
                     <input
                         type="text"
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
                         placeholder="Ex: Mise à jour importante"
                         required
                     />
@@ -121,15 +134,15 @@ const PublishNotification = () => {
 
                 {/* Champ Message */}
                 <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
                         Message
                     </label>
                     <textarea
                         id="message"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        rows="4"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        rows="5"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 resize-none transition duration-150 ease-in-out"
                         placeholder="Écrivez le contenu de la notification ici..."
                         required
                     />
@@ -138,12 +151,22 @@ const PublishNotification = () => {
                 {/* Bouton de Soumission */}
                 <button
                     type="submit"
-                    disabled={isSubmitting || isLoadingUsers}
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                        isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                    disabled={isSubmitting || isLoadingUsers || !title || !message || selectedUsers.length === 0}
+                    className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white transition duration-200 ${
+                        isSubmitting || isLoadingUsers ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-[1.01]'
                     }`}
                 >
-                    {isSubmitting ? 'Publication en cours...' : 'Publier la Notification'}
+                    {isSubmitting ? (
+                        <>
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Publication en cours...
+                        </>
+                    ) : (
+                        `Publier la Notification à ${selectedUsers.length || 0} client(s)`
+                    )}
                 </button>
             </form>
         </div>

@@ -12,6 +12,7 @@ import {
     faMobileAlt, // Nouvelle icône
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from "sonner";
+import { useWithdrawAdminContext } from '../../../contexts/Admin/WithDrawalAdminContext';
 
 // Fonctions utilitaires de formatage
 const getStatusText = (status) => {
@@ -44,7 +45,7 @@ const AdminWithdrawalDetails = () => {
         adminDetailsError,
         fetchAdminWithdrawalDetails,
         updateWithdrawalStatus,
-    } = useWithDraw();
+    } = useWithdrawAdminContext();
 
     const [rejectReason, setRejectReason] = useState('');
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);

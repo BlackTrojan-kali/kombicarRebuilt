@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import useDrivingLicence from '../../hooks/useDrivingLicence';
 import { toast } from 'sonner';
+import { useAdminDLicenceContext } from '../../contexts/Admin/AdminDlicenceContext';
 
 const LicenceUpdateModal = ({ isOpen, onClose, licence }) => {
-  const { changeVerificationState, getLicencesList, loading } = useDrivingLicence();
+  const { changeVerificationState, getLicencesList, loading } = useAdminDLicenceContext();
   const [verificationState, setVerificationState] = useState(licence.verificationState);
   const [rejectionReason, setRejectionReason] = useState('');
 

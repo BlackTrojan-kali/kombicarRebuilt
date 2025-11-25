@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faEye, faArrowLeft, faArrowRight, faEdit, faDownload } from '@fortawesome/free-solid-svg-icons';
 import useDrivingLicence from '../../hooks/useDrivingLicence';
 import LicenceUpdateModal from '../../Components/Modals/LicenceUpdateModal';
+import { useAdminDLicenceContext } from '../../contexts/Admin/AdminDlicenceContext';
 
 const DrivingLicences = () => {
   const { verificationState = 0, page = 1 } = useParams();
@@ -16,7 +17,7 @@ const DrivingLicences = () => {
     error, 
     getLicencesList,
     downloadLicenceDocument // Import the new download function
-  } = useDrivingLicence();
+  } = useAdminDLicenceContext();
 
   useEffect(() => {
     getLicencesList(page, verificationState);

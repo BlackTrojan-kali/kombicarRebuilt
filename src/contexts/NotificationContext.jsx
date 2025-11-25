@@ -42,7 +42,7 @@ export function NotificationContextProvider ({children}){
     };
 
     // GET /api/v1/notifications/{notificationId} : Détails d'une notification (Utilisateur)
-    const getNotificationById = async(id) => {    
+    const getNotificationById = async(id) => { 	
         try {
             const res = await api.get(`${API_URL}/api/v1/notifications/${id}`);
             return res;
@@ -53,7 +53,7 @@ export function NotificationContextProvider ({children}){
     };
     
     // GET /api/v1/notifications/details/{notificationId} : Détails d'une notification (Admin)
-    const getAdminNotificationDetails = async(id) => {    
+    const getAdminNotificationDetails = async(id) => { 	
         try {
             const res = await api.get(`${API_URL}/api/v1/notifications/admin/details/${id}`);
             return res;
@@ -138,7 +138,7 @@ export function NotificationContextProvider ({children}){
         }
     }
     
-    // POST /api/v1/notifications/publish : Crée et publie une notification
+    // POST /api/v1/notifications/admin/publish : Crée et publie une notification à un seul utilisateur
     const publishNotification = async({ title, message, userId }) => { 
         try {
             const data = { title, message, userId };
@@ -149,6 +149,21 @@ export function NotificationContextProvider ({children}){
             return res;
         } catch (err) {
             console.error("Erreur lors de la publication de la notification: ", err);
+            throw err;
+        }
+    }
+
+    // POST /api/v1/notifications/admin/publish-selected-user : Crée et publie une notification à plusieurs utilisateurs (Admin)
+    const publishToSelectedUsers = async({ title, message, userIds }) => { 
+        try {
+            const data = { title, message, userIds };
+            const res = await api.post(`${API_URL}/api/v1/notifications/admin/publish-selected-user`, data);
+            
+            // Pas de mise à jour du state local 'notification' car il s'agit d'une action Admin
+            
+            return res;
+        } catch (err) {
+            console.error("Erreur lors de la publication de la notification à des utilisateurs sélectionnés: ", err);
             throw err;
         }
     }
@@ -168,7 +183,9 @@ export function NotificationContextProvider ({children}){
         markNotificationsAsRead,
         deleteNotifications,
         deletePlatformNotifications, 
-        publishNotification 
+        publishNotification,
+        // NOUVELLE FONCTION EXPORTÉE
+        publishToSelectedUsers 
     }
     
     return(
@@ -177,4 +194,3 @@ export function NotificationContextProvider ({children}){
         </NotificationContext.Provider>
     )
 }
- 

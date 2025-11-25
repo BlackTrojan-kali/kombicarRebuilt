@@ -7,6 +7,7 @@ import {
 
 import useColorScheme from '../../hooks/useColorScheme';
 import useTrips from '../../hooks/useTrips';
+import { useTripAdmin } from '../../contexts/Admin/TripAdminContext';
 
 // Composant pour un élément de détail simple
 const DetailItem = ({ icon, label, value, theme, classes = '' }) => (
@@ -103,8 +104,8 @@ const TripAdminDetail = () => {
     const { tripId } = useParams();
     const { theme } = useColorScheme();
     // Nous supposons que useTrips est bien défini et expose getTripInfosAsAdmin, loading, error
-    const { getTripInfosAsAdmin, loading, error } = useTrips(); 
-
+    const { getTripInfosAsAdmin, loading, error } = useTripAdmin(); 
+ 
     const [tripDetails, setTripDetails] = useState(null);
 
     const fetchTripDetails = async () => {

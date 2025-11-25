@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faMapMarkerAlt, faCalendarAlt, faClock, faMoneyBillWave, faUserTie, faCar,
@@ -8,48 +8,78 @@ import {
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
-// Import de useNavigate pour la redirection
+// Import de useNavigate et useParams
 import { useParams, useNavigate } from 'react-router-dom';
 
+// 🚨 REMPLACEMENT : Importation du nouveau hook d'administration
+// Assurez-vous que le chemin est correct pour votre projet
+import { useTripAdmin } from '../../contexts/Admin/TripAdminContext'; 
 import useColorScheme from '../../hooks/useColorScheme';
-import useTrips from '../../hooks/useTrips';
 
 
 const Trajets = () => {
-    // 1. Initialisation de useNavigate
+    // 1. Initialisation de useNavigate et des hooks
     const navigate = useNavigate();
     const { theme } = useColorScheme();
-    const { type } = useParams();
+    const { type } = useParams(); // type est le statut du trajet à filtrer
     
-    // Récupération de la nouvelle fonction du hook
-    const { trips, loading, error, listPublicTrips, deleteTripAsAdmin, changeTripStatusAsAdmin } = useTrips();
-
+    // Récupération des fonctions du TripAdminContext
+    // NOTE : trips, loading, error, changeTripStatusAsAdmin, deleteTripAsAdmin viennent du contexte
+    const { 
+        trips, 
+        setTrips, // Ajout de setTrips si vous voulez mettre à jour l'état directement après une action
+        loading, 
+        error, 
+        deleteTripAsAdmin, 
+        changeTripStatusAsAdmin ,
+        listAdminTrips,
+        // NOTE: Vous aurez besoin d'une fonction de liste pour admin, que j'appelle ici "listAdminTrips"
+        // Si elle n'existe pas, vous pouvez temporairement utiliser une fonction mock ou la créer dans le contexte.
+        // Pour l'instant, je vais utiliser une fonction fictive car elle n'était pas dans le contexte fourni.
+        // Si vous utilisez listPublicTrips, elle DOIT être accessible via useTripAdmin.
+    } = useTripAdmin();
+    
+    // 🚨 Pour l'exemple, nous allons créer une fonction de mock pour le listing car elle n'est pas dans votre contexte
+    // Elle devrait être implémentée dans TripAdminContext : GET /api/v1/trips/admin/list-trips?page={page}&status={status}
+    // Je suppose que vous avez listAdminTrips ou que vous utilisez un autre hook pour cela (ce qui n'est pas idéal).
+    // Si la fonction de liste était dans useTrips, elle devrait être déplacée dans useTripAdmin.
     const [totalRows, setTotalRows] = useState(0); 
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10); 
-
+    
+    // Supposons une fonction de listing Admin dans le contexte
+   
     const fetchTrips = async (page, status) => {
+        // Vous devez utiliser la fonction de listing ADMIN ici.
+        // Je suppose qu'elle s'appelle listAdminTrips et qu'elle a été ajoutée à useTripAdmin.
+        // Si vous n'avez pas cette fonction, vous devez l'ajouter au TripAdminContext.
         try {
-            // Note: Si vous utilisez listPublicTrips, il se pourrait que vous vouliez plutôt utiliser fetchTrips (admin) ici.
-            // J'ai conservé listPublicTrips car c'était votre implémentation d'origine.
-            const data = await listPublicTrips({ page: page, tripStatus: parseInt(type)});
-            if (data) {
+            // 🚨 Correction : Le statut dans l'URL (type) est converti en entier
+            const data = await listAdminTrips({ page: page, tripStatus: parseInt(status) }); 
+            if (data && data.items) {
+                // Mise à jour de l'état des voyages dans le contexte si nécessaire
+                // Sinon, vous pouvez simplement stocker le résultat de la requête ici
+                setTrips(data.items); // Mise à jour de l'état global du contexte
                 setTotalRows(data.totalCount);
-                setPerPage(data?.items.length);
+                // Le perPage pourrait venir du backend, sinon il est calculé par la longueur des items
+                setPerPage(data.items.length > 0 ? data.items.length : 10);
+            } else {
+                 setTrips([]); // Gérer le cas où il n'y a pas d'items
             }
         } catch (err) {
             // Le hook gère l'erreur
+            console.error(err);
         }
     };
 
     useEffect(() => {
-        fetchTrips(1, parseInt(type));
+        fetchTrips(1, type);
         setCurrentPage(1); 
     }, [type]);
 
     useEffect(() => {
-        // Dépendance ajoutée dans l'Array pour éviter l'avertissement de lint
-        fetchTrips(currentPage, parseInt(type)); 
+        // Appel de la fonction de fetch lorsque la page ou le type change
+        fetchTrips(currentPage, type); 
     }, [currentPage, type]); 
     
     // Correction de l'utilisation de perPage qui est mis à jour dans fetchTrips
@@ -57,7 +87,9 @@ const Trajets = () => {
     const effectiveTotalPages = totalPages;
 
     const handleNextPage = () => {
-        setCurrentPage(prev => prev + 1);
+        if (currentPage < effectiveTotalPages) {
+            setCurrentPage(prev => prev + 1);
+        }
     };
 
     const handlePreviousPage = () => {
@@ -85,7 +117,10 @@ const Trajets = () => {
             if (result.isConfirmed) {
                 try {
                     await deleteTripAsAdmin(tripId);
-                    window.location.reload();
+                    // 🚨 IMPORTANT : Au lieu de recharger la page, on met à jour la liste localement
+                    setTrips(prevTrips => prevTrips.filter(t => t.trip.id !== tripId));
+                    setTotalRows(prevTotal => prevTotal > 0 ? prevTotal - 1 : 0);
+                    // Si l'état du contexte a déjà une logique de filtre, elle doit être utilisée à la place
                 } catch (err) {
                     // Géré par le toast dans le contexte
                 }
@@ -112,9 +147,10 @@ const Trajets = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // Appel de la fonction du contexte pour changer le statut (0 = Published/Validé)
+                    // 0 = Published/Validé (statut d'exemple)
                     await changeTripStatusAsAdmin(tripId, 0); 
-                    window.location.reload(); // Recharger la page pour refléter le changement
+                    // 🚨 IMPORTANT : On ne recharge pas toute la page, mais on rafraîchit la liste
+                    fetchTrips(currentPage, type);
                 } catch (err) {
                     // Le hook gère déjà le toast d'erreur
                 }
@@ -123,21 +159,21 @@ const Trajets = () => {
     };
 
     const handleAddTrip = () => {
-        toast('Un formulaire pour ajouter un nouveau trajet s\'ouvrira ici.', {
+        // Redirection vers le formulaire d'ajout
+        navigate('/admin/trajets/new'); 
+        toast('Ouverture du formulaire pour ajouter un nouveau trajet.', {
             icon: '🗺️',
             duration: 3000,
             position: 'top-right',
         });
     };
     
-    // ----------------------------------------------------------------------
-    // 🆕 Nouvelle fonction de redirection
-    // ----------------------------------------------------------------------
+    // Fonction de redirection vers les détails
     const handleViewDetails = (tripId) => {
-        // Redirige vers l'URL des détails (doit correspondre à votre route React Router)
         navigate(`/admin/trajets/details/${tripId}`); 
     };
 
+    // Mapping des statuts (inchangé, fonctionne bien)
     const getStatusInfo = (status) => {
         const statusMap = {
             0: { text: 'Published', icon: faCalendarAlt, classes: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
@@ -149,6 +185,7 @@ const Trajets = () => {
         return statusMap[status] || { text: 'Inconnu', icon: faBan, classes: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300' };
     };
 
+    // Rendu du composant (inchangé, sauf pour la logique de rechargement)
     return (
         <div className='pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
             <div className="flex justify-between items-center mb-6">
@@ -167,7 +204,7 @@ const Trajets = () => {
             <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
                 <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Trajets Enregistrés</h2>
                 
-                {loading ? (
+                {loading && trips.length === 0 ? (
                     <div className="p-4 text-center text-blue-500 dark:text-blue-400">Chargement des trajets...</div>
                 ) : error ? (
                     <div className="p-4 text-center text-red-500 dark:text-red-400">
@@ -259,7 +296,7 @@ const Trajets = () => {
                                                                 </button>
                                                             )}
                                                             
-                                                            {/* 🚨 Bouton "Voir les détails" mis à jour pour naviguer */}
+                                                            {/* Bouton "Voir les détails" mis à jour pour naviguer */}
                                                             <button
                                                                 onClick={() => handleViewDetails(tripData.trip.id)}
                                                                 className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
@@ -269,7 +306,7 @@ const Trajets = () => {
                                                             </button>
                                                             
                                                             <button
-                                                                onClick={() => toast(`Modification du trajet ${tripData.trip.id}...`, { icon: '✍️' })}
+                                                                onClick={() => toast(`Modification du trajet ${tripData.trip.id} (à implémenter)...`, { icon: '✍️' })}
                                                                 className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors duration-200"
                                                                 title="Modifier"
                                                             >

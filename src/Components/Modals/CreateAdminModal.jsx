@@ -5,7 +5,7 @@ import {
     faUserPlus, faUser, faEnvelope, faLock, faUserTag, faCheckCircle, faTimesCircle, faPhone, faGlobe
 } from '@fortawesome/free-solid-svg-icons';
 import useColorScheme from '../../hooks/useColorScheme';
-import { useRole } from '../../contexts/RoleContext';
+import { useRole } from '../../contexts/Admin/RoleContext';
 
 const AdminFormModal = ({ isOpen, onClose, onSaveAdmin, initialAdminData }) => {
     const { theme } = useColorScheme();

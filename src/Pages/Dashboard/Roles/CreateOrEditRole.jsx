@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useRole } from "../../../contexts/RoleContext";
+import { useRole } from "../../../contexts/Admin/RoleContext";
 import Swal from "sweetalert2";
 
 // Liste complète des permissions disponibles

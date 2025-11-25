@@ -20,7 +20,7 @@ import useColorScheme from '../../hooks/useColorScheme';
 import { useNotification } from '../../hooks/useNotifications';
 
 // 💡 IMPORT RÉEL DU HOOK DE CONTEXTE DE LA SIDEBAR
-import { useSidebarContext } from '../../contexts/SidebarContext'; 
+import { useSidebarContext } from '../../contexts/Admin/SidebarContext'; 
 
 
 // ###################################################

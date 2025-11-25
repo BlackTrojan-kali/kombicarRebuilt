@@ -63,6 +63,7 @@ const UserWithdrawalHistory = () => {
     };
 
     return (
+        
         <div className="container mt-[100px] mx-auto p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Historique de mes Retraits - <span className='text-xl'>(Mon solde actuel: {user?.balance} FCFA)</span> </h1>

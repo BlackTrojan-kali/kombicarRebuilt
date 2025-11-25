@@ -10,7 +10,7 @@ export const PermissionProvider = ({ children }) => {
   const hasPermission = useCallback(
     (perm) => {
       if (!permissions || !Array.isArray(permissions)) return false;
-      return permissions.includes(perm);
+      return permissions.includes(perm); 
     },
     [permissions]
   );

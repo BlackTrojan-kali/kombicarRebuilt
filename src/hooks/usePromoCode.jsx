@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { PromoCodeContext } from "../contexts/PromoCodeCotext";
+import { PromoCodeContext } from "../contexts/Admin/PromoCodeCotext";
 
 export default function usePromoCode(){
     const context = useContext(PromoCodeContext)

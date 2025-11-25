@@ -1,5 +1,5 @@
 import { createContext, useState } from "react";
-import api from "../api/api";
+import api from "../../api/api";
 import { toast } from "sonner";
 
 export const StatsContext = createContext({});

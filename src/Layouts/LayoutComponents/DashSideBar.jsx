@@ -28,8 +28,9 @@ import useAuth from '../../hooks/useAuth';
 import useColorScheme from '../../hooks/useColorScheme';
 import useUser from '../../hooks/useUser';
 import { toast } from 'sonner';
-import { useSidebarContext } from '../../contexts/SidebarContext';
-import { useRole } from '../../contexts/RoleContext';
+import { useRole } from '../../contexts/Admin/RoleContext';
+import { useSidebarContext } from '../../contexts/Admin/SidebarContext';
+import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext';
 
 // ###################################################
 // Liste des pays disponibles
@@ -163,7 +164,7 @@ const DropDown = ({ icon, title, sublinks = [], isCollapsed }) => {
 // ----------------------------------------------------------------------
 const CountrySwitcher = ({ isCollapsed }) => {
     const { user, setUser, refreshAdminToken } = useAuth();
-    const { updateAdminCountryAccess } = useUser();
+    const { updateAdminCountryAccess } = useUserAdminContext();
     const [active, setActive] = useState(false);
     const currentCode = user?.adminAccesCountry || COUNTRIES.OTHERS.code;
     
@@ -186,7 +187,8 @@ const CountrySwitcher = ({ isCollapsed }) => {
             await refreshAdminToken(localStorage.getItem('refreshToken'));
             console.log(localStorage.getItem("refreshToken"));
             toast.success(`Pays d'accès mis à jour : ${newCountryName}`);
-        } catch {
+        } catch(err) {
+            console.log(err)
             toast.error('Erreur lors du changement de pays.');
         }
     }, [user, setUser, updateAdminCountryAccess, refreshAdminToken]); // Ajout de dépendances pour useCallback
@@ -243,7 +245,7 @@ const DashSideBar = () => {
     const { user, API_URL } = useAuth();
     const { theme } = useColorScheme();
     const location = useLocation();
-    const { isCollapsed, setIsCollapsed } = useSidebarContext();
+    const {isCollapsed, setIsCollapsed } = useSidebarContext();
     const { getRoleById } = useRole();
     
     // Initialisation à un tableau vide pour éviter les erreurs .includes() pendant le chargement
