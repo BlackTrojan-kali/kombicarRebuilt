@@ -12,7 +12,6 @@ export function TripContextProvider({ children }) {
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-
     // Fonction pour charger une liste de trajets (utilisateur ou admin)
     const fetchTrips = async ({pageIndex, status}) => {
         if (authLoading) return;
@@ -56,9 +55,9 @@ export function TripContextProvider({ children }) {
         if (isSearchCriteriaEmpty && defaultCountry) {
             criteriaToSend = { 
                 ...searchCriteria, 
-                country: defaultCountry
+                country: defaultCountry?.countryCode
             };
-            console.log("Utilisation du pays par défaut pour la recherche publique:", defaultCountry);
+            console.log("Utilisation du pays par défaut pour la recherche publique:", defaultCountry?.countryCode);
         }
 
         try {
