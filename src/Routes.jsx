@@ -67,6 +67,8 @@ import CarAdminContextProvider from "./contexts/Admin/CarAdminContext";
 import PromoCodeLayout from "./Layouts/CustomAdminLayouts/PromoCodeLayout";
 import WithDrawalsLayout from "./Layouts/CustomAdminLayouts/WithDrawalsLayout";
 import DrivingLicenceLayout from "./Layouts/CustomAdminLayouts/DrivingLicenceLayout";
+import ForgotPasswordPage from "./Pages/Auth/ForgotPasswordPage";
+import ResetPasswordPage from "./Pages/Auth/ResetPasswordPage";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -207,6 +209,14 @@ const Routes = () => {
         {
           path: "confirm-email",
           element: <ConfirmEmail />,
+        },
+        {
+          path: "forgot-password",
+          element: <ForgotPasswordPage />,
+        },
+        {
+          path: "reset-password",
+          element: <ResetPasswordPage />,
         },
       ],
     },

@@ -1,7 +1,6 @@
 import { createContext, useEffect, useState, useCallback, useMemo } from "react";
 import api from '../api/api';
 import { toast } from "sonner";
-import { Toaster } from "../Components/ui/sonner"
 import "../App.css"
 import { API_URL } from "../api/api-settings"; 
 
@@ -263,7 +262,7 @@ export function AuthContextProvider({ children }) {
             toast.success('Connexion réussie !');
         } catch (error) {
             console.error("Échec de la connexion:", error);
-            toast.error(error.response?.data || 'Identifiants invalides.');
+          //  toast.error(error?.response?.data || 'Identifiants invalides.');
         } finally {
             setLoading(false);
         }
@@ -486,7 +485,6 @@ export function AuthContextProvider({ children }) {
 
     return (
         <authContext.Provider value={value}>
-           <Toaster/>
             {children}
         </authContext.Provider>
     );

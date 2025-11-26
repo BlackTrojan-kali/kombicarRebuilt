@@ -4,7 +4,7 @@ import Input from "../../Components/form/Input";
 import FormButton from "../../Components/form/FormButton";
 import useAuth from "../../hooks/useAuth";
 import useColorScheme from "../../hooks/useColorScheme";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // Import the GoogleLoginButton component
 import GoogleLoginButton from "../../Components/ui/GoogleLoginButton";
 import { toast } from "sonner";
@@ -38,22 +38,13 @@ console.log(user)
     e.preventDefault();
 
     if (!emailOrPhone || !password) {
-      toast.error('Veuillez entrer votre email/numéro de téléphone et votre mot de passe.', { position: 'top-right' });
-      return;
+      
     }
 
     const loginPromise = login({ email: emailOrPhone, password });
 
-    toast.promise(loginPromise, {
-      loading: 'Connexion en cours...',
-      error: (err) => `Erreur: ${err.message || 'Identifiants invalides.'}`,
-    });
   };
 
-  // Render conditionally to avoid a momentary page display
-  if (user === undefined) {
-    return null;
-  }
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : ''} text-gray-900 dark:text-gray-100 transition-colors duration-300 flex items-center justify-center py-20`}>
@@ -107,7 +98,16 @@ console.log(user)
               Votre mot de passe doit contenir au moins 8 caractères.
             </div>
           </div>
-
+  
+          {/* 2. Ajout du lien "Mot de passe oublié" */}
+          <div className="flex justify-end">
+            <Link
+              to="/auth/forgot-password" 
+              className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition duration-150 ease-in-out"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
           <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
             <input
               id="rememberMe"

@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { AuthContextProvider } from './contexts/AuthContext.jsx';
 import { ColorSchemeProvider } from './contexts/ColorSchemeContext.jsx';
 import { NotificationContextProvider } from './contexts/NotificationContext.jsx';
+import { Toaster } from 'sonner';
 
 
 createRoot(document.getElementById('root')).render(
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')).render(
           <ColorSchemeProvider>
     
                                   <NotificationContextProvider>
+        <Toaster/>
                                   <App />
                         </NotificationContextProvider>
       </ColorSchemeProvider>
