@@ -182,7 +182,7 @@ export function Footer() {
                                 <ul className="text-gray-500 dark:text-gray-400 font-medium">
                                     <li className="mb-4">
                                         <a
-                                            href="https://web.facebook.com/Kombicarcm"
+                                            href="https://facebook.com/kombicar"
                                             className="hover:underline "
                                         >
                                             Facebook
@@ -190,7 +190,7 @@ export function Footer() {
                                     </li>
                                     <li>
                                         <a
-                                            href="https://www.instagram.com/kombi.car/"
+                                            href="https://https://instagram.com/kombicar_cmr"
                                             className="hover:underline"
                                         >
                                             Instagram

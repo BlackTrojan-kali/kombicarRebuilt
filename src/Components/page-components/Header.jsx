@@ -7,7 +7,9 @@ import {
     faPlusCircle, faRoute, faComment,
     faBell, 
     faSunPlantWilt,
-    faLightbulb
+    faLightbulb,
+    faContactCard,
+    faQuestion
 } from "@fortawesome/free-solid-svg-icons"; 
 import { useState, useEffect } from "react";
 import HeaderDropDown from "./HeaderDropDown";
@@ -69,6 +71,10 @@ const Header = () => {
                 <Link to="/covoiturage" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
                     <FontAwesomeIcon icon={faCar} />
                     Covoiturage
+                </Link>
+                <Link to="/contact" className="flex items-center gap-2 hover:text-kombigreen-500 dark:hover:text-green-400 transition-colors duration-200">
+                    <FontAwesomeIcon icon={faQuestion} />
+                    Aide
                 </Link>
 
                 {/* LIEN MES CONVERSATIONS POUR DESKTOP */}
@@ -165,6 +171,14 @@ const Header = () => {
                 >
                     <FontAwesomeIcon icon={faCar} />
                     Covoiturage
+                </Link>
+                <Link 
+                    to="/contact" 
+                    onClick={() => setShowNav(false)}
+                    className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                >
+                    <FontAwesomeIcon icon={faQuestion} />
+                    Contact
                 </Link>
                 <hr className="w-full border-gray-200 dark:border-gray-600 my-2" />
 

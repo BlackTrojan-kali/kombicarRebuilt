@@ -69,6 +69,7 @@ import WithDrawalsLayout from "./Layouts/CustomAdminLayouts/WithDrawalsLayout";
 import DrivingLicenceLayout from "./Layouts/CustomAdminLayouts/DrivingLicenceLayout";
 import ForgotPasswordPage from "./Pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "./Pages/Auth/ResetPasswordPage";
+import Contact from "./Pages/Contact";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -90,6 +91,10 @@ const Routes = () => {
         {
           path: "taxi",
           element: <Taxi />,
+        },
+        {
+          path:"/contact",
+          element:<Contact/>
         },
         {
           path:"/reservation/success",
