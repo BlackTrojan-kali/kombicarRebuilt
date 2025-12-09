@@ -60,8 +60,7 @@ export function NotificationContextProvider ({children}){
         } catch (err) {
             console.error("Erreur lors de la récupération des détails (Admin) de la notification: ", err);
             throw err;
-        }
-    };
+        }      };
 
     // PUT /api/v1/notifications/{notificationId} : Modifier le contenu d'une notification
     const updateNotification = async(id, data) => { 
