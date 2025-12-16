@@ -105,6 +105,7 @@ const DriverReservations = () => {
     // FONCTION DE CONFIRMATION INDIVIDUELLE
     const handleConfirm = async (reservationId) => {
         setIsActionLoading(reservationId);
+        console.log(reservationId)
         setActionError(null); 
         try {
             await confirmReservationAsDriver(reservationId);
