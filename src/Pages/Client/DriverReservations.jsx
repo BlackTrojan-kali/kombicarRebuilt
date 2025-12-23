@@ -220,7 +220,6 @@ const DriverReservations = () => {
                 {/* BOUTON DE CONFIRMATION GLOBALE */}
                 <button 
                     onClick={handleConfirmAll}
-                    disabled={isDisabled}
                     title={isDisabled && !actionError ? "Aucune réservation en attente à confirmer" : (actionError ? actionError : "Confirmer toutes les réservations en attente et clôturer le trajet")}
                     className={`text-sm px-4 py-2 font-semibold rounded-md flex items-center transition-colors duration-200 
                         ${isDisabled
