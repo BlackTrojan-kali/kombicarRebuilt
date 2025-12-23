@@ -194,7 +194,7 @@ const Profile = () => {
 
     const handleSubmitReview = (tripId) => {
         // Redirige vers un formulaire pour soumettre un avis pour ce trajet
-        navigate(`/reviews/submit/${tripId}`);
+        navigate(`/reviews/create/${tripId}`);
     };
 
     const handleImageClick = () => {

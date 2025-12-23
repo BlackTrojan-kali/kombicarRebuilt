@@ -131,7 +131,10 @@ const SubmitReview = () => {
                 <div className={`${cardBg} rounded-2xl shadow-xl p-8 border ${borderColor}`}>
                     <h1 className={`text-2xl sm:text-3xl font-bold ${textColorPrimary} mb-4 text-center`}>
                         <FontAwesomeIcon icon={faStar} className='mr-2 text-yellow-500' />
-                        Donnez votre avis sur ce trajet
+                        Donnez votre avis sur ce trajet <br />
+                           <span>
+                    ID du Trajet: <span className="font-mono text-indigo-600">{tripId}</span>
+                </span>
                     </h1>
                     <div className={`${textColorSecondary} text-center mb-6`}>
                         <p className="text-xl font-semibold">{tripDetail?.departureArea?.homeTownName} → {tripDetail?.arrivalArea?.homeTownName}</p>
