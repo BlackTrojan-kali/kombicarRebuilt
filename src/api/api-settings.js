@@ -1,4 +1,4 @@
-const API_URL = 'https://test.kombicar.app'; // Exemple: ajustez le port et le chemin
+const API_URL = 'https://api.kombicar.app'; // Exemple: ajustez le port et le chemin
  
 const SITE_URL = "https://kombicar.app";
 
