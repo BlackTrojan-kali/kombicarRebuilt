@@ -7,7 +7,7 @@ import {
     faSpinner, faCamera, faCalendarAlt, faMoneyBillWave,
     faArrowLeft, faArrowRight, faUsers // Nouveau : Icône pour les réservations/passagers
 } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 import Swal from 'sweetalert2';
@@ -288,6 +288,12 @@ const Profile = () => {
                             >
                                 <FontAwesomeIcon icon={faEdit} /> Modifier le Profil
                             </button>
+                            <Link
+                                to="/suggestions"
+                                className="flex mt-8 items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                            >
+                                <FontAwesomeIcon icon={faEdit} />Liste des suggestions
+                            </Link>
                         </div>
                     </div>
                 </div>

@@ -12,6 +12,7 @@ import { NotificationContextProvider } from '../contexts/NotificationContext.jsx
 import { MapContextProvider } from '../contexts/MapContext.jsx';
 import { TripContextProvider } from '../contexts/TripContext.jsx';
 import { ReservationContextProvider } from '../contexts/ReservationContext.jsx';
+import { SuggestTripContextProvider } from '../contexts/SuggestTripContext.jsx';
 const ClientLayout = () => {
   return (
     
@@ -20,6 +21,7 @@ const ClientLayout = () => {
                         <MapContextProvider>
                           <TripContextProvider> 
                             <ReservationContextProvider> 
+                                 <SuggestTripContextProvider>
                                       <div className='TheBody'>
                                       <Header/>
                                       <br />
@@ -29,6 +31,7 @@ const ClientLayout = () => {
                                       <Footer/>
                                       
                                       </div>
+                                      </SuggestTripContextProvider>
                       </ReservationContextProvider>
                     </TripContextProvider>
                     </MapContextProvider>

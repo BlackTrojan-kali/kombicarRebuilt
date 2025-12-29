@@ -6,6 +6,7 @@ import useAuth from '../hooks/useAuth';
 import { SidebarProvider } from '../contexts/Admin/SidebarContext';
 import { RoleProvider } from '../contexts/Admin/RoleContext';
 import { UsersAdminContextProvider } from '../contexts/Admin/UsersAdminContext';
+import { AdminSuggestionProvider } from '../contexts/Admin/AdminSuggestionsContext';
 
 const DashboardLayout = () => {
    // Utilise le hook useAuth pour obtenir l'état de l'utilisateur et le statut de chargement.
@@ -41,6 +42,7 @@ const DashboardLayout = () => {
     <SidebarProvider>
       <UsersAdminContextProvider>
       <RoleProvider>
+      <AdminSuggestionProvider>
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Barre Latérale (Sidebar) */}
       <DashSideBar />
@@ -63,6 +65,7 @@ const DashboardLayout = () => {
         </main>
       </div>
     </div>
+    </AdminSuggestionProvider>
     </RoleProvider>
     </UsersAdminContextProvider>
     </SidebarProvider>

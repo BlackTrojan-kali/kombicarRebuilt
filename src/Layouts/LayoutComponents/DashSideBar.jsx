@@ -22,6 +22,7 @@ import {
     faBell,
     faBellConcierge,
     faRuler,
+    faScaleBalanced,
 } from '@fortawesome/free-solid-svg-icons';
 
 import useAuth from '../../hooks/useAuth';
@@ -460,6 +461,12 @@ const DashSideBar = () => {
                         sublinks={[{ icon: faBellConcierge, title: 'roles', link: '/admin/roles' }]}
                     />
                 )}
+                  <DropDown
+                        icon={faScaleBalanced}
+                        title="Suggestions"
+                        isCollapsed={isCollapsed}
+                        sublinks={[{ icon: faBellConcierge, title: 'Suggestions', link: '/admin/suggestions' }]}
+                    />
             </nav>
             {/* Espace pour les bas de page ou autres éléments */}
             <div className="h-4"></div> 

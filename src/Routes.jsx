@@ -70,6 +70,9 @@ import DrivingLicenceLayout from "./Layouts/CustomAdminLayouts/DrivingLicenceLay
 import ForgotPasswordPage from "./Pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "./Pages/Auth/ResetPasswordPage";
 import Contact from "./Pages/Contact";
+import SuggestTrip from "./SuggestTrip";
+import SuggestedTrips from "./SuggestedTrips";
+import Suggestions from "./Pages/Dashboard/Suggestions/Suggestions";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -172,6 +175,14 @@ const Routes = () => {
           path: "profile/chats",
           element: <ChatContextProvider><MyChats /></ChatContextProvider>,
         },
+        {
+          path:"/suggest-trip",
+          element:<SuggestTrip/>
+        },
+        {
+          path:"/suggestions",
+          element:<SuggestedTrips/>
+        }
       ],
     },
            {
@@ -389,6 +400,10 @@ const Routes = () => {
             },
           ],
         },
+        {
+          path:"/admin/suggestions",
+          element:<Suggestions/>
+        }
       ],
     },
   ]);
