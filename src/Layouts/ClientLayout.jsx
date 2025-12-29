@@ -13,6 +13,7 @@ import { MapContextProvider } from '../contexts/MapContext.jsx';
 import { TripContextProvider } from '../contexts/TripContext.jsx';
 import { ReservationContextProvider } from '../contexts/ReservationContext.jsx';
 import { SuggestTripContextProvider } from '../contexts/SuggestTripContext.jsx';
+import { DrivingLicenceProvider } from '../contexts/DrivingLicenceContext.jsx';
 const ClientLayout = () => {
   return (
     
@@ -21,6 +22,7 @@ const ClientLayout = () => {
                         <MapContextProvider>
                           <TripContextProvider> 
                             <ReservationContextProvider> 
+      <DrivingLicenceProvider>
                                  <SuggestTripContextProvider>
                                       <div className='TheBody'>
                                       <Header/>
@@ -32,6 +34,7 @@ const ClientLayout = () => {
                                       
                                       </div>
                                       </SuggestTripContextProvider>
+                                      </DrivingLicenceProvider>
                       </ReservationContextProvider>
                     </TripContextProvider>
                     </MapContextProvider>

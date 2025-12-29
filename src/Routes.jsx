@@ -146,7 +146,7 @@ const Routes = () => {
         },
         {
           path: "profile/licence",
-          element: <DrivingLicenceProvider><MyDrivingLicence /></DrivingLicenceProvider>,
+          element: <MyDrivingLicence />,
         },
         // 💡 NOUVELLE ROUTE : Notifications utilisateur
                 {

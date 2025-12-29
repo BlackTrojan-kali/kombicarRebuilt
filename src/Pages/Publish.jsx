@@ -8,27 +8,23 @@ import useColorScheme from '../hooks/useColorScheme';
 import useTrips from '../hooks/useTrips';
 import useCars from '../hooks/useCar';
 import useAuth from '../hooks/useAuth';
+import useDrivingLicence from '../hooks/useDrivingLicence'; // Hook pour le permis
 import { Link, useNavigate } from 'react-router-dom';
-import useMape from "../hooks/useMap"
+import useMape from "../hooks/useMap";
 import { toast } from "sonner";
 
 const Publish = () => {
   const { theme } = useColorScheme();
   const { createTrip } = useTrips();
   const { cars, loading: loadingCars, error: carsError, fetchUserCars } = useCars();
+  const { licenceInfo, getLicenceDetails, loading: loadingLicence } = useDrivingLicence();
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const { places, searchPlaces, loading: loadingPlaces, error: placesError } = useMape();
 
-  useEffect(() => {
-    if (!user) {
-      toast.error('Veuillez vous connecter pour publier un trajet.');
-      navigate('/auth/signin');
-    } else {
-      fetchUserCars();
-    }
-  }, [user, navigate]);
+  // État local pour gérer la vérification initiale
+  const [isVerifying, setIsVerifying] = useState(true);
 
   const [tripData, setTripData] = useState({
     departure: '',
@@ -48,6 +44,54 @@ const Publish = () => {
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
+  // --- LOGIQUE DE VÉRIFICATION AU CHARGEMENT ---
+  useEffect(() => {
+    const checkUserRequirements = async () => {
+      if (!user) {
+        toast.error('Veuillez vous connecter pour publier un trajet.');
+        navigate('/auth/signin');
+        return;
+      }
+
+      try {
+        // Exécuter les deux appels en parallèle pour gagner du temps
+        const [fetchedCars, fetchedLicence] = await Promise.all([
+          fetchUserCars(),
+          getLicenceDetails()
+        ]);
+
+        // 1. Vérification du permis de conduire
+        if (!fetchedLicence && !licenceInfo) {
+          toast.error("Veuillez enregistrer votre permis de conduire.", {
+            description: "Redirection vers la gestion du permis...",
+            duration: 3000
+          });
+          setTimeout(() => navigate('/profile/driving-licence'), 2000);
+          return;
+        }
+
+        // 2. Vérification du véhicule
+        if (!fetchedCars || fetchedCars.length <= 0) {
+          console.log(true)
+          toast.error("Veuillez enregistrer un véhicule svp.", {
+            description: "Redirection vers l'ajout de véhicule...",
+            duration: 3000
+          });
+          setTimeout(() => navigate('/profile/car'), 2000);
+          return;
+        }
+
+        setIsVerifying(false);
+      } catch (error) {
+        console.error("Erreur lors de la vérification:", error);
+        setIsVerifying(false); // On laisse passer ou on gère l'erreur selon vos besoins
+      }
+    };
+
+    checkUserRequirements();
+  }, [user, navigate]);
+
+  // --- HANDLERS ---
   const debouncedSearch = (query) => {
     clearTimeout(debounceTimeout);
     const newTimeout = setTimeout(() => {
@@ -116,26 +160,12 @@ const Publish = () => {
     setShowDestinationSuggestions(false);
   };
 
-  const isDarkMode = theme === 'dark';
-  const textColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
-  const inputBg = isDarkMode ? 'bg-gray-700' : 'bg-white';
-  const inputBorder = isDarkMode ? 'border-gray-600' : 'border-gray-300';
-  const labelColor = isDarkMode ? 'text-gray-300' : 'text-gray-700';
-  const cardBg = isDarkMode ? 'bg-gray-800' : 'bg-white';
-  const shadow = isDarkMode ? 'shadow-lg' : 'shadow-md';
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const { departure, destination, date, time, availableSeats, pricePerSeat, selectedVehicleId } = tripData;
     if (!departure || !destination || !date || !time || !availableSeats || !pricePerSeat || !selectedVehicleId) {
-      toast.error('Veuillez remplir tous les champs obligatoires.', { position: 'top-right' });
-      return;
-    }
-
-    const publisherId = user?.id;
-    if (!publisherId) {
-      toast.error('Vous devez être connecté pour publier un trajet.', { position: 'top-right' });
+      toast.error('Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
@@ -167,42 +197,49 @@ const Publish = () => {
       stopovers: []
     };
 
-    console.log('Données soumises par le formulaire :', newTrip);
-
     const publishPromise = createTrip(newTrip);
 
     toast.promise(publishPromise, {
       loading: 'Publication de votre trajet...',
       success: 'Trajet publié avec succès !',
-      error: (err) => `Erreur: ${err.message || 'Échec de la publication du trajet.'}`,
+      error: (err) => `Erreur: ${err.message || 'Échec de la publication.'}`,
     });
 
     publishPromise.then((result) => {
       if (result) {
         setTripData({
-          departure: '',
-          destination: '',
-          date: '',
-          time: '',
-          availableSeats: '',
-          pricePerSeat: '',
-          isLuggageAllowed: false,
-          luggageSize: '1',
-          luggageNumberPerPassenger: '1',
-          aditionalInfo: '',
-          selectedVehicleId: '',
+          departure: '', destination: '', date: '', time: '',
+          availableSeats: '', pricePerSeat: '', isLuggageAllowed: false,
+          luggageSize: '1', luggageNumberPerPassenger: '1',
+          aditionalInfo: '', selectedVehicleId: '',
         });
       }
     });
   };
 
-  if (user === undefined) {
-    return null;
+  // --- STYLES ---
+  const isDarkMode = theme === 'dark';
+  const textColor = isDarkMode ? 'text-gray-100' : 'text-gray-900';
+  const inputBg = isDarkMode ? 'bg-gray-700' : 'bg-white';
+  const inputBorder = isDarkMode ? 'border-gray-600' : 'border-gray-300';
+  const labelColor = isDarkMode ? 'text-gray-300' : 'text-gray-700';
+  const cardBg = isDarkMode ? 'bg-gray-800' : 'bg-white';
+  const shadow = isDarkMode ? 'shadow-lg' : 'shadow-md';
+
+  // --- RENDU ÉTAT CHARGEMENT / VÉRIFICATION ---
+  if (user === undefined || isVerifying || loadingCars || loadingLicence) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kombigreen-500 mx-auto"></div>
+          <p className={`mt-4 font-medium ${textColor}`}>Vérification de vos documents en cours...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : ''}`}>
-
       <div className="max-w-4xl mx-auto py-8">
         <h1 className={`text-4xl font-extrabold mb-8 text-center ${textColor}`}>
           <FontAwesomeIcon icon={faRoute} className="mr-3 text-kombigreen-500" />
@@ -215,7 +252,7 @@ const Publish = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+            {/* Lieu de Départ */}
             <div className="relative">
               <label htmlFor="departure" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2" />
@@ -237,21 +274,22 @@ const Publish = () => {
                 <ul className={`absolute z-10 w-full ${cardBg} border ${inputBorder} rounded-md mt-1 max-h-48 overflow-y-auto ${shadow}`}>
                   {loadingPlaces ? (
                     <li className={`p-3 text-center ${labelColor}`}>Chargement...</li>
-                  ) : placesError ? (
-                    <li className={`p-3 text-center text-red-500`}>Erreur de recherche</li>
-                  ) : places.map((place) => (
-                    <li
-                      key={place.placeId}
-                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
-                      onClick={() => handleSelectDeparture(place)}
-                    >
-                      {place.description}
-                    </li>
-                  ))}
+                  ) : (
+                    places.map((place) => (
+                      <li
+                        key={place.placeId}
+                        className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
+                        onClick={() => handleSelectDeparture(place)}
+                      >
+                        {place.description}
+                      </li>
+                    ))
+                  )}
                 </ul>
               )}
             </div>
 
+            {/* Lieu d'Arrivée */}
             <div className="relative">
               <label htmlFor="destination" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faMapPin} className="mr-2" />
@@ -273,21 +311,22 @@ const Publish = () => {
                 <ul className={`absolute z-10 w-full ${cardBg} border ${inputBorder} rounded-md mt-1 max-h-48 overflow-y-auto ${shadow}`}>
                   {loadingPlaces ? (
                     <li className={`p-3 text-center ${labelColor}`}>Chargement...</li>
-                  ) : placesError ? (
-                    <li className={`p-3 text-center text-red-500`}>Erreur de recherche</li>
-                  ) : places.map((place) => (
-                    <li
-                      key={place.placeId}
-                      className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
-                      onClick={() => handleSelectDestination(place)}
-                    >
-                      {place.description}
-                    </li>
-                  ))}
+                  ) : (
+                    places.map((place) => (
+                      <li
+                        key={place.placeId}
+                        className={`p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${textColor}`}
+                        onClick={() => handleSelectDestination(place)}
+                      >
+                        {place.description}
+                      </li>
+                    ))
+                  )}
                 </ul>
               )}
             </div>
 
+            {/* Date et Heure */}
             <div>
               <label htmlFor="date" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
@@ -318,6 +357,8 @@ const Publish = () => {
                 required
               />
             </div>
+
+            {/* Places et Prix */}
             <div>
               <label htmlFor="availableSeats" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faUsers} className="mr-2" />
@@ -352,6 +393,8 @@ const Publish = () => {
                 required
               />
             </div>
+
+            {/* Véhicule */}
             <div>
               <label htmlFor="selectedVehicleId" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faCar} className="mr-2" />
@@ -366,25 +409,23 @@ const Publish = () => {
                 required
               >
                 <option value="">
-                  {loadingCars ? 'Chargement des véhicules...' : 'Sélectionnez un véhicule'}
+                  {loadingCars ? 'Chargement...' : 'Sélectionnez un véhicule'}
                 </option>
-                {carsError ? (
-                  <option value="" disabled>Erreur de chargement des véhicules</option>
-                ) : (
-                  cars.map(v => (
-                    v.isVerified ?     <option key={v.id} value={v.id}>{v.brand} {v.model}</option>
-                         :   <option key={v.id} disabled value={v.id}>{v.brand} {v.model} Non verifie</option>
-                  
-                  ))
-                )}
+                {cars.map(v => (
+                  <option key={v.id} value={v.id} disabled={!v.isVerified}>
+                    {v.brand} {v.model} {!v.isVerified ? '(En attente de vérification)' : ''}
+                  </option>
+                ))}
               </select>
               <div className='mt-2'>
-                <Link to="/profile/car" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                <Link to="/profile/car" className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
                   <FontAwesomeIcon icon={faPlusCircle} className="mr-1" />
-                  Ajouter un nouveau véhicule
+                  Ajouter un véhicule
                 </Link>
               </div>
             </div>
+
+            {/* Bagages */}
             <div>
               <label htmlFor="luggageSize" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faBoxOpen} className="mr-2" />
@@ -403,41 +444,27 @@ const Publish = () => {
                 <option value="3">Grand</option>
               </select>
             </div>
-            <div>
-              <label htmlFor="luggageNumberPerPassenger" className={`block text-sm font-medium ${labelColor} mb-1`}>
-                <FontAwesomeIcon icon={faLuggageCart} className="mr-2" />
-                Bagages par personne
-              </label>
-              <input
-                type="number"
-                id="luggageNumberPerPassenger"
-                name="luggageNumberPerPassenger"
-                value={tripData.luggageNumberPerPassenger}
-                onChange={handleChange}
-                min="0"
-                className={`w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500 transition-colors`}
-                placeholder="Ex: 1"
-              />
-            </div>
-            <div className="md:col-span-2 flex items-center mt-2">
+
+            {/* Checkbox Bagages et Info Sup */}
+            <div className="md:col-span-2 flex items-center">
               <input
                 type="checkbox"
                 id="isLuggageAllowed"
                 name="isLuggageAllowed"
                 checked={tripData.isLuggageAllowed}
                 onChange={handleChange}
-                className={`mr-2 h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500
-                  ${isDarkMode ? 'bg-gray-700 border-gray-600' : ''}`}
+                className="mr-2 h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <label htmlFor="isLuggageAllowed" className={`text-sm font-medium ${labelColor}`}>
                 <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
                 Bagages acceptés
               </label>
             </div>
+
             <div className="md:col-span-2">
               <label htmlFor="aditionalInfo" className={`block text-sm font-medium ${labelColor} mb-1`}>
                 <FontAwesomeIcon icon={faInfoCircle} className="mr-2" />
-                Informations supplémentaires (facultatif)
+                Informations supplémentaires
               </label>
               <textarea
                 id="aditionalInfo"
@@ -450,19 +477,17 @@ const Publish = () => {
               ></textarea>
             </div>
 
-            <div className="md:col-span-2 mt-4 text-center">
-              <p className={`text-sm ${labelColor} font-semibold p-3 rounded-lg border border-yellow-500 bg-yellow-100 dark:bg-yellow-900/50 dark:border-yellow-700`}>
+            <div className="md:col-span-2 text-center">
+              <p className={`text-sm ${labelColor} font-semibold p-3 rounded-lg border border-yellow-500 bg-yellow-100 dark:bg-yellow-900/50`}>
                 <FontAwesomeIcon icon={faShieldAlt} className="mr-2 text-yellow-500" />
-                Note : Votre véhicule et ce trajet feront l'objet d'une vérification par un administrateur avant d'être rendus disponibles sur la plateforme.
+                Note : Votre véhicule et ce trajet feront l'objet d'une vérification administrative.
               </p>
             </div>
 
             <div className="md:col-span-2 flex justify-center mt-4">
               <button
                 type="submit"
-                className="flex items-center gap-2 px-8 py-3 bg-kombigreen-500 text-white font-semibold rounded-lg shadow-md
-                  hover:bg-kombigreen-600 focus:outline-none focus:ring-2 focus:ring-kombigreen-500 focus:ring-offset-2
-                  dark:focus:ring-offset-gray-900 transition-colors duration-300 text-lg"
+                className="flex items-center gap-2 px-8 py-3 bg-kombigreen-500 text-white font-semibold rounded-lg shadow-md hover:bg-kombigreen-600 transition-colors text-lg"
               >
                 <FontAwesomeIcon icon={faPlusCircle} />
                 Publier le Trajet
