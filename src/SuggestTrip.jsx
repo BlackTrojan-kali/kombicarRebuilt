@@ -90,7 +90,7 @@ const SuggestTrip = () => {
             <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border dark:border-gray-700">
                 
                 <div className="bg-kombigreen-500 p-6 text-white text-center">
-                    <h2 className="text-2xl font-bold">Suggérer un trajet</h2>
+                    <h2 className="text-2xl font-bold">Planifier votre voyage</h2>
                     <p className="text-sm opacity-90 mt-2">Proposez votre itinéraire si aucun trajet ne correspond.</p>
                 </div>
 
