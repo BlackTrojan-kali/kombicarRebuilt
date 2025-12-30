@@ -1,229 +1,209 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import DataTable, { createTheme } from 'react-data-table-component';
+// src/pages/admin/Drivers.jsx
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUserTie, faEnvelope, faPhone, faCalendarAlt, faCar, faIdCard, faStar,
-  faEye, faEdit, faTrash, faUserPlus, faThumbsUp, faThumbsDown, faCarSide, faTachometerAlt
+  faUserTie, faEnvelope, faPhone, faCalendarAlt, faStar,
+  faTrash, faUserPlus, faSyncAlt, faArrowLeft, faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { toast } from "sonner";
 import Swal from 'sweetalert2';
 
-// Importations personnalisées
 import useColorScheme from '../../hooks/useColorScheme';
-// import useUser from '../../hooks/useUser'; // Non utilisé dans le composant, peut être retiré
-import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext'; // Le hook est déjà importé
-
-// Définitions des Thèmes pour DataTable
-createTheme('lightTheme', {
-  text: { primary: '#1F2937', secondary: '#4B5563', },
-  background: { default: '#FFFFFF', },
-  context: { background: '#E2E8F0', text: '#1F2937', },
-  divider: { default: '#D1D5DB', },
-  button: { default: '#3B82F6', hover: '#2563EB', focus: '#1D4ED8', disabled: '#9CA3AF', },
-  highlightOnHover: { default: '#F3F4F6', text: '#1F2937', },
-}, 'light');
-
-createTheme('darkTheme', {
-  text: { primary: '#F9FAFB', secondary: '#D1D5DB', },
-  background: { default: '#1F2937', },
-  context: { background: '#374151', text: '#F9FAFB', },
-  divider: { default: '#4B5563', },
-  button: { default: '#3B82F6', hover: '#60A5FA', focus: '#2563EB', disabled: '#6B7280', },
-  highlightOnHover: { default: '#374151', text: '#F9FAFB', },
-}, 'dark');
+import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext';
 
 const Drivers = () => {
-  const { theme } = useColorScheme();
+  const { theme } = useColorScheme();
+  const isDark = theme === 'dark';
 
-  // CORRECTION ICI : Utilisation des noms de variables et fonctions exportées par le contexte
-  const { 
-    // userList contient les conducteurs vérifiés après l'appel à listVerifiedConductors
-    userList, 
-    pagination, // Correspond à verifiedConductorPagination
-    isLoading, // Correspond à isLoadingVerifiedConductors
-    listVerifiedConductors,
-    error, // Correspond à verifiedConductorListError
-    deleteUserAsAdmin // La fonction de suppression réelle exposée par le contexte
-  } = useUserAdminContext();
+  const { 
+    userList, 
+    pagination, 
+    isLoading, 
+    listVerifiedConductors,
+    error, 
+    deleteUserAsAdmin 
+  } = useUserAdminContext();
 
-  const [perPage, setPerPage] = useState(10);
-  // État local pour gérer la page actuelle au besoin (bien que 'pagination.page' soit utilisé pour le chargement)
-  const [currentPage, setCurrentPage] = useState(1); 
+  const [currentPage, setCurrentPage] = useState(1); 
 
-  // Charger les conducteurs vérifiés au montage et lors du changement de page
-  useEffect(() => {
-    // Utilisation de currentPage pour déclencher le rechargement si pagination.page n'est pas utilisé directement
-    listVerifiedConductors(currentPage); 
-  }, [currentPage,]);
+  // Charger les conducteurs vérifiés
+  useEffect(() => {
+    listVerifiedConductors(currentPage); 
+  }, [currentPage]);
 
+  const handleNextPage = () => pagination?.hasNextPage && setCurrentPage((p) => p + 1);
+  const handlePreviousPage = () => pagination?.hasPreviousPage && setCurrentPage((p) => p - 1);
 
-  const handlePageChange = page => {
-    // Mise à jour de l'état local pour déclencher useEffect et recharger la liste
-    setCurrentPage(page); 
-  };
+  const handleDeleteDriver = async (driverId, driverName) => {
+    Swal.fire({
+      title: 'Êtes-vous sûr ?',
+      text: `Vous êtes sur le point de supprimer le chauffeur ${driverName}.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DC2626',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Oui, supprimer !',
+      cancelButtonText: 'Annuler',
+      background: isDark ? '#1F2937' : '#FFFFFF',
+      color: isDark ? '#F9FAFB' : '#1F2937',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await toast.promise(deleteUserAsAdmin(driverId), {
+            loading: `Suppression de ${driverName}...`,
+            success: `Le chauffeur ${driverName} a été supprimé.`,
+            error: "Échec de la suppression.",
+          });
+          listVerifiedConductors(currentPage); 
+        } catch (error) {
+          console.error("Erreur suppression:", error);
+        }
+      }
+    });
+  };
 
-  const handlePerRowsChange = (newPerPage, page) => {
-    setPerPage(newPerPage);
-    // Mise à jour de la page si l'API l'exige avec le nouveau perPage
-    // Comme la fonction listVerifiedConductors ne prend que la page, on suppose que l'API gère le 'perPage' par défaut ou via un autre moyen.
-    listVerifiedConductors(page);
-  };
+  return (
+    <div className="pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6 mr-6">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
+          Liste des Chauffeurs Vérifiés 🚗
+        </h1>
+        <div className="flex gap-3">
+          <button
+            onClick={() => listVerifiedConductors(currentPage)}
+            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-2 px-4 rounded-lg transition-all"
+          >
+            <FontAwesomeIcon icon={faSyncAlt} className={`${isLoading ? 'animate-spin' : ''} mr-2`} />
+            Actualiser
+          </button>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all active:scale-95"
+          >
+            <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+            Ajouter
+          </button>
+        </div>
+      </div>
 
-  const handleDeleteDriver = async (driverId, driverName) => {
-    Swal.fire({
-      title: 'Êtes-vous sûr ?',
-      text: `Vous êtes sur le point de supprimer le chauffeur ${driverName}. Cette action est irréversible !`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#DC2626',
-      cancelButtonColor: '#6B7280',
-      confirmButtonText: 'Oui, supprimer !',
-      cancelButtonText: 'Annuler',
-      background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
-      color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          // CORRECTION ICI : Utilisation de deleteUserAsAdmin
-          await deleteUserAsAdmin(driverId); 
-          toast.success(`Le chauffeur ${driverName} a été supprimé avec succès !`);
-          // Recharger la page actuelle après suppression
-          listVerifiedConductors(pagination.page); 
-        } catch (error) {
-          // Le contexte affiche déjà le toast d'erreur, mais on peut en ajouter un générique ici au cas où.
-          toast.error("Échec de la suppression du chauffeur."); 
-        }
-      }
-    });
-  };
+      {/* Table Container */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mr-6">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+          Chauffeurs Enregistrés ({pagination?.totalCount || 0})
+        </h2>
 
-  const handleAddDriver = () => {
-    toast('Un formulaire pour ajouter un nouveau chauffeur s\'ouvrira ici.', {
-      icon: '🚗',
-      duration: 3000,
-      position: 'top-right',
-    });
-  };
+        {isLoading ? (
+          <div className="p-12 text-center text-blue-500">
+            <FontAwesomeIcon icon={faSyncAlt} className="animate-spin text-3xl mb-4" />
+            <p>Chargement des chauffeurs...</p>
+          </div>
+        ) : error ? (
+          <div className="p-4 text-center text-red-500">
+            <p>Erreur : {error}</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-lg">
+              <table className={`w-full table-auto ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+                <thead>
+                  <tr className={`uppercase text-xs font-bold text-left ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
+                    <th className="py-3 px-4 rounded-tl-lg">Chauffeur</th>
+                    <th className="py-3 px-4">Contact</th>
+                    <th className="py-3 px-4 text-center">Note</th>
+                    <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {userList && userList.length > 0 ? (
+                    userList.map((driver) => (
+                      <tr key={driver.id} className={`border-b ${isDark ? "border-gray-700" : "border-gray-200"} hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}>
+                        <td className="py-4 px-4 font-medium">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600">
+                              <FontAwesomeIcon icon={faUserTie} />
+                            </div>
+                            <div className="flex flex-col">
+                              <Link to={`/admin/users/details/${driver.id}`} className="hover:text-blue-500 transition-colors">
+                                {driver.firstName} {driver.lastName}
+                              </Link>
+                              <span className="text-xs opacity-50 font-mono">{driver.id.substring(0, 8)}...</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="flex items-center gap-2 text-xs">
+                              <FontAwesomeIcon icon={faEnvelope} className="opacity-40 w-3" /> {driver.email}
+                            </span>
+                            <span className="flex items-center gap-2 text-xs">
+                              <FontAwesomeIcon icon={faPhone} className="opacity-40 w-3" /> {driver.phoneNumber || "N/A"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 px-2 py-1 rounded-full font-bold">
+                            <FontAwesomeIcon icon={faStar} size="xs" />
+                            {driver.note || "0.0"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex justify-center">
+                            <button
+                              onClick={() => handleDeleteDriver(driver.id, `${driver.firstName} ${driver.lastName}`)}
+                              className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 shadow-sm transition-all active:scale-90"
+                              title="Supprimer"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="py-12 text-center text-gray-500">Aucun chauffeur trouvé.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-  const columns = useMemo(() => [
-    { name: 'ID', selector: row => row.id, sortable: true, width: '80px', },
-    {
-      name: 'Nom du Chauffeur', selector: row => `${row.firstName} ${row.lastName}`, sortable: true, minWidth: '180px',
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faUserTie} className="text-gray-400" />
-          <Link to={`/admin/users/details/${row.id}`} className="text-blue-600 dark:text-blue-400 hover:underline">
-            {row.firstName} {row.lastName}
-          </Link>
-        </span>
-      ),
-    },
-    {
-      name: 'Email', selector: row => row.email, sortable: true, minWidth: '220px',
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faEnvelope} className="text-gray-400" />
-          {row.email}
-        </span>
-      ),
-    },
-    {
-      name: 'Téléphone', selector: row => row.phoneNumber, sortable: true, minWidth: '150px',
-      cell: row => (
-        <span className="flex items-center gap-2">
-          <FontAwesomeIcon icon={faPhone} className="text-gray-400" />
-          {row.phoneNumber}
-        </span>
-      ),
-    },
-    { name: 'Note', selector: row => row.note, sortable: true, right: true, width: '100px',
-      cell: row => (
-        <span className="flex items-center gap-1 text-yellow-500 font-semibold">
-          <FontAwesomeIcon icon={faStar} />
-          {/* La note est souvent stockée en tant que nombre. Assurez-vous qu'elle est affichée correctement. */}
-          {row.note} 
-        </span>
-      ),
-    },
-   
-    {
-      name: 'Actions',
-      cell: row => (
-        <div className="flex gap-2">
-     
-          <button
-            onClick={() => handleDeleteDriver(row.id, `${row.firstName} ${row.lastName}`)}
-            className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
-            title="Supprimer"
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </button>
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-      width: '180px',
-    },
-  ], [handleDeleteDriver]); // Ajout de handleDeleteDriver aux dépendances de useMemo
+            {/* Pagination UI - Identique à Utilisateurs.jsx */}
+            <div className={`mt-6 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-xl shadow-inner ${isDark ? "bg-gray-900/50 text-gray-200" : "bg-gray-50 text-gray-700"}`}>
+              <div className="mb-4 sm:mb-0 font-medium">
+                Affichage de{" "}
+                <span className="text-blue-500">{(pagination?.page - 1) * 10 + 1}</span> à{" "}
+                <span className="text-blue-500">{Math.min(pagination?.totalCount || 0, (pagination?.page || 1) * 10)}</span> sur{" "}
+                <span className="font-bold">{pagination?.totalCount || 0}</span> chauffeurs.
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={!pagination?.hasPreviousPage || isLoading}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasPreviousPage || isLoading ? "opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100"}`}
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} /> Précédent
+                </button>
+                
+                <div className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">
+                  Page {pagination?.page || 1}
+                </div>
 
-  return (
-    <div className='pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-          Liste des Chauffeurs Vérifiés 🚗
-        </h1>
-        <button
-          onClick={handleAddDriver}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
-        >
-          <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-          Ajouter un Chauffeur
-        </button>
-      </div>
-      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
-        <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Chauffeurs Enregistrés</h2>
-        {error ? ( // Utilisation de 'error' du contexte
-          <div className="text-red-500 text-center p-4">
-            Erreur lors du chargement des conducteurs: {error}
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={userList} // Utilisation de 'userList' du contexte
-            progressPending={isLoading} // Utilisation de 'isLoading' du contexte
-            pagination
-            paginationServer
-            paginationTotalRows={pagination.totalCount} // Utilisation de 'pagination' du contexte
-            onChangeRowsPerPage={handlePerRowsChange}
-            onChangePage={handlePageChange}
-            highlightOnHover
-            pointerOnHover
-            responsive
-            theme={theme === 'dark' ? 'darkTheme' : 'lightTheme'}
-            noDataComponent={<div className="p-4 text-gray-500 dark:text-gray-400">Aucun chauffeur à afficher.</div>}
-            customStyles={{
-              headCells: {
-                style: {
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                  backgroundColor: theme === 'dark' ? '#374151' : '#F9FAFB',
-                  color: theme === 'dark' ? '#D1D5DB' : '#4B5563',
-                },
-              },
-              cells: {
-                style: {
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                },
-              },
-            }}
-          />
-        )}
-      </div>
-    </div>
-  );
+                <button
+                  onClick={handleNextPage}
+                  disabled={!pagination?.hasNextPage || isLoading}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasNextPage || isLoading ? "opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100"}`}
+                >
+                  Suivant <FontAwesomeIcon icon={faArrowRight} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Drivers;
