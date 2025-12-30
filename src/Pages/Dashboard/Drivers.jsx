@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUserTie, faEnvelope, faPhone, faCalendarAlt, faStar,
-  faTrash, faUserPlus, faSyncAlt, faArrowLeft, faArrowRight
+  faUserTie, faEnvelope, faPhone, faStar, faTrash, 
+  faUserPlus, faSyncAlt, faArrowLeft, faArrowRight,
+  faTachometerAlt, faThumbsUp, faThumbsDown, faIdCard
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { toast } from "sonner";
@@ -27,13 +28,47 @@ const Drivers = () => {
 
   const [currentPage, setCurrentPage] = useState(1); 
 
-  // Charger les conducteurs vérifiés
   useEffect(() => {
     listVerifiedConductors(currentPage); 
   }, [currentPage]);
 
   const handleNextPage = () => pagination?.hasNextPage && setCurrentPage((p) => p + 1);
   const handlePreviousPage = () => pagination?.hasPreviousPage && setCurrentPage((p) => p - 1);
+
+  // Fonction pour générer le badge de statut selon le code de vérification
+  const renderStatusBadge = (verificationState) => {
+    let statusClasses, statusIcon, statusText;
+
+    switch (verificationState) {
+      case 0:
+        statusClasses = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300';
+        statusIcon = faTachometerAlt;
+        statusText = 'En attente';
+        break;
+      case 1:
+        statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300';
+        statusIcon = faThumbsUp;
+        statusText = 'Vérifié';
+        break;
+      case 2:
+        statusClasses = 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
+        statusIcon = faThumbsDown;
+        statusText = 'Rejeté';
+        break;
+      default:
+        statusClasses = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+        statusIcon = faIdCard;
+        statusText = 'Non soumis';
+        break;
+    }
+
+    return (
+      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${statusClasses}`}>
+        <FontAwesomeIcon icon={statusIcon} />
+        {statusText}
+      </span>
+    );
+  };
 
   const handleDeleteDriver = async (driverId, driverName) => {
     Swal.fire({
@@ -104,49 +139,62 @@ const Drivers = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto rounded-lg">
+            <div className="overflow-x-auto rounded-lg border dark:border-gray-700">
               <table className={`w-full table-auto ${isDark ? "text-gray-200" : "text-gray-800"}`}>
                 <thead>
-                  <tr className={`uppercase text-xs font-bold text-left ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
-                    <th className="py-3 px-4 rounded-tl-lg">Chauffeur</th>
-                    <th className="py-3 px-4">Contact</th>
-                    <th className="py-3 px-4 text-center">Note</th>
-                    <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
+                  <tr className={`uppercase text-[11px] font-bold text-left ${isDark ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-600"}`}>
+                    <th className="py-4 px-4">Chauffeur</th>
+                    <th className="py-4 px-4">Contact</th>
+                    <th className="py-4 px-4 text-center">Statut</th>
+                    <th className="py-4 px-4 text-center">Note</th>
+                    <th className="py-4 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
                   {userList && userList.length > 0 ? (
                     userList.map((driver) => (
-                      <tr key={driver.id} className={`border-b ${isDark ? "border-gray-700" : "border-gray-200"} hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}>
-                        <td className="py-4 px-4 font-medium">
+                      <tr key={driver.id} className={`border-b ${isDark ? "border-gray-700" : "border-gray-200"} hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}>
+                        {/* Infos Chauffeur */}
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
                               <FontAwesomeIcon icon={faUserTie} />
                             </div>
                             <div className="flex flex-col">
-                              <Link to={`/admin/users/details/${driver.id}`} className="hover:text-blue-500 transition-colors">
+                              <Link to={`/admin/users/details/${driver.id}`} className="font-bold hover:text-blue-500 transition-colors">
                                 {driver.firstName} {driver.lastName}
                               </Link>
-                              <span className="text-xs opacity-50 font-mono">{driver.id.substring(0, 8)}...</span>
+                              <span className="text-[10px] opacity-50 font-mono italic">{driver.id.substring(0, 8)}...</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
-                          <div className="flex flex-col gap-1">
-                            <span className="flex items-center gap-2 text-xs">
-                              <FontAwesomeIcon icon={faEnvelope} className="opacity-40 w-3" /> {driver.email}
+
+                        {/* Contact */}
+                        <td className="py-4 px-4 text-xs">
+                          <div className="flex flex-col gap-1 italic opacity-80">
+                            <span className="flex items-center gap-2">
+                              <FontAwesomeIcon icon={faEnvelope} className="w-3 text-blue-500" /> {driver.email}
                             </span>
-                            <span className="flex items-center gap-2 text-xs">
-                              <FontAwesomeIcon icon={faPhone} className="opacity-40 w-3" /> {driver.phoneNumber || "N/A"}
+                            <span className="flex items-center gap-2">
+                              <FontAwesomeIcon icon={faPhone} className="w-3 text-green-500" /> {driver.phoneNumber || "N/A"}
                             </span>
                           </div>
                         </td>
+
+                        {/* STATUT (NOUVELLE COLONNE) */}
+                        <td className="py-4 px-4 text-center">
+                          {renderStatusBadge(driver.licenceDriving?.verificationState)}
+                        </td>
+
+                        {/* Note */}
                         <td className="py-4 px-4 text-center">
                           <span className="inline-flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 px-2 py-1 rounded-full font-bold">
                             <FontAwesomeIcon icon={faStar} size="xs" />
                             {driver.note || "0.0"}
                           </span>
                         </td>
+
+                        {/* Actions */}
                         <td className="py-4 px-4">
                           <div className="flex justify-center">
                             <button
@@ -162,38 +210,35 @@ const Drivers = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="py-12 text-center text-gray-500">Aucun chauffeur trouvé.</td>
+                      <td colSpan="5" className="py-12 text-center text-gray-500 italic">Aucun chauffeur trouvé.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination UI - Identique à Utilisateurs.jsx */}
+            {/* Pagination */}
             <div className={`mt-6 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-xl shadow-inner ${isDark ? "bg-gray-900/50 text-gray-200" : "bg-gray-50 text-gray-700"}`}>
               <div className="mb-4 sm:mb-0 font-medium">
-                Affichage de{" "}
-                <span className="text-blue-500">{(pagination?.page - 1) * 10 + 1}</span> à{" "}
-                <span className="text-blue-500">{Math.min(pagination?.totalCount || 0, (pagination?.page || 1) * 10)}</span> sur{" "}
-                <span className="font-bold">{pagination?.totalCount || 0}</span> chauffeurs.
+                Affichage de <span className="text-blue-500">{(pagination?.page - 1) * 10 + 1}</span> à <span className="text-blue-500">{Math.min(pagination?.totalCount || 0, (pagination?.page || 1) * 10)}</span> sur <span className="font-bold">{pagination?.totalCount || 0}</span> chauffeurs.
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={handlePreviousPage}
                   disabled={!pagination?.hasPreviousPage || isLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasPreviousPage || isLoading ? "opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasPreviousPage || isLoading ? "opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 shadow-sm"}`}
                 >
                   <FontAwesomeIcon icon={faArrowLeft} /> Précédent
                 </button>
                 
-                <div className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">
+                <div className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-md">
                   Page {pagination?.page || 1}
                 </div>
 
                 <button
                   onClick={handleNextPage}
                   disabled={!pagination?.hasNextPage || isLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasNextPage || isLoading ? "opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${!pagination?.hasNextPage || isLoading ? "opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800" : "bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 shadow-sm"}`}
                 >
                   Suivant <FontAwesomeIcon icon={faArrowRight} />
                 </button>
