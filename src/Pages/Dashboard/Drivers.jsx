@@ -146,56 +146,12 @@ const Drivers = () => {
         </span>
       ),
     },
-    {
-      name: 'Statut du Permis',
-      selector: row => row.licenceDriving.verificationState,
-      sortable: true,
-      cell: row => {
-        let statusClasses = '';
-        let statusIcon = null;
-        let statusText = '';
-        // Utilisation de l'opérateur optionnel (?) pour éviter les erreurs si licenceDriving est null
-        switch (row.licenceDriving?.verificationState) { 
-          case 0:
-            statusClasses = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-            statusIcon = faTachometerAlt;
-            statusText = 'En attente';
-            break;
-          case 1:
-            statusClasses = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-            statusIcon = faThumbsUp;
-            statusText = 'Vérifié';
-            break;
-          case 2:
-            statusClasses = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-            statusIcon = faThumbsDown;
-            statusText = 'Rejeté';
-            break;
-          default:
-            statusClasses = 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-            statusIcon = faIdCard;
-            statusText = 'Non soumis';
-            break;
-        }
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusClasses}`}>
-            <FontAwesomeIcon icon={statusIcon} />
-            {statusText}
-          </span>
-        );
-      },
-    },
+   
     {
       name: 'Actions',
       cell: row => (
         <div className="flex gap-2">
-          <Link 
-            to={`/admin/users/details/${row.id}`} 
-            className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-            title="Voir les détails"
-          >
-            <FontAwesomeIcon icon={faEye} />
-          </Link>
+     
           <button
             onClick={() => handleDeleteDriver(row.id, `${row.firstName} ${row.lastName}`)}
             className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
