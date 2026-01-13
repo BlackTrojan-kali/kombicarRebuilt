@@ -30,7 +30,6 @@ const UserNotifications = () => {
             if (res && res.data) {
                 // 💡 MISE À JOUR : Mise à jour de l'état local du composant avec la réponse paginée complète
                 setNotificationsData(res.data);
-                
                 // 💡 CORRECTION : Mettre à jour currentPage uniquement si l'API renvoie le numéro de page
                 // mais on utilise 'page' directement dans le useEffect, donc on peut le laisser ainsi.
                 // setNotificationsData(prev => ({ ...prev, page: res.data.page }));
@@ -123,7 +122,6 @@ const UserNotifications = () => {
             </div>
         );
     }
-
     return (
         <div className="user-notifications p-4 md:p-8 max-w-4xl mx-auto dark:text-gray-100">
             <br /><br />
@@ -133,7 +131,7 @@ const UserNotifications = () => {
 
             {/* Liste des Notifications */}
             <div className="notifications-list space-y-3">
-                {notificationsData?.map((notif) => (
+                {notificationsData?.items?.map((notif) => (
                     <div 
                         key={notif.id} 
                         // Styles conditionnels Tailwind basés sur isRead
@@ -147,7 +145,6 @@ const UserNotifications = () => {
                     >
                         {/* Indicateur de chargement au niveau de l'élément si vous souhaitez */}
                         {/* {loading && <FontAwesomeIcon icon={faSpinner} spin />} */}
-                        
                         <div className="flex justify-between items-start">
                             <h3 className={`text-lg font-semibold ${notif.isRead ? 'text-gray-700 dark:text-gray-200' : 'text-blue-800 dark:text-blue-300'}`}>
                                 {notif.title}

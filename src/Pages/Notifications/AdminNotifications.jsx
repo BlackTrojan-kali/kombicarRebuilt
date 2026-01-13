@@ -23,7 +23,7 @@ const AdminNotifications = () => {
 
     // Calcul du nombre total de pages
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
+ 
     // Fonction pour charger la liste des notifications
     const fetchNotifications = useCallback(async (page) => {
         setIsLoading(true);

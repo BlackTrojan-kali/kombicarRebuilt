@@ -18,18 +18,22 @@ const Header = () => {
     const [showNav, setShowNav] = useState(false);
     const { user, logout } = useAuth();
     
+    // Récupération du state global 'notification' et de la fonction de fetch
     const { notification, getNotification } = useNotification(); 
     
-    // Calcul des notifications non lues
-    const unreadCount = notification ? notification.filter(n => !n.is_read).length : 0; 
+    // Calcul des notifications non lues (isRead est la propriété de votre API)
+    const unreadCount = Array.isArray(notification) 
+        ? notification.filter(n => !n.isRead).length 
+        : 0; 
 
+    // Chargement initial des notifications au montage si l'utilisateur est connecté
     useEffect(() => {
         if (user) {
             getNotification(1).catch(err => 
                 console.error("Erreur de chargement initial des notifs:", err)
             );
         }
-    }, [user]);
+    }, [user, getNotification]);
 
     const toggleDarkMode = () => {
         setTheme(theme === "dark" ? "light" : "dark");
@@ -72,7 +76,6 @@ const Header = () => {
                             Conversations
                         </Link>
 
-                        {/* BOUTON SUGGÉRER (Desktop) */}
                         <Link
                             to="/suggest-trip"
                             className="px-4 py-2 border-2 border-kombigreen-500 text-kombigreen-600 dark:text-kombigreen-400 rounded-full font-bold hover:bg-kombigreen-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 text-sm"
@@ -81,7 +84,6 @@ const Header = () => {
                             Planifier
                         </Link>
 
-                        {/* BOUTON PUBLIER (Desktop) */}
                         <Link
                             to="/publish-trip"
                             className="px-4 py-2 bg-kombigreen-500 text-white rounded-full font-bold hover:bg-kombigreen-600 transition-colors duration-200 shadow-md flex items-center gap-2 text-sm"
@@ -96,15 +98,15 @@ const Header = () => {
             {/* --- ACTIONS DROITE --- */}
             <div className="flex items-center gap-4">
                 
-                {/* NOTIFICATIONS DESKTOP */}
+                {/* 🔔 NOTIFICATIONS DESKTOP (AVEC BADGE) */}
                 {user && (
                     <Link
                         to="/profile/notifications"
-                        className="hidden sm:block relative text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 transition-colors text-xl p-1"
+                        className="relative text-gray-700 dark:text-gray-300 hover:text-kombigreen-500 transition-colors text-xl p-2"
                     >
                         <FontAwesomeIcon icon={faBell} />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                            <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-800">
                                 {unreadCount > 9 ? '9+' : unreadCount} 
                             </span>
                         )}
@@ -151,7 +153,6 @@ const Header = () => {
 
                 {user ? (
                     <>
-                        {/* SUGGÉRER (Mobile) */}
                         <Link
                             to="/suggest-trip"
                             onClick={() => setShowNav(false)}
@@ -160,7 +161,6 @@ const Header = () => {
                             <FontAwesomeIcon icon={faLightbulb} /> Planifier un trajet
                         </Link>
 
-                        {/* PUBLIER (Mobile) */}
                         <Link
                             to="/publish-trip"
                             onClick={() => setShowNav(false)}
