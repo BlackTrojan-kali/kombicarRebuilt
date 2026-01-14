@@ -5,7 +5,8 @@ import {
     faBars, faMoon, faCar, faUserCircle,
     faRightFromBracket, faSignInAlt, faUserPlus, faMagnifyingGlass,
     faPlusCircle, faRoute, faComment,
-    faBell, faLightbulb, faQuestion
+    faBell, faLightbulb, faQuestion,
+    faCalendar
 } from "@fortawesome/free-solid-svg-icons";
 
 import useColorScheme from "../../hooks/useColorScheme";
@@ -80,7 +81,7 @@ const Header = () => {
                             to="/suggest-trip"
                             className="px-4 py-2 border-2 border-kombigreen-500 text-kombigreen-600 dark:text-kombigreen-400 rounded-full font-bold hover:bg-kombigreen-50 dark:hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 text-sm"
                         >
-                            <FontAwesomeIcon icon={faLightbulb} />
+                            <FontAwesomeIcon icon={faCalendar} />
                             Planifier
                         </Link>
 
@@ -158,7 +159,7 @@ const Header = () => {
                             onClick={() => setShowNav(false)}
                             className="flex items-center gap-2 w-full p-2 border border-kombigreen-500 text-kombigreen-600 rounded-md font-bold"
                         >
-                            <FontAwesomeIcon icon={faLightbulb} /> Planifier un trajet
+                            <FontAwesomeIcon icon={faCalendar} /> Planifier un trajet
                         </Link>
 
                         <Link
