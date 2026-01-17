@@ -18,9 +18,9 @@ const Header = () => {
     const { theme, setTheme } = useColorScheme();
     const [showNav, setShowNav] = useState(false);
     const { user, logout } = useAuth();
-    
+    const [notification,setNotification] = useState([])
     // Récupération du state global 'notification' et de la fonction de fetch
-    const { notification, getNotification } = useNotification(); 
+    const {  getNotification } = useNotification(); 
     
     // Calcul des notifications non lues (isRead est la propriété de votre API)
     const unreadCount = Array.isArray(notification) 
@@ -30,9 +30,12 @@ const Header = () => {
     // Chargement initial des notifications au montage si l'utilisateur est connecté
     useEffect(() => {
         if (user) {
-            getNotification(1).catch(err => 
+            getNotification(1).then((res)=>{
+                console.log(res)
+                setNotification(res?.data?.items)}).catch(err => 
                 console.error("Erreur de chargement initial des notifs:", err)
             );
+            console.log(notification)
         }
     }, [user, getNotification]);
 
