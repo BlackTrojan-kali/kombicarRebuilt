@@ -1,24 +1,25 @@
-import React, { useState, useEffect, useMemo } from 'react';
+// src/pages/admin/Admins.jsx
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUserTie, faEnvelope, faPhone, faCalendarAlt, faKey, faEye, faTrash, faUserPlus,
-    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, faUserShield
+    faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, faUserShield,
+    faSyncAlt, faDownload // Ajout des icônes de chargement et d'export
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 
 // Importations des Hooks et Contextes
 import useColorScheme from '../../hooks/useColorScheme';
-import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext'; // Utilisation du hook exporté du contexte
+import { useUserAdminContext } from '../../contexts/Admin/UsersAdminContext'; 
 import { useRole } from '../../contexts/Admin/RoleContext';
 import AdminFormModal from '../../Components/Modals/CreateAdminModal';
 
-
 // --- MAPPING DES RÔLES ADMINISTRATIFS ---
 const ROLE_MAPPING = {
-    1: { name: 'Administrateur', class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', icon: faKey },
-    2: { name: 'Super Administrateur', class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', icon: faCrown },
-    default: { name: 'Rôle Inconnu', class: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400', icon: faKey }
+    1: { name: 'Administrateur', class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-800', icon: faUserShield },
+    2: { name: 'Super Admin', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-500 border border-purple-200 dark:border-purple-800', icon: faCrown },
+    default: { name: 'Rôle Inconnu', class: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700', icon: faKey }
 };
 
 const ROLES = {
@@ -32,19 +33,21 @@ const Admins = () => {
     const { theme } = useColorScheme();
     const isDark = theme === 'dark';
     
-    // Rôles context (inchangé)
+    // Rôles context
     const { roles, getRoles } = useRole();
 
     // Récupération des données et fonctions du contexte `UsersAdminContext`
     const { 
-        userList: adminList, // Renommé `userList` en `adminList` pour la clarté locale
+        userList: adminList, 
         isLoading, 
         listAdmins, 
         error: adminListError,
-        pagination, // Récupération de l'objet de pagination
-        updateUserRoleAsSuperAdmin, // Fonction de mise à jour du rôle
-        addAdminUser: addAdmin, // Fonction d'ajout d'administrateur
-        deleteUserAsAdmin: deleteAdmin // Fonction de suppression d'utilisateur
+        pagination,
+        updateUserRoleAsSuperAdmin,
+        addAdminUser: addAdmin,
+        deleteUserAsAdmin: deleteAdmin,
+        exportUsers,      // <--- Récupération de l'export
+        isExportingUsers  // <--- État de chargement de l'export
     } = useUserAdminContext(); 
     
     // États locaux
@@ -52,53 +55,38 @@ const Admins = () => {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false); 
     const [adminToEdit, setAdminToEdit] = useState(null); 
 
-    // ATTENTION: La taille par page (perPage) est souvent gérée par l'API. 
-    // Ici, nous la laissons à 10 pour l'affichage de la plage, mais l'API devrait la fournir.
     const perPage = 10; 
 
-    // Mappe la valeur numérique du rôle
     const getRoleInfo = (roleValue) => {
         return ROLE_MAPPING[roleValue] || ROLE_MAPPING.default;
     };
 
-    /**
-     * Charge les administrateurs pour la page spécifiée.
-     * Utilise listAdmins du contexte qui met à jour l'état global.
-     */
     const handleFetchAdmins = async (page) => {
         try {
-            // listAdmins met à jour les états 'userList' et 'pagination' dans le contexte
             await listAdmins(page);
         } catch (error) {
-            // L'erreur est déjà gérée par le toast dans le contexte.
-            // On peut logger ici si besoin.
             console.log("Échec du fetch admin dans le composant", error);
         }
     };
 
-    // Charger les administrateurs au montage et au changement de page
     useEffect(() => {
         handleFetchAdmins(currentPage);
     }, [currentPage]); 
 
-    // Charger la liste des rôles pour le modal
     useEffect(() => {
-        getRoles(1); // Page 1 ou autre paramètre de pagination si nécessaire
-    }, []); // Dépendances ajustées : `roles` n'est pas nécessaire si on ne veut pas relancer le fetch quand les rôles changent
+        getRoles(1); 
+    }, []); 
 
-    // Logique de navigation
     const totalRows = pagination.totalCount || 0;
     const totalPages = Math.ceil(totalRows / perPage);
 
     const handleNextPage = () => {
-        // La condition est basée sur l'objet pagination du contexte
         if (pagination.hasNextPage) {
             setCurrentPage(prev => prev + 1);
         }
     };
 
     const handlePreviousPage = () => {
-        // La condition est basée sur l'objet pagination du contexte
         if (pagination.hasPreviousPage) {
             setCurrentPage(prev => prev - 1);
         }
@@ -109,9 +97,7 @@ const Admins = () => {
         setIsFormModalOpen(true);
     };
 
-    // ATTENTION: L'édition n'est pas implémentée dans votre contexte API actuel (seulement `addAdminUser` et `updateUserRoleAsSuperAdmin`)
     const handleEditAdmin = (admin) => {
-        // Pour l'instant, on n'ouvre que le formulaire avec les données
         setAdminToEdit(admin);
         setIsFormModalOpen(true);
     };
@@ -121,7 +107,19 @@ const Admins = () => {
         setAdminToEdit(null);
     };
 
-    // Changer le rôle avec 2 selects (Utilise updateUserRoleAsSuperAdmin du contexte)
+    // --- NOUVELLE FONCTION D'EXPORT ---
+    const handleExportCSV = async () => {
+        if (!exportUsers) {
+        toast.error("La fonction d'exportation n'est pas disponible.");
+        return;
+        }
+        try {
+        await exportUsers();
+        } catch (error) {
+        console.error("L'exportation a échoué", error);
+        }
+    };
+
     const handleChangeRole = (userId, userName, currentRole) => {
         if (!roles || roles.length === 0) {
             toast.error("La liste des rôles n'est pas chargée.");
@@ -129,46 +127,51 @@ const Admins = () => {
         }
     
         const html = `
-            <div class="flex flex-col gap-2">
-                <label>Rôle interne (Numérique) :</label>
-                <select id="internalRole" class="swal2-input">
-                ${Object.entries(ROLES)
-                    .map(
-                        ([key, value]) =>
-                            `<option value="${value}" ${
-                            currentRole === value ? "selected" : ""
-                            }>${key}</option>`
-                    )
-                    .join("")}
-                </select>
+            <div class="flex flex-col gap-4 p-2 text-sm">
+                <div class="text-left">
+                    <label for="internalRole" class="${isDark ? "text-gray-300" : "text-gray-700"} font-semibold mb-1 block">Rôle interne (Numérique) :</label>
+                    <select id="internalRole" class="w-full border ${isDark ? "border-gray-600 bg-gray-700 text-white" : "border-gray-300 bg-gray-50 text-gray-900"} rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        ${Object.entries(ROLES)
+                            .map(
+                                ([key, value]) =>
+                                    `<option value="${value}" ${currentRole === value ? "selected" : ""}>${key} (${value})</option>`
+                            )
+                            .join("")}
+                    </select>
+                </div>
         
-                <label>Rôle enregistré (ID) :</label>
-                <select id="externalRole" class="swal2-input">
-                ${roles
-                    .map((r) => `<option value="${r.id}">${r.name.toUpperCase()}</option>`)
-                    .join("")}
-                </select>
+                <div class="text-left">
+                    <label for="externalRole" class="${isDark ? "text-gray-300" : "text-gray-700"} font-semibold mb-1 block">Rôle enregistré (ID) :</label>
+                    <select id="externalRole" class="w-full border ${isDark ? "border-gray-600 bg-gray-700 text-white" : "border-gray-300 bg-gray-50 text-gray-900"} rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        ${roles
+                            .map((r) => `<option value="${r.id}">${r.name.toUpperCase()}</option>`)
+                            .join("")}
+                    </select>
+                </div>
             </div>
         `;
     
         Swal.fire({
-            title: `Modifier le rôle de ${userName}`,
+            title: `Modifier le rôle`,
+            text: userName,
             html,
             showCancelButton: true,
-            confirmButtonText: "Confirmer",
+            confirmButtonText: "Enregistrer",
             cancelButtonText: "Annuler",
-            confirmButtonColor: "#2563EB",
-            background: isDark ? "#1F2937" : "#FFFFFF",
-            color: isDark ? "#F9FAFB" : "#1F2937",
+            confirmButtonColor: "#3b82f6",
+            cancelButtonColor: isDark ? "#4b5563" : "#9ca3af",
+            background: isDark ? "#1e293b" : "#ffffff",
+            color: isDark ? "#f8fafc" : "#0f172a",
+            customClass: {
+                popup: "rounded-2xl shadow-xl",
+                title: "text-lg",
+            },
             preConfirm: () => {
-                const internal = parseInt(
-                    Swal.getPopup().querySelector("#internalRole").value
-                );
-                const external =
-                    Swal.getPopup().querySelector("#externalRole").value
-                ;
-                if (internal === null || external === null) {
+                const internal = parseInt(Swal.getPopup().querySelector("#internalRole").value, 10);
+                const external = Swal.getPopup().querySelector("#externalRole").value;
+                if (isNaN(internal) || !external) {
                     Swal.showValidationMessage("Vous devez choisir les deux rôles.");
+                    return false;
                 }
                 return { internal, external };
             },
@@ -176,13 +179,11 @@ const Admins = () => {
             if (result.isConfirmed && result.value) {
                 const { internal, external } = result.value;
                 try {
-                    // Utilisation de updateUserRoleAsSuperAdmin du contexte
                     await toast.promise(updateUserRoleAsSuperAdmin(userId, internal, external), {
                         loading: `Mise à jour du rôle de ${userName}...`,
                         success: `Le rôle de ${userName} a été changé.`,
                         error: (err) => `Échec de la mise à jour du rôle : ${err.message}`,
                     });
-                    // Rafraîchir la liste des administrateurs après la mise à jour
                     await handleFetchAdmins(currentPage); 
                 } catch (err) {
                     console.error("Erreur lors du changement de rôle :", err);
@@ -191,49 +192,41 @@ const Admins = () => {
         });
     };
     
-    // Supprimer l'administrateur (utilise deleteUserAsAdmin du contexte)
     const handleDeleteAdmin = async (adminId, adminName) => {
         Swal.fire({
             title: 'Êtes-vous sûr ?',
             text: `Vous êtes sur le point de supprimer l'administrateur ${adminName}. Cette action est irréversible !`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#DC2626',
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Oui, supprimer !',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: isDark ? '#4b5563' : '#9ca3af',
+            confirmButtonText: 'Oui, supprimer',
             cancelButtonText: 'Annuler',
-            background: isDark ? '#1F2937' : '#FFFFFF',
-            color: isDark ? '#F9FAFB' : '#1F2937',
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            customClass: {
+                popup: "rounded-2xl shadow-xl",
+            }
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    // Utilisation de deleteUserAsAdmin du contexte
                     await toast.promise(deleteAdmin(adminId), {
                         loading: `Suppression de ${adminName} en cours...`,
                         success: `${adminName} a été supprimé !`,
                         error: (err) => `Erreur: ${err.message || "Échec de la suppression."}`,
                     });
-                    
-                    // Rafraîchir après la suppression
-                    // Note: Le contexte filtre déjà localement après la suppression réussie,
-                    // mais un rafraîchissement complet est plus sûr pour la pagination.
                     handleFetchAdmins(currentPage);
                 } catch (error) {
-                    // L'erreur est gérée par le toast du contexte/promise
+                    // L'erreur est gérée par le toast
                 }
             }
         });
     };
 
-    // Gérer l'ajout/modification
     const handleSaveAdmin = async (adminData, isEditingMode) => {
         if (isEditingMode) {
-            // Logique de MODIFICATION (si vous avez un endpoint UPDATE spécifique pour l'admin)
-            // *** NOTE: Votre contexte actuel ne contient pas de fonction de MODIFICATION complète, 
-            // *** je garde donc votre simulation, mais utilisez la fonction API réelle ici.
             const updatePromise = new Promise(async (resolve, reject) => {
                  try {
-                     // Remplacer par votre fonction API de mise à jour complète
                      await new Promise(res => setTimeout(res, 1000)); 
                      resolve(`L'administrateur "${adminData.firstName} ${adminData.lastName}" a été mis à jour avec succès !`);
                  } catch (error) {
@@ -252,132 +245,176 @@ const Admins = () => {
             });
 
         } else {
-            // Logique d'AJOUT, en utilisant la fonction addAdminUser du contexte
             try {
-                await addAdmin(adminData); // Le toast est géré dans le contexte
-                handleFetchAdmins(currentPage); // Rafraîchir
+                await addAdmin(adminData); 
+                handleFetchAdmins(currentPage); 
                 handleCloseFormModal();
             } catch (error) {
-                // L'erreur est déjà gérée par la fonction `addAdmin`
+                // Erreur gérée par le toast
             }
         }
     };
     
-    // Pour l'affichage de la plage (par exemple, "1 à 10 sur 35")
     const startRange = Math.min(totalRows, (currentPage - 1) * perPage + 1);
     const endRange = Math.min(totalRows, currentPage * perPage);
 
     return (
-        <div className='pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full'>
-            {/* Header et bouton d'ajout */}
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
-                    Gestion des Administrateurs
-                </h1>
-                <button
-                    onClick={handleAddAdmin}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
-                >
-                    <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-                    Ajouter un Admin
-                </button>
+        <div className="pl-12 pt-8 pb-40 bg-slate-50 dark:bg-slate-900 min-h-screen">
+            {/* HEADER SECTION */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mr-6">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        Administrateurs
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Gérez les accès à privilèges de votre plateforme.
+                    </p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    {/* BOUTON D'EXPORT */}
+                    <button
+                        onClick={handleExportCSV}
+                        disabled={isExportingUsers || !totalRows}
+                        className={`flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95 ${
+                        isExportingUsers || !totalRows ? "opacity-60 cursor-not-allowed" : ""
+                        }`}
+                    >
+                        <FontAwesomeIcon
+                        icon={isExportingUsers ? faSyncAlt : faDownload}
+                        className={isExportingUsers ? "animate-spin" : ""}
+                        />
+                        <span className="hidden sm:inline">Exporter CSV</span>
+                    </button>
+
+                    {/* BOUTON ACTUALISER */}
+                    <button
+                        onClick={() => handleFetchAdmins(currentPage)}
+                        disabled={isLoading}
+                        className={`flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95 ${
+                        isLoading ? "opacity-80 cursor-not-allowed" : ""
+                        }`}
+                    >
+                        <FontAwesomeIcon
+                        icon={faSyncAlt}
+                        className={isLoading ? "animate-spin" : ""}
+                        />
+                        <span className="hidden sm:inline">Actualiser</span>
+                    </button>
+
+                    <button
+                        onClick={handleAddAdmin}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95"
+                    >
+                        <FontAwesomeIcon icon={faUserPlus} />
+                        <span className="hidden sm:inline">Nouveau Admin</span>
+                    </button>
+                </div>
             </div>
 
-            <div className='bg-white dark:bg-gray-800 rounded-lg shadow-md p-4'>
-                <h2 className='text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100'>Administrateurs du Système</h2>
+            {/* MAIN CARD */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/60 p-5 mr-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                        Membres de l'équipe <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">({totalRows || 0} total)</span>
+                    </h2>
+                </div>
                 
-                {/* Gestion de l'état (Chargement/Erreur) */}
-                {isLoading ? ( // Utilisation de l'état `isLoading` du contexte
-                    <div className="p-4 text-center text-blue-500 dark:text-blue-400">
-                        Chargement des administrateurs...
+                {isLoading && adminList?.length === 0 ? (
+                    <div className="py-20 text-center text-blue-500 dark:text-blue-400">
+                        <FontAwesomeIcon icon={faSyncAlt} className="animate-spin text-4xl mb-4 opacity-80" />
+                        <p className="font-medium">Chargement des administrateurs...</p>
                     </div>
                 ) : adminListError ? (
-                    <div className="p-4 text-center text-red-500 dark:text-red-400">
-                        Une erreur est survenue lors du chargement des administrateurs : {adminListError}
+                    <div className="p-6 text-center text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-800/30">
+                        <p className="font-semibold">Une erreur est survenue</p>
+                        <p className="text-sm mt-1">{adminListError}</p>
                     </div>
                 ) : (
                     <>
-                        {/* Tableau des administrateurs */}
-                        <div className="overflow-x-auto rounded-lg">
-                            <table className={`w-full table-auto ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                        <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700">
+                            <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className={`uppercase text-sm font-semibold text-left ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                                        <th className="py-3 px-4 rounded-tl-lg">ID</th>
-                                        <th className="py-3 px-4">Nom Complet</th>
-                                        <th className="py-3 px-4">Email</th>
-                                        <th className="py-3 px-4">Téléphone</th>
-                                        <th className="py-3 px-4">Rôle</th>
-                                        <th className="py-3 px-4">Statut</th>
-                                        <th className="py-3 px-4">Dernière Connexion</th>
-                                        <th className="py-3 px-4 text-center rounded-tr-lg">Actions</th>
+                                    <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Utilisateur</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rôle</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Statut</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dernière Connexion</th>
+                                        <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
                                     {adminList && adminList.length > 0 ? (
                                         adminList.map(admin => {
                                             const roleInfo = getRoleInfo(admin.role);
                                             const isActive = admin.isVerified;
 
                                             return (
-                                                <tr key={admin.id} className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} last:border-b-0`}>
-                                                    <td className="py-4 px-4">{admin.id}</td>
-                                                    <td className="py-4 px-4">
-                                                        <span className="flex items-center gap-2">
-                                                            <FontAwesomeIcon icon={faUserTie} className="text-gray-400" />
-                                                            {`${admin.firstName} ${admin.lastName}`}
-                                                        </span>
+                                                <tr key={admin.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors duration-150 group">
+                                                    <td className="py-4 px-4 font-mono text-xs text-slate-400 dark:text-slate-500">
+                                                        {admin.id.substring(0, 8)}...
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className="flex items-center gap-2">
-                                                            <FontAwesomeIcon icon={faEnvelope} className="text-gray-400" />
-                                                            {admin.email}
-                                                        </span>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                                                                <FontAwesomeIcon icon={faUserTie} size="sm" />
+                                                            </div>
+                                                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                                                {`${admin.firstName} ${admin.lastName}`}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className="flex items-center gap-2">
-                                                            <FontAwesomeIcon icon={faPhone} className="text-gray-400" />
-                                                            {admin.phoneNumber}
-                                                        </span>
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                                                <FontAwesomeIcon icon={faEnvelope} className="text-slate-400 text-xs" />
+                                                                {admin.email}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500 flex items-center gap-2">
+                                                                <FontAwesomeIcon icon={faPhone} className="text-slate-400 text-xs" />
+                                                                {admin.phoneNumber || "Non renseigné"}
+                                                            </span>
+                                                        </div>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${roleInfo.class}`}>
-                                                            <FontAwesomeIcon icon={roleInfo.icon} className="mr-1" />
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${roleInfo.class}`}>
+                                                            <FontAwesomeIcon icon={roleInfo.icon} />
                                                             {roleInfo.name}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${isActive ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'}`}>
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${isActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-800' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500 border border-red-200 dark:border-red-800'}`}>
                                                             <FontAwesomeIcon icon={isActive ? faCheckCircle : faTimesCircle} />
                                                             {isActive ? 'Vérifié' : 'Non Vérifié'}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <span className="flex items-center gap-2">
-                                                            <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
-                                                            {new Date(admin.lastLogin).toLocaleDateString('fr-CM')}
+                                                        <span className="text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                                            <FontAwesomeIcon icon={faCalendarAlt} className="text-slate-400" />
+                                                            {admin.lastLogin ? new Date(admin.lastLogin).toLocaleDateString('fr-CM') : "Jamais"}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-4">
-                                                        <div className="flex justify-center gap-2">
+                                                        <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                             <button
                                                                 onClick={() => toast(`Affichage des détails de ${admin.firstName} ${admin.lastName}`, { icon: 'ℹ️' })}
-                                                                className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+                                                                className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300 transition-colors"
                                                                 title="Voir les détails"
                                                             >
                                                                 <FontAwesomeIcon icon={faEye} />
                                                             </button>
                                                             <button
-                                                                onClick={() =>
-                                                                    handleChangeRole(admin.id, `${admin.firstName} ${admin.lastName}`, admin.role)
-                                                                }
-                                                                className="p-2 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-colors" // Changé au jaune pour le rôle
+                                                                onClick={() => handleChangeRole(admin.id, `${admin.firstName} ${admin.lastName}`, admin.role)}
+                                                                className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 transition-colors"
                                                                 title="Changer le rôle"
                                                             >
                                                                 <FontAwesomeIcon icon={faUserShield} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteAdmin(admin.id, `${admin.firstName} ${admin.lastName}`)}
-                                                                className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                                                                className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 transition-colors"
                                                                 title="Supprimer"
                                                             >
                                                                 <FontAwesomeIcon icon={faTrash} />
@@ -389,9 +426,9 @@ const Admins = () => {
                                         })
                                     ) : (
                                         <tr>
-                                            <td colSpan="8" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                            <td colSpan="7" className="py-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-800/50">
                                                 <div className="flex flex-col items-center">
-                                                    <FontAwesomeIcon icon={faUserTie} className="text-4xl mb-2" />
+                                                    <FontAwesomeIcon icon={faUserTie} className="text-4xl mb-3 opacity-50" />
                                                     <p>Aucun administrateur à afficher pour le moment.</p>
                                                 </div>
                                             </td>
@@ -401,30 +438,41 @@ const Admins = () => {
                             </table>
                         </div>
                         
-                        {/* Pagination */}
-                        <div className={`mt-4 flex flex-col sm:flex-row justify-between items-center text-sm p-4 rounded-md shadow ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
-                            <div className="mb-2 sm:mb-0">
-                                Affichage de {totalRows === 0 ? 0 : startRange} à {endRange} sur {totalRows} administrateurs.
+                        {/* PAGINATION */}
+                        <div className="mt-6 flex flex-col sm:flex-row justify-between items-center text-sm">
+                            <div className="mb-4 sm:mb-0 text-slate-500 dark:text-slate-400">
+                                Affichage de <span className="font-semibold text-slate-700 dark:text-slate-200">{totalRows === 0 ? 0 : startRange}</span> à <span className="font-semibold text-slate-700 dark:text-slate-200">{endRange}</span> sur <span className="font-semibold text-slate-700 dark:text-slate-200">{totalRows}</span> administrateurs
                             </div>
-                            <div className="flex gap-2">
+                            
+                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/30 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
                                 <button
                                     onClick={handlePreviousPage}
                                     disabled={!pagination.hasPreviousPage || isLoading}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!pagination.hasPreviousPage || isLoading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all ${
+                                        !pagination.hasPreviousPage || isLoading
+                                            ? "text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                            : "text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-600 hover:shadow-sm"
+                                    }`}
+                                    title="Page précédente"
                                 >
-                                    <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-                                    Précédent
+                                    <FontAwesomeIcon icon={faArrowLeft} />
                                 </button>
-                                <span className={`px-4 py-2 rounded-md font-bold ${isDark ? 'bg-gray-600' : 'bg-gray-200'}`}>
-                                    Page {currentPage} sur {totalPages || 1}
-                                </span>
+                                
+                                <div className="px-4 py-2 bg-white dark:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold shadow-sm border border-slate-200 dark:border-slate-600 min-w-[2.5rem] text-center whitespace-nowrap">
+                                    Page {currentPage} / {totalPages || 1}
+                                </div>
+
                                 <button
                                     onClick={handleNextPage}
                                     disabled={!pagination.hasNextPage || isLoading}
-                                    className={`px-4 py-2 rounded-md transition-colors duration-200 ${!pagination.hasNextPage || isLoading ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all ${
+                                        !pagination.hasNextPage || isLoading
+                                            ? "text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                            : "text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-600 hover:shadow-sm"
+                                    }`}
+                                    title="Page suivante"
                                 >
-                                    Suivant
-                                    <FontAwesomeIcon icon={faArrowRight} className="ml-2" />
+                                    <FontAwesomeIcon icon={faArrowRight} />
                                 </button>
                             </div>
                         </div>

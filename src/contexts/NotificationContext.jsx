@@ -18,7 +18,7 @@ export function NotificationContextProvider ({children}){
     const getNotification = async(page = 1) => {
         try {
             const res = await api.get(`${API_URL}/api/v1/notifications/${page}`);
-                
+            
             // Si c'est la première page, nous pouvons mettre à jour le state 'notification'
             if (page === 1 && res.data && res.data.data) {
                 setNotification(res.data.data);

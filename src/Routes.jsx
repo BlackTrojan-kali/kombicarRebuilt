@@ -297,7 +297,7 @@ const Routes = () => {
         },
         {
           path: "car-documents/:vehiculeId",
-          element: <CarDocuments />,
+          element:  <CarAdminContextProvider><CarDocuments /></CarAdminContextProvider>,
         },
         {
           path: "cars-type",

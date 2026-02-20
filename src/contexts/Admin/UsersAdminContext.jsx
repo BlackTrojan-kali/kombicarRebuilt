@@ -9,6 +9,11 @@ export function UsersAdminContextProvider({ children }) {
     // Récupération de la fonction d'authentification
     const { refreshUserToken } = useAuth(); 
 
+    // ===================================
+    // 6. GESTION DES EXPORTS
+    // ===================================
+    const [isExportingUsers, setIsExportingUsers] = useState(false);
+    const [exportUsersError, setExportUsersError] = useState(null);
     // États globaux pour la gestion des listes et opérations
     const [userList, setUserList] = useState([]);
     const [pagination, setPagination] = useState({
@@ -217,6 +222,46 @@ export function UsersAdminContextProvider({ children }) {
         }
     };
 
+    // ###################################
+    // # EXPORTATION DE DONNÉES
+    // ###################################
+
+    /** Exporte la liste des utilisateurs au format CSV. */
+    const exportUsers = async () => {
+        setIsExportingUsers(true);
+        setExportUsersError(null);
+        try {
+            // responseType: 'blob' est requis pour gérer les fichiers binaires/fichiers téléchargés
+            const response = await api.get('/api/v1/users/export', {
+                responseType: 'blob',
+            });
+            
+            // Création d'un lien temporaire dans le DOM pour forcer le téléchargement
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            // Vous pouvez personnaliser le nom du fichier par défaut ici
+            link.setAttribute('download', 'users_export.csv'); 
+            document.body.appendChild(link);
+            link.click();
+            
+            // Nettoyage après le téléchargement
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success("Exportation CSV réussie !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de l'exportation des utilisateurs:", error);
+            const errorMessage = error.response?.data?.message || "Échec de l'exportation des utilisateurs au format CSV.";
+            setExportUsersError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsExportingUsers(false);
+        }
+    };
+
 
     // ###################################
     // # VALEUR DU CONTEXTE EXPORTÉE
@@ -232,6 +277,10 @@ export function UsersAdminContextProvider({ children }) {
         setError,
         refreshUserToken,
         
+        // --- EXPORTATION ---
+        isExportingUsers, exportUsersError,
+        exportUsers, // <--- NOUVELLE FONCTION AJOUTÉE ICI
+
         // Fonctions d'administration
         updateUserRoleAsSuperAdmin,
         addAdminUser, 

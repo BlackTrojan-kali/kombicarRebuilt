@@ -18,7 +18,8 @@ export function UserContextProvider({ children }) {
     });
     const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
     const [adminListError, setAdminListError] = useState(null);
-    const { refreshUserToken} = useAuth();
+    const { refreshUserToken } = useAuth();
+    
     // ===================================
     // 2. GESTION DES CONDUCTEURS (Unverified Conductor List)
     // ===================================
@@ -101,37 +102,37 @@ export function UserContextProvider({ children }) {
         }
     };
 
-   /** Ajoute un nouvel administrateur. */
-const addAdmin = async (adminData) => {
-    setIsLoadingAdmins(true);
-    setAdminListError(null);
+    /** Ajoute un nouvel administrateur. */
+    const addAdmin = async (adminData) => {
+        setIsLoadingAdmins(true);
+        setAdminListError(null);
 
-    try {
-        // Construction du payload exactement selon le schéma attendu
-        const payload = {
-            email: adminData.email,
-            password: adminData.password,
-            firstName: adminData.firstName,
-            lastName: adminData.lastName,
-            phoneNumber: adminData.phoneNumber || "",
-            role: parseInt(adminData.role,10),           // numérique (0,1,2,...)
-            roleId: adminData.roleId || "", // UUID du rôle externe
-        };
+        try {
+            // Construction du payload exactement selon le schéma attendu
+            const payload = {
+                email: adminData.email,
+                password: adminData.password,
+                firstName: adminData.firstName,
+                lastName: adminData.lastName,
+                phoneNumber: adminData.phoneNumber || "",
+                role: parseInt(adminData.role,10),           // numérique (0,1,2,...)
+                roleId: adminData.roleId || "", // UUID du rôle externe
+            };
 
-        console.log(payload)
-        const response = await api.post('/api/v1/users/admin/add-user', payload);
-        toast.success("Administrateur ajouté avec succès !");
-        return response.data;
-    } catch (error) {
-        console.error("Erreur lors de l'ajout de l'admin:", error);
-        const errorMessage = error.response?.data?.message || "Échec de l'ajout de l'administrateur.";
-        setAdminListError(errorMessage); 
-        toast.error(errorMessage);
-        throw error;
-    } finally {
-        setIsLoadingAdmins(false);
-    }
-};
+            console.log(payload)
+            const response = await api.post('/api/v1/users/admin/add-user', payload);
+            toast.success("Administrateur ajouté avec succès !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de l'ajout de l'admin:", error);
+            const errorMessage = error.response?.data?.message || "Échec de l'ajout de l'administrateur.";
+            setAdminListError(errorMessage); 
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoadingAdmins(false);
+        }
+    };
 
     /** Supprime un administrateur par son ID. */
     const deleteAdmin = async (userId) => {
@@ -299,12 +300,12 @@ const addAdmin = async (adminData) => {
     const updateProfile = async (profileData) => {
         setIsUpdatingProfile(true);
         setUpdateProfileError(null);
-            const refreshToken = localStorage.getItem("refreshToken");
+        const refreshToken = localStorage.getItem("refreshToken");
       
         try {
             // Le payload contient firstName, lastName, phoneNumber, country, etc.
             const response = await api.put('/api/v1/users/update', profileData); 
-            const res = await  refreshUserToken(refreshToken);
+            const res = await refreshUserToken(refreshToken);
             
             toast.success("Votre profil a été mis à jour avec succès !");
 
@@ -328,7 +329,7 @@ const addAdmin = async (adminData) => {
     const value = {
         // --- ADMINS ---
         adminList, adminPagination, isLoadingAdmins, adminListError,
-        listAdmins, addAdmin, deleteAdmin, updateAdminCountryAccess, // <--- AJOUTÉ ICI
+        listAdmins, addAdmin, deleteAdmin, updateAdminCountryAccess, 
 
         // --- CONDUCTEURS (Non Vérifiés) ---
         conductorList, conductorPagination, isLoadingConductors, conductorListError,
@@ -344,7 +345,7 @@ const addAdmin = async (adminData) => {
 
         // --- OPÉRATIONS ADMINISTRATIVES GLOBALES ---
         updateUserRole,
-
+        
         // --- PROFIL UTILISATEUR CONNECTÉ ---
         isUpdatingProfile, updateProfileError,
         updateProfile, 

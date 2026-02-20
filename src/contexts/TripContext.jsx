@@ -60,6 +60,7 @@ export function TripContextProvider({ children }) {
             console.log("Utilisation du pays par défaut pour la recherche publique:", defaultCountry?.countryCode);
         }
 
+        console.log(searchCriteria)
         try {
             const response = await api.post('/api/v1/trips/list-public', criteriaToSend);
             const data = response.data;

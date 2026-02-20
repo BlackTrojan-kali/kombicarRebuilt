@@ -1,3 +1,4 @@
+// src/pages/admin/Cars.jsx
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,44 +10,41 @@ import {
   faUser,
   faBuilding,
   faPalette,
-  faIdCard
+  faIdCard,
+  faCar,
+  faSyncAlt
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
 
-import CarFormModal from '../../Components/Modals/CreateCarModal';
-// 🛑 MODIFICATION CLÉ : Remplacement de useCars par useAdminCarContext
+import CarFormModal from '../../Components/Modals/CarFormModal'; // Assurez-vous du chemin !
 import { useAdminCarContext } from '../../contexts/Admin/CarAdminContext'; 
 import useColorScheme from '../../hooks/useColorScheme';
 import { toast } from "sonner";
 
 const Cars = () => {
   const { theme } = useColorScheme();
+  const isDark = theme === 'dark';
 
-  // 🎯 Appel direct au hook de contexte
   const {
     adminCars,
     adminCarPagination,
     isLoadingAdminCars,
     adminCarListError,
     fetchAdminCars,
-    // Note: Utilisation du nom exact défini dans le contexte : 'deleteCar'
     deleteCar, 
     createCar,
     updateCar,
     updateVehicleVerificationState
-  } = useAdminCarContext(); // <-- Utilisation du contexte
+  } = useAdminCarContext(); 
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [carToEdit, setCarToEdit] = useState(null);
-  // Correction: La valeur initiale pour le filtre de vérification doit être un booléen
   const [verificationFilter, setVerificationFilter] = useState(false); 
 
-  // Charger les données à chaque changement de page ou de filtre
   useEffect(() => {
-    // Le 'page' est initialisé à 0 dans le contexte, on utilise '|| 1' pour la première requête
     fetchAdminCars(adminCarPagination.page || 1, verificationFilter); 
-  }, [verificationFilter]); // Ajout de fetchAdminCars aux dépendances pour être exhaustif
+  }, [verificationFilter]); 
 
   useEffect(() => {
     if (adminCarListError) {
@@ -56,14 +54,12 @@ const Cars = () => {
 
   const handleNextPage = () => {
     if (adminCarPagination.hasNextPage) {
-      // On passe la nouvelle page et le filtre actuel
       fetchAdminCars(adminCarPagination.page + 1, verificationFilter); 
     }
   };
 
   const handlePreviousPage = () => {
     if (adminCarPagination.hasPreviousPage) {
-      // On passe la nouvelle page et le filtre actuel
       fetchAdminCars(adminCarPagination.page - 1, verificationFilter); 
     }
   };
@@ -71,22 +67,20 @@ const Cars = () => {
   const handleDeleteVehicle = (vehicleId, vehicleBrand, vehicleModel) => {
     Swal.fire({
       title: 'Supprimer le véhicule ?',
-      text: `Le véhicule "${vehicleBrand} ${vehicleModel}" sera supprimé définitivement.`,
+      text: `Le véhicule "${vehicleBrand} ${vehicleModel}" sera supprimé définitivement. Cette action est irréversible.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      cancelButtonColor: '#9CA3AF',
-      confirmButtonText: 'Supprimer',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: isDark ? '#4b5563' : '#9ca3af',
+      confirmButtonText: 'Oui, supprimer',
       cancelButtonText: 'Annuler',
-      background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
-      color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+      background: isDark ? '#1e293b' : '#ffffff',
+      color: isDark ? '#f8fafc' : '#0f172a',
+      customClass: { popup: "rounded-2xl shadow-xl" }
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // 🚨 CORRECTION : Utilisation de 'deleteCar' comme défini dans le contexte
         const success = await deleteCar(vehicleId); 
         if (success) {
-          toast.success(`Le véhicule a été supprimé.`);
-          // Recharge la page actuelle pour rafraîchir la liste après suppression
           fetchAdminCars(adminCarPagination.page, verificationFilter); 
         }
       }
@@ -97,231 +91,204 @@ const Cars = () => {
     const newState = !vehicle.isVerified;
 
     Swal.fire({
-      title: newState ? 'Vérifier ce véhicule ?' : 'Retirer la vérification ?',
+      title: newState ? 'Valider ce véhicule ?' : 'Révoquer la validation ?',
+      text: newState ? "Ce véhicule sera marqué comme vérifié et autorisé à circuler." : "Ce véhicule ne sera plus considéré comme vérifié.",
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: newState ? '#10B981' : '#EF4444',
+      confirmButtonColor: newState ? '#10b981' : '#ef4444',
+      cancelButtonColor: isDark ? '#4b5563' : '#9ca3af',
+      confirmButtonText: newState ? 'Oui, valider' : 'Oui, révoquer',
       cancelButtonText: 'Annuler',
-      background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
-      color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+      background: isDark ? '#1e293b' : '#ffffff',
+      color: isDark ? '#f8fafc' : '#0f172a',
+      customClass: { popup: "rounded-2xl shadow-xl" }
     }).then(async (result) => {
       if (result.isConfirmed) {
         await updateVehicleVerificationState(vehicle.id, newState);
-        // Recharge la page actuelle pour mettre à jour le statut dans la liste
         fetchAdminCars(adminCarPagination.page, verificationFilter); 
       }
     });
   };
 
+  // 🎯 FONCTION APPELÉE PAR LA MODALE LORS DE LA SAUVEGARDE
   const handleSaveCar = async (carData, isEditingMode) => {
     const result = isEditingMode
       ? await updateCar(carData.id, carData)
-      // Note: createCar est ici mais pour un usage admin, vérifiez si l'endpoint backend le permet
       : await createCar(carData); 
 
     if (result) {
-      toast.success(`Véhicule enregistré.`);
-      // Recharge la première page (1) après une création/édition réussie
-      fetchAdminCars(1, verificationFilter); 
+      // On rafraîchit la page actuelle (pas forcément la page 1) avec le filtre en cours
+      fetchAdminCars(adminCarPagination.page || 1, verificationFilter); 
       setIsFormModalOpen(false);
-    } else {
-      // Le message d'erreur est normalement géré par toast.error dans le contexte
-      // Nous pouvons laisser un message générique ici au cas où
-      // toast.error(`Échec de l’opération.`); 
+      setCarToEdit(null);
     }
   };
 
   return (
-    <div className="pl-12 pt-6 pb-40 min-h-full bg-gray-100 dark:bg-gray-900">
+    <div className="pl-12 pt-8 pb-40 bg-slate-50 dark:bg-slate-900 min-h-screen">
 
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-          Parc Automobile 🚗
-        </h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 mr-6">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Parc Automobile</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gérez la flotte de véhicules, vérifiez les documents et les statuts.</p>
+        </div>
 
-        <button
-          onClick={() => { setIsFormModalOpen(true); setCarToEdit(null); }}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition"
-        >
-          <FontAwesomeIcon icon={faPlusCircle} />
-          Nouveau Véhicule
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchAdminCars(adminCarPagination.page || 1, verificationFilter)}
+            disabled={isLoadingAdminCars}
+            className={`flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95 ${isLoadingAdminCars ? "opacity-80 cursor-not-allowed" : ""}`}
+          >
+            <FontAwesomeIcon icon={faSyncAlt} className={isLoadingAdminCars ? "animate-spin" : ""} />
+            <span className="hidden sm:inline">Actualiser</span>
+          </button>
+
+          <button
+            onClick={() => { setCarToEdit(null); setIsFormModalOpen(true); }}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95"
+          >
+            <FontAwesomeIcon icon={faPlusCircle} />
+            <span className="hidden sm:inline">Nouveau Véhicule</span>
+          </button>
+        </div>
       </div>
 
-      {/* CONTAINER */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/60 p-5 mr-6">
 
-        {/* FILTER BAR */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => setVerificationFilter(true)}
-            className={`px-4 py-2 rounded-lg text-sm ${
-              verificationFilter === true
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            <FontAwesomeIcon icon={faCheckCircle} className="mr-2" /> Vérifiés
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-5">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 w-full sm:w-auto">
+                Liste des Véhicules <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">({adminCarPagination.totalCount || 0} total)</span>
+            </h2>
 
-          <button
-            onClick={() => setVerificationFilter(false)}
-            className={`px-4 py-2 rounded-lg text-sm ${
-              verificationFilter === false
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            <FontAwesomeIcon icon={faTimesCircle} className="mr-2" /> Non Vérifiés
-          </button>
+            <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl w-full sm:w-auto">
+                <button
+                    onClick={() => setVerificationFilter(true)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${verificationFilter === true ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                    <FontAwesomeIcon icon={faCheckCircle} /> Vérifiés
+                </button>
+
+                <button
+                    onClick={() => setVerificationFilter(false)}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${verificationFilter === false ? 'bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                    <FontAwesomeIcon icon={faTimesCircle} /> Non Vérifiés
+                </button>
+            </div>
         </div>
 
-        {/* TABLE */}
-        {isLoadingAdminCars ? (
-          <p className="text-center py-6 text-blue-500">Chargement...</p>
+        {isLoadingAdminCars && adminCars?.length === 0 ? (
+            <div className="py-20 text-center text-blue-500 dark:text-blue-400">
+                <FontAwesomeIcon icon={faSyncAlt} className="animate-spin text-4xl mb-4 opacity-80" />
+                <p className="font-medium">Chargement des véhicules...</p>
+            </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                  <th className="py-3 px-4 rounded-tl-xl">ID</th>
-                  <th className="py-3 px-4">Conducteur</th>
-                  <th className="py-3 px-4">Marque</th>
-                  <th className="py-3 px-4">Modèle</th>
-                  <th className="py-3 px-4">Places</th>
-                  <th className="py-3 px-4">Couleur</th>
-                  <th className="py-3 px-4">Immatriculation</th>
-                  <th className="py-3 px-4">Statut</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                  <th className="py-3 px-4 rounded-tr-xl"></th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {adminCars?.map(car => (
-                  <tr
-                    key={car.id}
-                    className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                  >
-                    <td className="py-4 px-4">{car.id}</td>
-
-                    <td className="py-4 px-4">
-                      <Link
-                        to={`/admin/users/details/${car.userId}`}
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                      >
-                        <FontAwesomeIcon icon={faUser} className="mr-2" />
-                        **{car.driver?.firstName} {car.driver?.lastName}**
-                      </Link>
-                    </td>
-
-                    <td className="py-4 px-4"><FontAwesomeIcon icon={faBuilding} className="mr-2 text-gray-400" />{car.brand}</td>
-                    <td className="py-4 px-4">{car.model}</td>
-                    <td className="py-4 px-4">{car.numberPlaces}</td>
-                    <td className="py-4 px-4"><FontAwesomeIcon icon={faPalette} className="mr-2" style={{ color: car.color || 'grey' }}/>{car.color}</td>
-
-                    <td className="py-4 px-4 font-semibold text-blue-600 dark:text-blue-400">
-                      <FontAwesomeIcon icon={faIdCard} className="mr-2" />{car.registrationCode}
-                    </td>
-
-                    <td className="py-4 px-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          car.isVerified
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                            : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                        }`}
-                      >
-                        {car.isVerified ? 'Vérifié' : 'Non vérifié'}
-                      </span>
-                    </td>
-
-                    {/* ACTIONS */}
-                    <td className="py-4 px-4 text-center">
-                      <div className="flex gap-3 justify-center">
-
-                        {/* Documents */}
-                        <Link
-                          to={`/admin/car-documents/${car.id}`}
-                          title="Voir les documents"
-                          className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition duration-150"
-                        >
-                          <FontAwesomeIcon icon={faEye} />
-                        </Link>
-
-                        {/* Edit */}
-                        <button
-                          title="Modifier"
-                          onClick={() => { setCarToEdit(car); setIsFormModalOpen(true); }}
-                          className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full transition duration-150"
-                        >
-                          <FontAwesomeIcon icon={faEdit} />
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          title="Supprimer"
-                          onClick={() => handleDeleteVehicle(car.id, car.brand, car.model)}
-                          className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition duration-150"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </button>
-                      </div>
-                    </td>
-
-                    {/* Vérification TOGGLE */}
-                    <td className="py-4 px-4 text-right">
-                      <button
-                        onClick={() => handleToggleVerification(car)}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold text-white transition duration-150 ${
-                          car.isVerified
-                            ? 'bg-red-500 hover:bg-red-600'
-                            : 'bg-green-600 hover:bg-green-700'
-                        }`}
-                      >
-                        {car.isVerified ? 'Annuler' : 'Vérifier'}
-                      </button>
-                    </td>
+          <>
+            <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Véhicule</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Propriétaire</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Immatriculation</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Statut</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Contrôle</th>
+                    <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
 
-            {/* EMPTY STATE */}
-            {adminCars?.length === 0 && (
-              <p className="py-8 text-center text-gray-500 dark:text-gray-400">
-                <FontAwesomeIcon icon={faListAlt} className="mr-2" />
-                Aucun véhicule trouvé.
-              </p>
-            )}
-          </div>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                  {adminCars?.map(car => {
+                      const displayId = String(car.id);
+                      return (
+                        <tr key={car.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors duration-150 group">
+                            <td className="py-4 px-4 font-mono text-xs text-slate-400 dark:text-slate-500">{displayId.length > 8 ? `${displayId.substring(0, 8)}...` : displayId}</td>
+                            <td className="py-4 px-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0 border border-slate-200 dark:border-slate-600">
+                                        <FontAwesomeIcon icon={faCar} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-slate-800 dark:text-slate-200">{car.brand} {car.model}</span>
+                                        <span className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                                            <span><FontAwesomeIcon icon={faUser} className="text-[10px] opacity-70" /> {car.numberPlaces} pl.</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                            <span className="flex items-center gap-1">
+                                                <span className="w-2.5 h-2.5 rounded-full border border-slate-300 dark:border-slate-500" style={{ backgroundColor: car.color || 'grey' }}></span>{car.color}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="py-4 px-4">
+                                <Link to={`/admin/users/details/${car.userId}`} className="inline-flex items-center gap-2 font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors">
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
+                                        <FontAwesomeIcon icon={faUser} className="text-xs" />
+                                    </div>
+                                    {car.driver?.firstName} {car.driver?.lastName}
+                                </Link>
+                            </td>
+                            <td className="py-4 px-4">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
+                                    <FontAwesomeIcon icon={faIdCard} className="text-slate-400" /> {car.registrationCode}
+                                </span>
+                            </td>
+                            <td className="py-4 px-4">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${car.isVerified ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500 border border-emerald-200 dark:border-emerald-800' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500 border border-red-200 dark:border-red-800'}`}>
+                                    <FontAwesomeIcon icon={car.isVerified ? faCheckCircle : faTimesCircle} /> {car.isVerified ? 'Vérifié' : 'Non vérifié'}
+                                </span>
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                                <button onClick={() => handleToggleVerification(car)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 ${car.isVerified ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700' : 'bg-emerald-500 hover:bg-emerald-600 text-white border border-transparent'}`}>
+                                    {car.isVerified ? 'Révoquer' : 'Valider'}
+                                </button>
+                            </td>
+                            <td className="py-4 px-4">
+                                <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                    <Link to={`/admin/car-documents/${car.id}`} title="Voir les documents" className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 transition-colors">
+                                        <FontAwesomeIcon icon={faEye} />
+                                    </Link>
+                                    <button title="Modifier" onClick={() => { setCarToEdit(car); setIsFormModalOpen(true); }} className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-400 transition-colors">
+                                        <FontAwesomeIcon icon={faEdit} />
+                                    </button>
+                                    <button title="Supprimer" onClick={() => handleDeleteVehicle(car.id, car.brand, car.model)} className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 transition-colors">
+                                        <FontAwesomeIcon icon={faTrash} />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {adminCars?.length === 0 && (
+                <div className="py-16 text-center text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-800/50">
+                    <FontAwesomeIcon icon={faListAlt} className="text-4xl mb-4 opacity-40" />
+                    <p className="font-medium text-lg text-slate-600 dark:text-slate-300">Aucun véhicule trouvé</p>
+                    <p className="mt-1 text-sm">Modifiez vos filtres ou ajoutez un nouveau véhicule.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row justify-between items-center text-sm">
+                <div className="mb-4 sm:mb-0 text-slate-500 dark:text-slate-400">
+                    Affichage de la page <span className="font-semibold text-slate-700 dark:text-slate-200">{adminCarPagination.page}</span> sur <span className="font-semibold text-slate-700 dark:text-slate-200">{Math.ceil(adminCarPagination.totalCount / (adminCars?.length || 1))}</span> <span className="ml-1 opacity-70">({adminCarPagination.totalCount} total)</span>
+                </div>
+                
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700/30 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button onClick={handlePreviousPage} disabled={!adminCarPagination.hasPreviousPage || isLoadingAdminCars} className={`flex items-center justify-center gap-2 px-3 py-1.5 h-10 rounded-lg transition-all font-medium ${!adminCarPagination.hasPreviousPage || isLoadingAdminCars ? "text-slate-400 dark:text-slate-500 cursor-not-allowed" : "text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-600 hover:shadow-sm"}`}>
+                        <FontAwesomeIcon icon={faArrowLeft} /> Précédent
+                    </button>
+                    <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+                    <button onClick={handleNextPage} disabled={!adminCarPagination.hasNextPage || isLoadingAdminCars} className={`flex items-center justify-center gap-2 px-3 py-1.5 h-10 rounded-lg transition-all font-medium ${!adminCarPagination.hasNextPage || isLoadingAdminCars ? "text-slate-400 dark:text-slate-500 cursor-not-allowed" : "text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-600 hover:shadow-sm"}`}>
+                        Suivant <FontAwesomeIcon icon={faArrowRight} />
+                    </button>
+                </div>
+            </div>
+          </>
         )}
-
-        {/* PAGINATION */}
-        <div className="flex justify-between items-center mt-6 text-sm">
-
-          <button
-            disabled={!adminCarPagination.hasPreviousPage || isLoadingAdminCars}
-            onClick={handlePreviousPage}
-            className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 disabled:opacity-40 transition duration-150"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} /> Précédent
-          </button>
-
-          <span className="text-gray-600 dark:text-gray-300">
-            Page **{adminCarPagination.page}** sur **{Math.ceil(adminCarPagination.totalCount / (adminCars?.length || 1))}** ({adminCarPagination.totalCount} au total)
-          </span>
-
-          <button
-            disabled={!adminCarPagination.hasNextPage || isLoadingAdminCars}
-            onClick={handleNextPage}
-            className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 disabled:opacity-40 transition duration-150"
-          >
-            Suivant <FontAwesomeIcon icon={faArrowRight} />
-          </button>
-
-        </div>
       </div>
 
       {isFormModalOpen && (
@@ -329,7 +296,7 @@ const Cars = () => {
           isOpen={isFormModalOpen}
           onClose={() => setIsFormModalOpen(false)}
           onSave={handleSaveCar}
-          carToEdit={carToEdit}
+          carToEdit={carToEdit} // On passe bien les données à éditer ici
         />
       )}
     </div>
