@@ -277,7 +277,6 @@ const DashSideBar = () => {
                                     { icon: faTags, title: 'Véhicules & Validations', link: '/admin/vtc/vehicles' }
                                 ]} />
                             )}
-                            {/* Tarification déplacée dans son propre bloc sous VTC pour plus de clarté */}
                             {hasPermission(PERMISSIONS.TRIPS_LIST) && (
                                 <SidebarLink to="/admin/vtc/pricing" icon={faMoneyBillWave} title="Tarification & Catégories" />
                             )}

@@ -75,6 +75,7 @@ import SuggestedTrips from "./SuggestedTrips";
 import Suggestions from "./Pages/Dashboard/Suggestions/Suggestions";
 import VtcVehicules from "./Pages/Dashboard/VTC/vtcVehicules/vtcVehicules";
 import VtcVehicleTypes from "./Pages/Dashboard/VTC/VtcVehicleTypes";
+import VtcRidesHistory from "./Pages/Dashboard/VTC/VtcRidesHistory";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -414,6 +415,10 @@ const Routes = () => {
 {
   path: "/admin/vtc/pricing", // Route que nous avions prévue dans la Sidebar
   element: <VtcVehicleTypes />
+},
+{
+  path: "/admin/vtc/courses/history",
+  element: <VtcRidesHistory />
 }
       ],
     },

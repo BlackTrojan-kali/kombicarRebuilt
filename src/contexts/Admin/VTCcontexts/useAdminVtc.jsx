@@ -6,10 +6,20 @@ export const useAdminVtc = () => {
     const { API_URL } = useAuth();
 
     // ==========================================
-    // ÉTATS : VÉHICULES (FLOTTE)
+    // ÉTATS GLOBAUX
     // ==========================================
     const [vehicles, setVehicles] = useState([]);
+    const [vehicleTypes, setVehicleTypes] = useState([]);
+    const [rides, setRides] = useState([]);
+    const [selectedRide, setSelectedRide] = useState(null);
+    const [rideTracking, setRideTracking] = useState(null);
+
+    // États de chargement séparés pour une meilleure UX
     const [loadingVehicles, setLoadingVehicles] = useState(false);
+    const [loadingTypes, setLoadingTypes] = useState(false);
+    const [loadingRides, setLoadingRides] = useState(false);
+
+    // Pagination générique (peut être divisée si vous affichez plusieurs tableaux en même temps)
     const [pagination, setPagination] = useState({
         totalCount: 0,
         page: 1,
@@ -17,39 +27,27 @@ export const useAdminVtc = () => {
         hasPreviousPage: false,
     });
 
-    // ==========================================
-    // ÉTATS : CATÉGORIES (TYPES DE VÉHICULES)
-    // ==========================================
-    const [vehicleTypes, setVehicleTypes] = useState([]);
-    const [loadingTypes, setLoadingTypes] = useState(false);
+    // Utilitaire pour les en-têtes
+    const getHeaders = useCallback(() => ({
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }), []);
 
     // ==========================================
-    // ACTIONS : VÉHICULES
+    // 1. FLOTTE VTC (VÉHICULES)
     // ==========================================
 
-    // 1. GET /api/v1/admin/vtc/vehicles
     const fetchVehicles = useCallback(async ({ page = 1, isVerified, vtcVehicleTypeId } = {}) => {
         setLoadingVehicles(true);
         try {
             const url = new URL(`${API_URL}/api/v1/admin/vtc/vehicles`);
             url.searchParams.append('page', page);
-            
-            if (isVerified !== undefined && isVerified !== null) {
-                url.searchParams.append('isVerified', isVerified);
-            }
-            if (vtcVehicleTypeId !== undefined && vtcVehicleTypeId !== null) {
-                url.searchParams.append('vtcVehicleTypeId', vtcVehicleTypeId);
-            }
+            if (isVerified !== undefined) url.searchParams.append('isVerified', isVerified);
+            if (vtcVehicleTypeId !== undefined) url.searchParams.append('vtcVehicleTypeId', vtcVehicleTypeId);
 
-            const response = await fetch(url.toString(), {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) throw new Error("Erreur de récupération des véhicules.");
+            const response = await fetch(url.toString(), { headers: getHeaders() });
+            if (!response.ok) throw new Error();
 
             const data = await response.json();
             setVehicles(data.items || []);
@@ -60,158 +58,205 @@ export const useAdminVtc = () => {
                 hasPreviousPage: data.hasPreviousPage
             });
         } catch (error) {
-            console.error("fetchVehicles:", error);
-            toast.error(error.message || "Impossible de charger la flotte.");
+            toast.error("Impossible de charger la flotte VTC.");
         } finally {
             setLoadingVehicles(false);
         }
-    }, [API_URL]);
+    }, [API_URL, getHeaders]);
 
-    // 2. PUT /api/v1/admin/vtc/vehicles/{id}/validate
-    const validateVehicle = async (id, vtcVehicleTypeId = null) => {
+    const validateVehicle = useCallback(async (id, vtcVehicleTypeId = null) => {
         try {
             const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicles/${id}/validate`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
+                headers: getHeaders(),
                 body: JSON.stringify(vtcVehicleTypeId !== null ? { vtcVehicleTypeId } : {})
             });
 
-            if (!response.ok) throw new Error("Erreur de validation.");
-
-            toast.success("Véhicule validé avec succès !");
+            if (!response.ok) throw new Error();
             
-            // Mise à jour locale pour la réactivité de l'UI
+            toast.success("Véhicule validé avec succès !");
             setVehicles(prev => prev.map(v => 
                 v.id === id ? { ...v, isVerified: true, vtcVehicleTypeId: vtcVehicleTypeId || v.vtcVehicleTypeId } : v
             ));
-            
-            // Si on a les catégories chargées, on peut aussi optionnellement rafraîchir leur compte
-            fetchVehicleTypes();
             return true;
         } catch (error) {
-            console.error("validateVehicle:", error);
-            toast.error("Impossible de valider le véhicule.");
+            toast.error("Erreur lors de la validation du véhicule.");
             return false;
         }
-    };
+    }, [API_URL, getHeaders]);
 
     // ==========================================
-    // ACTIONS : CATÉGORIES (TYPES DE VÉHICULES)
+    // 2. CONFIGURATION (TYPES DE VÉHICULES)
     // ==========================================
 
-    // 3. GET /api/v1/admin/vtc/vehicle-types
     const fetchVehicleTypes = useCallback(async () => {
         setLoadingTypes(true);
         try {
-            const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicle-types`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (!response.ok) throw new Error("Erreur de récupération des catégories.");
+            const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicle-types`, { headers: getHeaders() });
+            if (!response.ok) throw new Error();
             
             const data = await response.json();
             setVehicleTypes(data || []);
         } catch (error) {
-            console.error("fetchVehicleTypes:", error);
-            toast.error("Impossible de charger les types de véhicules.");
+            toast.error("Erreur de chargement des catégories.");
         } finally {
             setLoadingTypes(false);
         }
-    }, [API_URL]);
+    }, [API_URL, getHeaders]);
 
-    // 4. POST /api/v1/admin/vtc/vehicle-types
-    const createVehicleType = async (categoryData) => {
+    const createVehicleType = useCallback(async (payload) => {
         try {
             const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicle-types`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(categoryData)
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
             });
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.description || "Erreur de création.");
-            }
+            if (!response.ok) throw new Error();
             
-            toast.success("Nouvelle catégorie créée !");
-            await fetchVehicleTypes(); // Actualisation de la liste
+            toast.success("Catégorie créée !");
+            fetchVehicleTypes(); 
             return true;
         } catch (error) {
-            console.error("createVehicleType:", error);
-            toast.error(error.message || "Impossible de créer la catégorie.");
+            toast.error("Échec de la création.");
             return false;
         }
-    };
+    }, [API_URL, getHeaders, fetchVehicleTypes]);
 
-    // 5. PUT /api/v1/admin/vtc/vehicle-types/{id}
-    const updateVehicleType = async (id, updateData) => {
+    const updateVehicleType = useCallback(async (id, payload) => {
         try {
             const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicle-types/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(updateData)
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
             });
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.description || "Erreur de mise à jour.");
-            }
+            if (!response.ok) throw new Error();
             
             toast.success("Catégorie mise à jour !");
-            await fetchVehicleTypes(); 
+            fetchVehicleTypes(); 
             return true;
         } catch (error) {
-            console.error("updateVehicleType:", error);
-            toast.error(error.message || "Échec de la mise à jour.");
+            toast.error("Échec de la modification.");
             return false;
         }
-    };
+    }, [API_URL, getHeaders, fetchVehicleTypes]);
 
-    // 6. DELETE /api/v1/admin/vtc/vehicle-types/{id}
-    const deleteVehicleType = async (id, forceDelete = false) => {
+    const deleteVehicleType = useCallback(async (id, forceDelete = false) => {
         try {
             const response = await fetch(`${API_URL}/api/v1/admin/vtc/vehicle-types/${id}?forceDelete=${forceDelete}`, {
                 method: 'DELETE',
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: getHeaders()
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.description || "Action impossible. Des véhicules y sont peut-être liés.");
+                const err = await response.json();
+                throw new Error(err.description || "Impossible d'effectuer l'action.");
             }
 
-            toast.success(forceDelete ? "Catégorie supprimée définitivement." : "Catégorie désactivée.");
-            await fetchVehicleTypes(); 
+            toast.success(forceDelete ? "Catégorie supprimée." : "Catégorie désactivée.");
+            fetchVehicleTypes(); 
             return true;
         } catch (error) {
-            console.error("deleteVehicleType:", error);
-            toast.error(error.message || "Impossible de supprimer la catégorie.");
+            toast.error(error.message);
             return false;
         }
-    };
+    }, [API_URL, getHeaders, fetchVehicleTypes]);
 
-    // Retourne toutes les propriétés et méthodes pour être utilisées dans les composants
+    // ==========================================
+    // 3. COURSES & TRACKING (RIDES)
+    // ==========================================
+
+    const fetchRides = useCallback(async ({ 
+        page = 1, pageSize = 12, status = null, 
+        startDate = '', endDate = '', driverId = '', passengerId = '' 
+    } = {}) => {
+        setLoadingRides(true);
+        try {
+            const url = new URL(`${API_URL}/api/v1/admin/vtc/rides`);
+            url.searchParams.append('page', page);
+            url.searchParams.append('pageSize', pageSize);
+            
+            if (status !== null) url.searchParams.append('status', status);
+            if (startDate) url.searchParams.append('startDate', startDate);
+            if (endDate) url.searchParams.append('endDate', endDate);
+            if (driverId) url.searchParams.append('driverId', driverId);
+            if (passengerId) url.searchParams.append('passengerId', passengerId);
+
+            const response = await fetch(url.toString(), { headers: getHeaders() });
+            if (!response.ok) throw new Error();
+
+            const data = await response.json();
+            setRides(data.items || []);
+            setPagination({
+                totalCount: data.totalCount,
+                page: data.page,
+                hasNextPage: data.hasNextPage,
+                hasPreviousPage: data.hasPreviousPage
+            });
+        } catch (error) {
+            toast.error("Erreur lors du chargement de l'historique.");
+        } finally {
+            setLoadingRides(false);
+        }
+    }, [API_URL, getHeaders]);
+
+    const fetchRideDetails = useCallback(async (rideId) => {
+        setLoadingRides(true);
+        try {
+            const response = await fetch(`${API_URL}/api/v1/admin/vtc/rides/${rideId}`, { headers: getHeaders() });
+            if (!response.ok) throw new Error();
+            
+            const data = await response.json();
+            setSelectedRide(data);
+            return data;
+        } catch (error) {
+            toast.error("Impossible de récupérer les détails.");
+            return null;
+        } finally {
+            setLoadingRides(false);
+        }
+    }, [API_URL, getHeaders]);
+
+    const fetchRideTracking = useCallback(async (rideId) => {
+        try {
+            const response = await fetch(`${API_URL}/api/v1/admin/vtc/rides/${rideId}/tracking`, { headers: getHeaders() });
+            if (!response.ok) throw new Error();
+            
+            const data = await response.json();
+            setRideTracking(data);
+            return data;
+        } catch (error) {
+            console.error("Erreur de tracking GPS:", error);
+            return null;
+        }
+    }, [API_URL, getHeaders]);
+
+    const cancelRideAsAdmin = useCallback(async (rideId, reason) => {
+        try {
+            const response = await fetch(`${API_URL}/api/v1/admin/vtc/rides/${rideId}/cancel`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ cancellationReason: reason })
+            });
+
+            if (response.ok) {
+                toast.success("Course annulée par l'administration.");
+                return true;
+            } else {
+                const err = await response.json();
+                toast.error(err.message || "Échec de l'annulation.");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Erreur réseau lors de l'annulation.");
+            return false;
+        }
+    }, [API_URL, getHeaders]);
+
+    // Retourne toutes les méthodes et états exposés
     return {
         // Flotte
         vehicles,
         loadingVehicles,
-        pagination,
         fetchVehicles,
         validateVehicle,
         
@@ -221,6 +266,17 @@ export const useAdminVtc = () => {
         fetchVehicleTypes,
         createVehicleType,
         updateVehicleType,
-        deleteVehicleType
+        deleteVehicleType,
+
+        // Courses & Tracking
+        rides,
+        selectedRide,
+        rideTracking,
+        loadingRides,
+        pagination,
+        fetchRides,
+        fetchRideDetails,
+        fetchRideTracking,
+        cancelRideAsAdmin
     };
 };
