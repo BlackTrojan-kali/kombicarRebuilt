@@ -190,6 +190,13 @@ export function UsersAdminContextProvider({ children }) {
             const url = `/api/v1/users/admin/update-access-country/${userId}/${adminCountryAccess}`;
             const response = await api.put(url);
             toast.success("Pays d'accès de l'administrateur mis à jour avec succès !");
+           
+      // 2. Rafraîchissement automatique du Token Admin
+      const currentRefreshToken = localStorage.getItem('refreshToken');
+      if (currentRefreshToken) {
+          await refreshAdminToken(currentRefreshToken);
+      }
+      
             return response.data;
         } catch (error) {
             console.error("Erreur lors de la mise à jour du pays d'accès de l'administrateur:", error);
