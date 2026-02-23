@@ -76,6 +76,7 @@ import Suggestions from "./Pages/Dashboard/Suggestions/Suggestions";
 import VtcVehicules from "./Pages/Dashboard/VTC/vtcVehicules/vtcVehicules";
 import VtcVehicleTypes from "./Pages/Dashboard/VTC/VtcVehicleTypes";
 import VtcRidesHistory from "./Pages/Dashboard/VTC/VtcRidesHistory";
+import PrivacyPolicy from "./Pages/PrivacyPOlicy";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -93,6 +94,10 @@ const Routes = () => {
         {
           path: "covoiturage",
           element: <Covoiturage />,
+        },
+        {
+          path:"privacy-policy",
+          element:<PrivacyPolicy/>
         },
         {
           path: "taxi",

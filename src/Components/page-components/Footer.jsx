@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useAuth from "../../hooks/useAuth";
 // Assurez-vous d'avoir ce hook disponible
 import useUser from "../../hooks/useUser"; 
+import { Link } from "react-router-dom";
 
 // Liste des codes pays avec leurs noms
 const COUNTRY_CODE_TO_NAME = {
@@ -217,9 +218,9 @@ export function Footer() {
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="#" className="hover:underline">
-                                            Conditions d'utilisations
-                                        </a>
+                                        <Link to="privacy-policy" className="hover:underline">
+                                            Privacy Policy
+                                        </Link>
                                     </li>
                                 </ul>
                             </div>
