@@ -73,6 +73,8 @@ import Contact from "./Pages/Contact";
 import SuggestTrip from "./SuggestTrip";
 import SuggestedTrips from "./SuggestedTrips";
 import Suggestions from "./Pages/Dashboard/Suggestions/Suggestions";
+import VtcVehicules from "./Pages/Dashboard/VTC/vtcVehicules/vtcVehicules";
+import VtcVehicleTypes from "./Pages/Dashboard/VTC/VtcVehicleTypes";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -403,7 +405,16 @@ const Routes = () => {
         {
           path:"/admin/suggestions",
           element:<Suggestions/>
-        }
+        },
+        // ... dans votre configuration de routes :
+{
+  path: "/admin/vtc/vehicles",
+  element: <VtcVehicules/>
+},
+{
+  path: "/admin/vtc/pricing", // Route que nous avions prévue dans la Sidebar
+  element: <VtcVehicleTypes />
+}
       ],
     },
   ]);

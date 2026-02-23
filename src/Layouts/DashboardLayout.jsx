@@ -7,6 +7,7 @@ import { SidebarProvider } from '../contexts/Admin/SidebarContext';
 import { RoleProvider } from '../contexts/Admin/RoleContext';
 import { UsersAdminContextProvider } from '../contexts/Admin/UsersAdminContext';
 import { AdminSuggestionProvider } from '../contexts/Admin/AdminSuggestionsContext';
+import { GestionStateContextProvider } from '../contexts/Admin/GestionStateContext';
 
 const DashboardLayout = () => {
    // Utilise le hook useAuth pour obtenir l'état de l'utilisateur et le statut de chargement.
@@ -39,6 +40,7 @@ const DashboardLayout = () => {
     }
     
   return (
+      <GestionStateContextProvider>
     <SidebarProvider>
       <UsersAdminContextProvider>
       <RoleProvider>
@@ -69,6 +71,8 @@ const DashboardLayout = () => {
     </RoleProvider>
     </UsersAdminContextProvider>
     </SidebarProvider>
+    
+    </GestionStateContextProvider>
   );
 };
 
