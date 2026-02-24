@@ -25,6 +25,11 @@ export function CarAdminContextProvider({ children }) {
     const [isCarDetailsLoading, setIsCarDetailsLoading] = useState(false);
     const [carDocuments, setCarDocuments] = useState([]);
 
+    // --- ÉTATS VÉHICULES D'UN CHAUFFEUR SPÉCIFIQUE ---
+    const [driverCars, setDriverCars] = useState([]);
+    const [isLoadingDriverCars, setIsLoadingDriverCars] = useState(false);
+    const [driverCarsError, setDriverCarsError] = useState(null);
+
     // --- ÉTATS PERMIS ADMIN ---
     const [adminLicences, setAdminLicences] = useState([]);
     const [adminLicencePagination, setAdminLicencePagination] = useState({
@@ -90,6 +95,28 @@ export function CarAdminContextProvider({ children }) {
             throw error;
         } finally {
             setIsLoadingAdminCars(false);
+        }
+    };
+
+    // ==========================================
+    // MÉTHODES VÉHICULES D'UN CHAUFFEUR (ADMIN)
+    // ==========================================
+
+    const fetchVehiclesByDriverId = async (userId) => {
+        setIsLoadingDriverCars(true);
+        setDriverCarsError(null);
+        try {
+            const response = await api.get(`/api/v1/vehicules/admin/vehicules/${userId}`);
+            const data = response.data;
+            setDriverCars(data);
+            return data;
+        } catch (error) {
+            const errorMessage = error.response?.data?.description || "Erreur lors de la récupération des véhicules de ce chauffeur.";
+            setDriverCarsError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoadingDriverCars(false);
         }
     };
 
@@ -213,8 +240,12 @@ export function CarAdminContextProvider({ children }) {
         setLoading(true);
         try {
             const response = await api.put(`/api/v1/vehicules/update-verify-state/${vehiculeId}/${isVerified}`);
+            
+            // Mise à jour locale dans les différentes listes
             setAdminCars(prev => prev.map(car => car.id === vehiculeId ? { ...car, isVerified } : car));
+            setDriverCars(prev => prev.map(car => car.id === vehiculeId ? { ...car, isVerified } : car));
             if (carDetails?.id === vehiculeId) setCarDetails(prev => ({ ...prev, isVerified }));
+            
             toast.success("État de vérification mis à jour.");
             return response.data;
         } catch (err) {
@@ -229,7 +260,6 @@ export function CarAdminContextProvider({ children }) {
         setIsLoadingAdminLicences(true);
         setAdminLicenceListError(null);
         try {
-            // Note: Endpoint supposé pour les permis admin
             const response = await api.get(`/api/v1/driving-licences/admin/list/${page}/${verificationState}`);
             const data = response.data;
             setAdminLicences(data.items);
@@ -275,6 +305,11 @@ export function CarAdminContextProvider({ children }) {
         isLoadingAdminVehicleDocuments,
         adminVehicleDocumentsError,
         fetchAdminVehicleDocuments,
+        // Nouveaux ajouts
+        driverCars,
+        isLoadingDriverCars,
+        driverCarsError,
+        fetchVehiclesByDriverId,
     };
 
     return (

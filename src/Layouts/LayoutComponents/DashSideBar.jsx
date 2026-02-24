@@ -272,6 +272,12 @@ const DashSideBar = () => {
                                     { icon: faCalendarDay, title: 'Historique', link: '/admin/vtc/courses/history' },
                                 ]} />
                             )}
+                            
+                            {/* NOUVEAU LIEN : Chauffeurs VTC */}
+                            {hasPermission(PERMISSIONS.USERS_LIST) && (
+                                <SidebarLink to="/admin/vtc/drivers" icon={faCar} title="Chauffeurs VTC" />
+                            )}
+
                             {hasPermission(PERMISSIONS.VEHICULES_LIST) && (
                                 <DropDown icon={faTruck} title="Flotte VTC" isCollapsed={isCollapsed} sublinks={[
                                     { icon: faTags, title: 'Véhicules & Validations', link: '/admin/vtc/vehicles' }

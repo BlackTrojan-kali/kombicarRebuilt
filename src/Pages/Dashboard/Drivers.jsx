@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUserTie, faEnvelope, faPhone, faStar, faTrash, 
   faUserPlus, faSyncAlt, faArrowLeft, faArrowRight,
-  faTachometerAlt, faThumbsUp, faThumbsDown, faIdCard
+  faTachometerAlt, faThumbsUp, faThumbsDown, faIdCard, faCar
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { toast } from "sonner";
@@ -161,6 +161,7 @@ const Drivers = () => {
                               <FontAwesomeIcon icon={faUserTie} />
                             </div>
                             <div className="flex flex-col">
+                              {/* Le lien sur le nom pointe toujours vers le profil général si vous l'avez */}
                               <Link to={`/admin/users/details/${driver.id}`} className="font-bold hover:text-blue-500 transition-colors">
                                 {driver.firstName} {driver.lastName}
                               </Link>
@@ -181,7 +182,7 @@ const Drivers = () => {
                           </div>
                         </td>
 
-                        {/* STATUT (NOUVELLE COLONNE) */}
+                        {/* Statut */}
                         <td className="py-4 px-4 text-center">
                           {renderStatusBadge(driver.licenceDriving?.verificationState)}
                         </td>
@@ -194,13 +195,32 @@ const Drivers = () => {
                           </span>
                         </td>
 
-                        {/* Actions */}
+                        {/* Actions (MODIFIÉ ICI) */}
                         <td className="py-4 px-4">
-                          <div className="flex justify-center">
+                          <div className="flex justify-center gap-2">
+                            {/* Bouton pour voir le Permis */}
+                            <Link
+                              to={`/admin/licences/users/${driver.id}`}
+                              className="p-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm transition-all active:scale-90"
+                              title="Gérer le permis"
+                            >
+                              <FontAwesomeIcon icon={faIdCard} />
+                            </Link>
+
+                            {/* Bouton pour voir les Véhicules */}
+                            <Link
+                              to={`/admin/cars/${driver.id}`}
+                              className="p-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm transition-all active:scale-90"
+                              title="Gérer les véhicules"
+                            >
+                              <FontAwesomeIcon icon={faCar} />
+                            </Link>
+
+                            {/* Bouton Supprimer existant */}
                             <button
                               onClick={() => handleDeleteDriver(driver.id, `${driver.firstName} ${driver.lastName}`)}
                               className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 shadow-sm transition-all active:scale-90"
-                              title="Supprimer"
+                              title="Supprimer le chauffeur"
                             >
                               <FontAwesomeIcon icon={faTrash} />
                             </button>

@@ -77,6 +77,10 @@ import VtcVehicules from "./Pages/Dashboard/VTC/vtcVehicules/vtcVehicules";
 import VtcVehicleTypes from "./Pages/Dashboard/VTC/VtcVehicleTypes";
 import VtcRidesHistory from "./Pages/Dashboard/VTC/VtcRidesHistory";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import DriverVehicles from "./Pages/Dashboard/DriverVehicles";
+import DriverLicence from "./Pages/Dashboard/DriverLicence";
+import { AdminDriversList } from "./Pages/Dashboard/VTC/AdminDriversList";
+import { DriverDetailView } from "./Pages/Dashboard/VTC/DriverDetailView";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -304,6 +308,10 @@ const Routes = () => {
           element: <CarAdminContextProvider><Cars /></CarAdminContextProvider>,
         },
         {
+          path: "cars/:userId",
+          element: <CarAdminContextProvider><DriverVehicles/></CarAdminContextProvider>,
+        },
+        {
           path: "car-documents/:vehiculeId",
           element:  <CarAdminContextProvider><CarDocuments /></CarAdminContextProvider>,
         },
@@ -372,6 +380,11 @@ const Routes = () => {
                 // On peut définir une route par défaut si l'on arrive sur /admin/licences
                 // Assuming "all" is the default state and page 1 is the default page
                 element: <DrivingLicences verificationState="all" page="1" />
+            },{
+                path: "users/:userId",
+                // On peut définir une route par défaut si l'on arrive sur /admin/licences
+                // Assuming "all" is the default state and page 1 is the default page
+                element: <DriverLicence/>
             },
             {
               path: ":verificationState", // Ex: /admin/licences/pending
@@ -424,6 +437,14 @@ const Routes = () => {
 {
   path: "/admin/vtc/courses/history",
   element: <VtcRidesHistory />
+},
+{
+  path: "/admin/vtc/drivers",
+  element: <AdminDriversList />
+},
+{
+  path: "/admin/vtc/drivers/:id",
+  element: <DriverDetailView />
 }
       ],
     },
