@@ -127,18 +127,22 @@ export const useAdminVtc = () => {
     // ==========================================
 
     const fetchRides = useCallback(async ({ 
-        page = 1, pageSize = 12, status = null, 
-        startDate = '', endDate = '', driverId = '', passengerId = '' 
+        page = 1, pageSize = 12, status = "", 
+        startDate = "", endDate = "", driverId = "", passengerId = "" 
     } = {}) => {
         setLoadingRides(true);
         try {
-            // Axios ignore automatiquement les params "undefined", mais pour être propre avec "null" ou chaîne vide, on nettoie :
-            const params = { page, pageSize };
-            if (status !== null && status !== '') params.status = status;
-            if (startDate) params.startDate = startDate;
-            if (endDate) params.endDate = endDate;
-            if (driverId) params.driverId = driverId;
-            if (passengerId) params.passengerId = passengerId;
+            // CORRECTION ICI : On envoie tous les paramètres obligatoirement.
+            // Si status est une chaîne vide "", il sera envoyé tel quel.
+            const params = { 
+                page, 
+                pageSize,
+                status,
+                startDate,
+                endDate,
+                driverId,
+                passengerId
+            };
 
             const response = await api.get('/api/v1/admin/vtc/rides', { params });
             const data = response.data;

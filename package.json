@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -42,7 +44,9 @@
     "styled-components": "^6.1.19",
     "sweetalert2": "^11.22.2",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "expo": "~54.0.31",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

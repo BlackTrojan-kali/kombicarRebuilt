@@ -82,6 +82,11 @@ import DriverLicence from "./Pages/Dashboard/DriverLicence";
 import { AdminDriversList } from "./Pages/Dashboard/VTC/AdminDriversList";
 import { DriverDetailView } from "./Pages/Dashboard/VTC/DriverDetailView";
 import AdminRidesPage from "./Pages/Dashboard/VTC/AdminRidesPage";
+import VtcSettings from "./Pages/Dashboard/VTC/VtcSettings";
+import CarpoolingSettings from "./Pages/Dashboard/settings/CarpoolingSettings";
+import VtcAdminDisputeDetail from "./Pages/Dashboard/VTC/VtcAdminDisputeDetail";
+import VtcAdminDisputes from "./Pages/Dashboard/VTC/VtcAdminDisputes";
+import VtcAdminReviews from "./Pages/Dashboard/VTC/VtcAdminReviews";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -450,6 +455,30 @@ const Routes = () => {
     path: "/admin/vtc/rides",
     element: <AdminRidesPage />
   },
+
+  // ==========================================
+  // MODULE : CONFIGURATION GLOBALE (SETTINGS)
+  // ==========================================
+  {
+    path: "/admin/vtc/settings",
+    element: <VtcSettings /> // La page des paramètres Redis, distances, webhooks que nous venons de faire
+  },
+  {
+    path: "/admin/carpooling/settings",
+    element: <CarpoolingSettings />
+  },// SUPPORT & LITIGES
+  {
+    path: "/admin/vtc/support/disputes",
+    element: <VtcAdminDisputes />
+  },
+  {
+    path: "/admin/vtc/support/disputes/:id",
+    element: <VtcAdminDisputeDetail />
+  },
+  {
+  path: "/admin/vtc/support/reviews",
+  element: <VtcAdminReviews />
+}
       ],
     },
   ]);

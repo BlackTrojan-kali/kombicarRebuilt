@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faMapMarkedAlt, faSearch, faFilter, faEye, 
@@ -10,19 +11,20 @@ import { useAdminVtc } from '../../../contexts/Admin/VTCcontexts/useAdminVtc';
 const getStatusBadge = (status) => {
     switch (status) {
         case 0: return { label: 'Demandée', style: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' };
-        case 1: return { label: 'Enchères', style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' };
-        case 2: return { label: 'Assignée', style: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' };
-        case 3: return { label: 'Chauffeur arrivé', style: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400' };
-        case 4: return { label: 'En cours', style: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' };
-        case 5: return { label: 'Terminée', style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' };
-        case 6: return { label: 'Annulée', style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' };
-        case 7: return { label: 'Expirée', style: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' };
-        default: return { label: 'Inconnu', style: 'bg-gray-100 text-gray-600' };
+        case 1: return { label: 'Enchères', style: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' };
+        case 2: return { label: 'Assignée', style: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' };
+        case 3: return { label: 'Chauffeur arrivé', style: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' };
+        case 4: return { label: 'En cours', style: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' };
+        case 5: return { label: 'Terminée', style: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' };
+        case 6: return { label: 'Annulée', style: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' };
+        case 7: return { label: 'Expirée', style: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' };
+        default: return { label: 'Inconnu', style: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' };
     }
 };
 
 const VtcRidesHistory = () => {
     const { rides, loadingRides, pagination, fetchRides } = useAdminVtc();
+    const navigate = useNavigate();
 
     // États du formulaire de filtres
     const [filters, setFilters] = useState({
@@ -73,11 +75,11 @@ const VtcRidesHistory = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-full">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-full transition-colors duration-200">
             {/* En-tête */}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <FontAwesomeIcon icon={faMapMarkedAlt} className="text-blue-600" />
+                    <FontAwesomeIcon icon={faMapMarkedAlt} className="text-blue-600 dark:text-blue-400" />
                     Historique des Courses VTC
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -86,16 +88,16 @@ const VtcRidesHistory = () => {
             </div>
 
             {/* Panneau de filtres */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6 transition-colors duration-200">
                 <div className="flex items-center gap-2 mb-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">
-                    <FontAwesomeIcon icon={faFilter} /> Filtres de recherche
+                    <FontAwesomeIcon icon={faFilter} className="text-gray-400 dark:text-gray-500" /> Filtres de recherche
                 </div>
                 <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     
                     {/* Statut */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Statut de la course</label>
-                        <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none">
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Statut de la course</label>
+                        <select name="status" value={filters.status} onChange={handleFilterChange} className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
                             <option value="">Tous les statuts</option>
                             <option value="0">0 - Demandée</option>
                             <option value="1">1 - Enchères en cours</option>
@@ -110,26 +112,26 @@ const VtcRidesHistory = () => {
 
                     {/* Date de début */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Depuis le</label>
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Depuis le</label>
                         <div className="relative">
-                            <FontAwesomeIcon icon={faCalendarAlt} className="absolute left-3 top-2.5 text-gray-400 text-sm" />
-                            <input type="datetime-local" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                            <FontAwesomeIcon icon={faCalendarAlt} className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 text-sm pointer-events-none" />
+                            <input type="datetime-local" name="startDate" value={filters.startDate} onChange={handleFilterChange} className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors" />
                         </div>
                     </div>
 
                     {/* Date de fin */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Jusqu'au</label>
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Jusqu'au</label>
                         <div className="relative">
-                            <FontAwesomeIcon icon={faCalendarAlt} className="absolute left-3 top-2.5 text-gray-400 text-sm" />
-                            <input type="datetime-local" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                            <FontAwesomeIcon icon={faCalendarAlt} className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 text-sm pointer-events-none" />
+                            <input type="datetime-local" name="endDate" value={filters.endDate} onChange={handleFilterChange} className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors" />
                         </div>
                     </div>
 
                     {/* Chauffeur */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">ID Chauffeur</label>
-                        <input type="text" name="driverId" value={filters.driverId} onChange={handleFilterChange} placeholder="UUID..." className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">ID Chauffeur</label>
+                        <input type="text" name="driverId" value={filters.driverId} onChange={handleFilterChange} placeholder="UUID..." className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors" />
                     </div>
 
                     {/* Boutons d'action */}
@@ -145,7 +147,7 @@ const VtcRidesHistory = () => {
             </div>
 
             {/* Tableau des résultats */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
@@ -160,14 +162,14 @@ const VtcRidesHistory = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {loadingRides ? (
-                                <tr><td colSpan="6" className="p-10 text-center text-gray-500">Chargement de l'historique...</td></tr>
+                                <tr><td colSpan="6" className="p-10 text-center text-gray-500 dark:text-gray-400">Chargement de l'historique...</td></tr>
                             ) : rides.length === 0 ? (
-                                <tr><td colSpan="6" className="p-10 text-center text-gray-500">Aucune course trouvée pour ces critères.</td></tr>
+                                <tr><td colSpan="6" className="p-10 text-center text-gray-500 dark:text-gray-400">Aucune course trouvée pour ces critères.</td></tr>
                             ) : (
                                 rides.map((ride) => {
                                     const badge = getStatusBadge(ride.status);
                                     return (
-                                        <tr key={ride.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/25 transition-colors">
+                                        <tr key={ride.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
                                             
                                             {/* Détails logistiques */}
                                             <td className="p-4">
@@ -177,7 +179,7 @@ const VtcRidesHistory = () => {
                                                 <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]" title={ride.dropoffAddress}>
                                                     B: {ride.dropoffAddress || 'Non spécifié'}
                                                 </div>
-                                                <div className="text-xs text-gray-400 mt-1">
+                                                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                                     {new Date(ride.orderedAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}
                                                 </div>
                                             </td>
@@ -187,7 +189,7 @@ const VtcRidesHistory = () => {
                                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                                                     {ride.passengerFullName || 'Inconnu'}
                                                 </div>
-                                                <div className="text-xs text-gray-500">{ride.passengerPhone}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">{ride.passengerPhone}</div>
                                             </td>
 
                                             {/* Chauffeur */}
@@ -195,13 +197,13 @@ const VtcRidesHistory = () => {
                                                 {ride.driverId ? (
                                                     <>
                                                         <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
-                                                            <FontAwesomeIcon icon={faCarSide} className="text-gray-400" />
+                                                            <FontAwesomeIcon icon={faCarSide} className="text-gray-400 dark:text-gray-500" />
                                                             {ride.driverFullName}
                                                         </div>
-                                                        <div className="text-xs text-gray-500">Assigné</div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">Assigné</div>
                                                     </>
                                                 ) : (
-                                                    <span className="text-xs italic text-gray-400">En attente</span>
+                                                    <span className="text-xs italic text-gray-400 dark:text-gray-500">En attente</span>
                                                 )}
                                             </td>
 
@@ -210,7 +212,7 @@ const VtcRidesHistory = () => {
                                                 <div className="text-sm font-bold text-gray-900 dark:text-white">
                                                     {ride.finalPrice > 0 ? ride.finalPrice : ride.agreedPrice > 0 ? ride.agreedPrice : ride.estimatedPrice} FCFA
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
                                                     {ride.paymentMethod === 0 ? 'Cash' : ride.paymentMethod === 1 ? 'Mobile Money' : 'Carte/Wallet'}
                                                 </div>
                                             </td>
@@ -225,9 +227,9 @@ const VtcRidesHistory = () => {
                                             {/* Actions */}
                                             <td className="p-4 text-right">
                                                 <button 
-                                                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                                    onClick={() => navigate(`/admin/vtc/rides/${ride.id}`)}
+                                                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                                                     title="Voir les détails complets"
-                                                    // TODO : Rediriger vers la page détails ou ouvrir une modale avec fetchRideDetails(ride.id)
                                                 >
                                                     <FontAwesomeIcon icon={faEye} />
                                                 </button>
@@ -249,7 +251,7 @@ const VtcRidesHistory = () => {
                         <button
                             disabled={!pagination.hasPreviousPage}
                             onClick={() => setCurrentPage(prev => prev - 1)}
-                            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
                             <FontAwesomeIcon icon={faChevronLeft} />
                         </button>
@@ -259,7 +261,7 @@ const VtcRidesHistory = () => {
                         <button
                             disabled={!pagination.hasNextPage}
                             onClick={() => setCurrentPage(prev => prev + 1)}
-                            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
                             <FontAwesomeIcon icon={faChevronRight} />
                         </button>

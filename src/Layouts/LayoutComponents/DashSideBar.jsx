@@ -7,7 +7,8 @@ import {
     faTruck, faTags, faTicket, faChevronDown, faIdCard,
     faTimesCircle, faHandHoldingUsd, faGlobeAfrica,
     faBell, faBellConcierge, faRuler, faScaleBalanced,
-    faMapMarkedAlt, faMoneyBillWave, faExchangeAlt
+    faMapMarkedAlt, faMoneyBillWave, faExchangeAlt, faCogs,
+    faExclamationTriangle, faStar // <-- Ajout des icônes pour le support
 } from '@fortawesome/free-solid-svg-icons';
 
 import useAuth from '../../hooks/useAuth';
@@ -260,6 +261,11 @@ const DashSideBar = () => {
                                     { icon: faTags, title: 'Véhicules', link: '/admin/cars' }
                                 ]} />
                             )}
+
+                            {/* Configuration Globale Covoiturage (Restreint aux vrais administrateurs) */}
+                            {isAdmin && (
+                                <SidebarLink to="/admin/carpooling/settings" icon={faCogs} title="Configuration Covoiturage" />
+                            )}
                         </>
                     )}
 
@@ -268,12 +274,11 @@ const DashSideBar = () => {
                         <>
                             {hasPermission(PERMISSIONS.TRIPS_LIST) && (
                                 <DropDown icon={faMapMarkedAlt} title="Courses VTC" isCollapsed={isCollapsed} sublinks={[
-                                    { icon: faHourglassHalf, title: 'En cours', link: '/admin/vtc/courses/active' },
+                                   // { icon: faHourglassHalf, title: 'En cours', link: '/admin/vtc/courses/active' },
                                     { icon: faCalendarDay, title: 'Historique', link: '/admin/vtc/rides' },
                                 ]} />
                             )}
                             
-                            {/* NOUVEAU LIEN : Chauffeurs VTC */}
                             {hasPermission(PERMISSIONS.USERS_LIST) && (
                                 <SidebarLink to="/admin/vtc/drivers" icon={faCar} title="Chauffeurs VTC" />
                             )}
@@ -283,8 +288,22 @@ const DashSideBar = () => {
                                     { icon: faTags, title: 'Véhicules & Validations', link: '/admin/vtc/vehicles' }
                                 ]} />
                             )}
+
                             {hasPermission(PERMISSIONS.TRIPS_LIST) && (
                                 <SidebarLink to="/admin/vtc/pricing" icon={faMoneyBillWave} title="Tarification & Catégories" />
+                            )}
+
+                            {/* --- NOUVEAU MODULE : SUPPORT & QUALITÉ VTC --- */}
+                            {hasPermission(PERMISSIONS.TRIPS_LIST) && ( 
+                                <DropDown icon={faScaleBalanced} title="Support & Qualité" isCollapsed={isCollapsed} sublinks={[
+                                    { icon: faExclamationTriangle, title: 'Litiges', link: '/admin/vtc/support/disputes' },
+                                    { icon: faStar, title: 'Avis & Notes', link: '/admin/vtc/support/reviews' }
+                                ]} />
+                            )}
+
+                            {/* Configuration Globale VTC (Restreint aux vrais administrateurs) */}
+                            {isAdmin && (
+                                <SidebarLink to="/admin/vtc/settings" icon={faCogs} title="Configuration VTC" />
                             )}
                         </>
                     )}
