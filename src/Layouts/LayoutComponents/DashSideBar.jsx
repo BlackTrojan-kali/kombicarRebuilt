@@ -269,7 +269,7 @@ const DashSideBar = () => {
                             {hasPermission(PERMISSIONS.TRIPS_LIST) && (
                                 <DropDown icon={faMapMarkedAlt} title="Courses VTC" isCollapsed={isCollapsed} sublinks={[
                                     { icon: faHourglassHalf, title: 'En cours', link: '/admin/vtc/courses/active' },
-                                    { icon: faCalendarDay, title: 'Historique', link: '/admin/vtc/courses/history' },
+                                    { icon: faCalendarDay, title: 'Historique', link: '/admin/vtc/rides' },
                                 ]} />
                             )}
                             

@@ -1,36 +1,22 @@
 import { useState, useCallback } from 'react';
+import api from '../../../api/api'; // Import de votre instance Axios centralisée
 
 export const useAdminVtcDriver = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const BASE_URL = '/api/v1/admin/vtc/drivers';
-
-  const handleResponse = async (response) => {
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw errorData || { code: 'UNKNOWN_ERROR', description: 'Une erreur est survenue' };
-    }
-    const text = await response.text();
-    return text ? JSON.parse(text) : null;
-  };
-
-  const getDrivers = useCallback(async (page = 1, pageSize = 12, status, isOnline) => {
+  // Les 4 paramètres sont obligatoires. Par défaut, on filtre les chauffeurs validés et en ligne.
+  const getDrivers = useCallback(async (page = 1, pageSize = 12, status = true, isOnline = true) => {
     setIsLoading(true);
     setError(null);
     try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        pageSize: pageSize.toString(),
+      // Axios gère automatiquement la sérialisation des paramètres (URLSearchParams n'est plus nécessaire)
+      const response = await api.get('/api/v1/admin/vtc/drivers', {
+        params: { page, pageSize, status, isOnline }
       });
-      
-      if (status !== undefined) queryParams.append('status', status.toString());
-      if (isOnline !== undefined) queryParams.append('isOnline', isOnline.toString());
-
-      const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);
-      return await handleResponse(response);
+      return response.data;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data || err.message);
       return null;
     } finally {
       setIsLoading(false);
@@ -41,10 +27,10 @@ export const useAdminVtcDriver = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/${id}`);
-      return await handleResponse(response);
+      const response = await api.get(`/api/v1/admin/vtc/drivers/${id}`);
+      return response.data;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data || err.message);
       return null;
     } finally {
       setIsLoading(false);
@@ -55,10 +41,10 @@ export const useAdminVtcDriver = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/${id}/documents`);
-      return await handleResponse(response);
+      const response = await api.get(`/api/v1/admin/vtc/drivers/${id}/documents`);
+      return response.data;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data || err.message);
       return null;
     } finally {
       setIsLoading(false);
@@ -69,11 +55,10 @@ export const useAdminVtcDriver = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/${id}/validate`, { method: 'PUT' });
-      await handleResponse(response);
+      await api.put(`/api/v1/admin/vtc/drivers/${id}/validate`);
       return true;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data || err.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -84,11 +69,10 @@ export const useAdminVtcDriver = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/${id}/block`, { method: 'PUT' });
-      await handleResponse(response);
+      await api.put(`/api/v1/admin/vtc/drivers/${id}/block`);
       return true;
     } catch (err) {
-      setError(err);
+      setError(err.response?.data || err.message);
       return false;
     } finally {
       setIsLoading(false);

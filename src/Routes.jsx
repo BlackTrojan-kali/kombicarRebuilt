@@ -81,6 +81,7 @@ import DriverVehicles from "./Pages/Dashboard/DriverVehicles";
 import DriverLicence from "./Pages/Dashboard/DriverLicence";
 import { AdminDriversList } from "./Pages/Dashboard/VTC/AdminDriversList";
 import { DriverDetailView } from "./Pages/Dashboard/VTC/DriverDetailView";
+import AdminRidesPage from "./Pages/Dashboard/VTC/AdminRidesPage";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -445,7 +446,10 @@ const Routes = () => {
 {
   path: "/admin/vtc/drivers/:id",
   element: <DriverDetailView />
-}
+},{
+    path: "/admin/vtc/rides",
+    element: <AdminRidesPage />
+  },
       ],
     },
   ]);
