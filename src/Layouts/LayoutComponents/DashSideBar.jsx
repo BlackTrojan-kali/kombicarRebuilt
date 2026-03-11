@@ -8,7 +8,8 @@ import {
     faTimesCircle, faHandHoldingUsd, faGlobeAfrica,
     faBell, faBellConcierge, faRuler, faScaleBalanced,
     faMapMarkedAlt, faMoneyBillWave, faExchangeAlt, faCogs,
-    faExclamationTriangle, faStar // <-- Ajout des icônes pour le support
+    faExclamationTriangle, faStar, // <-- Ajout des icônes pour le support
+    faLocationArrow
 } from '@fortawesome/free-solid-svg-icons';
 
 import useAuth from '../../hooks/useAuth';
@@ -355,7 +356,13 @@ const DashSideBar = () => {
 
                     <DropDown icon={faScaleBalanced} title="Suggestions" isCollapsed={isCollapsed} sublinks={[
                         { icon: faBellConcierge, title: 'Boîte à idées', link: '/admin/suggestions' }
-                    ]} />
+                    ]} 
+                    />
+                    <DropDown icon={faGlobeAfrica} title="Lieux Personnalisés" isCollapsed={isCollapsed} sublinks={[
+                        {
+                            icon:faLocationArrow, title:"Lieux" ,link:"/admin/vtc/custom-locations"
+                        }
+                    ]}/>
                 </nav>
             </div>
         </aside>

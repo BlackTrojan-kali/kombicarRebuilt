@@ -87,6 +87,7 @@ import CarpoolingSettings from "./Pages/Dashboard/settings/CarpoolingSettings";
 import VtcAdminDisputeDetail from "./Pages/Dashboard/VTC/VtcAdminDisputeDetail";
 import VtcAdminDisputes from "./Pages/Dashboard/VTC/VtcAdminDisputes";
 import VtcAdminReviews from "./Pages/Dashboard/VTC/VtcAdminReviews";
+import CustomLocationsPage from "./Pages/Dashboard/VTC/CustomLocationsPage";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -478,6 +479,10 @@ const Routes = () => {
   {
   path: "/admin/vtc/support/reviews",
   element: <VtcAdminReviews />
+},
+{
+  path:"/admin/vtc/custom-locations",
+  element:<CustomLocationsPage/>
 }
       ],
     },

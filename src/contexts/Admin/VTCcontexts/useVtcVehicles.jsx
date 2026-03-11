@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import api from '../../../api/api'; // Utilisation de votre instance Axios
-
+ 
 export const useVtcVehicles = () => {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(false);
