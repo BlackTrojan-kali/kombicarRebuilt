@@ -51,7 +51,7 @@ const Covoiturage = () => {
     const cardBgColor = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
 
     return (
-        <div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} transition-colors duration-300 font-sans`}>
+        <div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white/5'} transition-colors duration-300 font-sans`}>
             <HeroSection url='/default/jeunes.jpg' label="Covoiturage : Votre trajet partagé, facile et économique" showLogo={false} />
 
             <main className='pt-32 pb-16'>

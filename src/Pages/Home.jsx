@@ -127,7 +127,7 @@ const Home = () => {
     const tripItems = trips || [];
     
     const colors = useMemo(() => ({
-        pageBg: theme === 'dark' ? 'bg-gray-900' : 'bg-white',
+        pageBg: theme === 'dark' ? 'bg-gray-900' : 'bg-white/5',
         sectionBg: theme === 'dark' ? 'bg-gray-800' : 'bg-white',
         lightBg: theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50',
         text: theme === 'dark' ? 'text-white' : 'text-gray-900',
