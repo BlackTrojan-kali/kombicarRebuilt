@@ -1,20 +1,24 @@
-import { faCalendarDays, faLocationDot, faMoneyBillWave } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+    faCalendarDays, 
+    faLocationDot, 
+    faMoneyBillWave, 
+    faMagnifyingGlass 
+} from '@fortawesome/free-solid-svg-icons';
+
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/fr';
 
 import useMape from '../../hooks/useMap';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 const SearchBar = () => {
-
     const navigate = useNavigate();
     const { places, searchPlaces, loading, error } = useMape();
 
@@ -50,7 +54,7 @@ const SearchBar = () => {
         setActiveField(null);
     };
 
-    // 🔥 Correction : format date propre
+    // Format de date propre pour l'URL
     const handleSearch = (e) => {
         e.preventDefault();
 
@@ -63,13 +67,8 @@ const SearchBar = () => {
 
         params.append('departure', departure);
         params.append('destination', destination);
-
-        // Heure formatée
         params.append('departureTime', departureTime.format('HH:mm'));
-
-        // 🟢 Correction ici (ancien format incorrect)
         params.append('departureDate', departureDate.format('YYYY-MM-DD'));
-
         params.append('maxPrice', maxPrice);
 
         navigate(`/results?${params.toString()}`);
@@ -77,135 +76,139 @@ const SearchBar = () => {
 
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="fr">
+            {/* Conteneur principal "Pilule" élargi */}
             <form
                 onSubmit={handleSearch}
-                className='absolute -bottom-[160px] z-10 lg:bottom-0 left-1/2 -translate-x-1/2
-                    w-[95%] sm:w-[90%] md:w-[85%] lg:w-[calc(100%-4rem)]
-                    flex flex-col lg:flex-row items-stretch
-                    bg-white rounded-xl shadow-lg
-                    text-gray-800 border border-gray-100'
+                className='absolute -bottom-[180px] lg:-bottom-14 left-1/2 -translate-x-1/2 z-20
+                    w-[95%] sm:w-[90%] md:w-[85%] lg:w-[90%] xl:w-[80%] max-w-[1200px]
+                    flex flex-col lg:flex-row items-stretch lg:items-center
+                    bg-white/95 backdrop-blur-sm rounded-3xl lg:rounded-full shadow-2xl
+                    text-gray-800 p-2 lg:p-3 border border-gray-100 gap-2 lg:gap-0'
             >
-
-                <div className='flex flex-col lg:flex-row w-full lg:flex-grow'>
+                <div className='flex flex-col lg:flex-row w-full lg:flex-grow divide-y lg:divide-y-0 lg:divide-x divide-gray-200'>
 
                     {/* Départ */}
-                    <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r 
-                        border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faLocationDot} className='text-xl text-blue-500 mr-3' />
+                    <div className='relative flex flex-1 items-center px-4 lg:px-6 py-4 hover:bg-gray-50/80 lg:rounded-l-full cursor-text transition-colors'>
+                        <FontAwesomeIcon icon={faLocationDot} className='text-xl text-gray-400 mr-3' />
                         <input
                             type="text"
                             value={departure}
                             onChange={(e) => handleSearchChange(e.target.value, 'departure')}
                             onFocus={() => setActiveField('departure')}
                             onBlur={() => setTimeout(() => setActiveField(null), 200)}
-                            placeholder='Départ'
-                            className='flex-grow outline-none bg-transparent text-lg py-1'
+                            placeholder='Ville de départ'
+                            className='flex-grow outline-none bg-transparent text-base font-medium placeholder-gray-400 w-full truncate'
                         />
 
                         {activeField === 'departure' && places.length > 0 && (
-                            <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-lg 
-                                shadow-lg max-h-60 overflow-y-auto mt-1 z-40">
+                            <ul className="absolute top-[110%] left-0 w-full bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto z-40 p-2">
                                 {loading ? (
-                                    <li className="p-3 text-gray-500">Chargement...</li>
+                                    <li className="p-3 text-gray-500 text-sm">Chargement...</li>
                                 ) : (
                                     places.map((place) => (
                                         <li
                                             key={place.placeId}
                                             onMouseDown={() => handleSelectSuggestion(place, 'departure')}
-                                            className="p-3 hover:bg-gray-100 cursor-pointer"
+                                            className="p-3 hover:bg-blue-50 hover:text-blue-600 rounded-xl cursor-pointer text-sm font-medium transition-colors"
                                         >
                                             {place.description}
                                         </li>
                                     ))
                                 )}
-                                {error && <li className="p-3 text-red-500">{error}</li>}
+                                {error && <li className="p-3 text-red-500 text-sm">{error}</li>}
                             </ul>
                         )}
                     </div>
 
                     {/* Destination */}
-                    <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r 
-                        border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faLocationDot} className='text-xl text-green-500 mr-3' />
+                    <div className='relative flex flex-1 items-center px-4 lg:px-6 py-4 hover:bg-gray-50/80 cursor-text transition-colors'>
+                        <FontAwesomeIcon icon={faLocationDot} className='text-xl text-gray-400 mr-3' />
                         <input
                             type="text"
                             value={destination}
                             onChange={(e) => handleSearchChange(e.target.value, 'destination')}
                             onFocus={() => setActiveField('destination')}
                             onBlur={() => setTimeout(() => setActiveField(null), 200)}
-                            placeholder='Arrivée'
-                            className='flex-grow outline-none bg-transparent text-lg py-1'
+                            placeholder="Ville d'arrivée"
+                            className='flex-grow outline-none bg-transparent text-base font-medium placeholder-gray-400 w-full truncate'
                         />
 
                         {activeField === 'destination' && places.length > 0 && (
-                            <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-b-lg 
-                                shadow-lg max-h-60 overflow-y-auto mt-1 z-20">
+                            <ul className="absolute top-[110%] left-0 w-full bg-white border border-gray-100 rounded-2xl shadow-xl max-h-60 overflow-y-auto z-40 p-2">
                                 {loading ? (
-                                    <li className="p-3 text-gray-500">Chargement...</li>
+                                    <li className="p-3 text-gray-500 text-sm">Chargement...</li>
                                 ) : (
                                     places.map((place) => (
                                         <li
                                             key={place.placeId}
                                             onMouseDown={() => handleSelectSuggestion(place, 'destination')}
-                                            className="p-3 hover:bg-gray-100 cursor-pointer"
+                                            className="p-3 hover:bg-blue-50 hover:text-blue-600 rounded-xl cursor-pointer text-sm font-medium transition-colors"
                                         >
                                             {place.description}
                                         </li>
                                     ))
                                 )}
-                                {error && <li className="p-3 text-red-500">{error}</li>}
+                                {error && <li className="p-3 text-red-500 text-sm">{error}</li>}
                             </ul>
                         )}
                     </div>
 
                     {/* Date de départ */}
-                    <div className='relative flex items-center p-3 sm:p-4 border-b lg:border-b-0 lg:border-r 
-                        border-gray-200 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faCalendarDays} className='text-xl text-purple-500 mr-3' />
-
-                        <DatePicker
-                            label="Date de Départ"
-                            value={departureDate}
-                            onChange={(newValue) => setDepartureDate(newValue)}
-                            className='flex-grow w-full'
-                            slotProps={{
-                                textField: {
-                                    variant: 'standard',
-                                    InputProps: {
-                                        disableUnderline: true,
-                                        className: 'text-lg',
-                                    },
-                                    sx: {
-                                        '& .MuiInputBase-input': {
-                                            padding: '8px 0 !important',
+                    <div className='relative flex flex-1 items-center px-4 lg:px-6 py-4 hover:bg-gray-50/80 cursor-pointer transition-colors'>
+                        <FontAwesomeIcon icon={faCalendarDays} className='text-xl text-gray-400 mr-3' />
+                        <div className="flex-grow overflow-hidden">
+                            <DatePicker
+                                value={departureDate}
+                                onChange={(newValue) => setDepartureDate(newValue)}
+                                format="DD/MM/YYYY"
+                                slotProps={{
+                                    textField: {
+                                        variant: 'standard',
+                                        placeholder: "Date de départ",
+                                        InputProps: {
+                                            disableUnderline: true,
+                                            className: 'text-base font-medium text-gray-800 cursor-pointer',
+                                        },
+                                        sx: {
+                                            width: '100%',
+                                            '& .MuiInputBase-input': {
+                                                padding: '0 !important',
+                                                cursor: 'pointer',
+                                                '&::placeholder': {
+                                                    color: '#9ca3af',
+                                                    opacity: 1,
+                                                }
+                                            },
                                         },
                                     },
-                                },
-                            }}
-                        />
+                                }}
+                            />
+                        </div>
                     </div>
 
                     {/* Prix max */}
-                    <div className='relative flex items-center p-3 sm:p-4 hover:bg-gray-50 flex-grow cursor-pointer'>
-                        <FontAwesomeIcon icon={faMoneyBillWave} className='text-xl text-orange-500 mr-3' />
+                    <div className='relative flex flex-1 items-center px-4 lg:px-6 py-4 hover:bg-gray-50/80 cursor-text transition-colors'>
+                        <FontAwesomeIcon icon={faMoneyBillWave} className='text-xl text-gray-400 mr-3' />
                         <input
                             type="number"
                             min="0"
                             placeholder='Prix Max (ex: 50€)'
-                            value={maxPrice}
+                            value={maxPrice === 0 ? '' : maxPrice}
                             onChange={(e) => setMaxPrice(Number(e.target.value))}
-                            className='flex-grow outline-none bg-transparent placeholder-gray-500 text-lg py-1'
+                            className='flex-grow outline-none bg-transparent placeholder-gray-400 text-base font-medium w-full'
                         />
                     </div>
                 </div>
 
+                {/* Bouton de recherche */}
                 <button
                     type="submit"
-                    className='w-full lg:w-32 bg-green-500 hover:bg-green-600 text-white font-bold
-                    py-4 lg:py-0 px-6 rounded-b-xl lg:rounded-bl-none lg:rounded-r-xl
-                    flex-shrink-0 transition-colors duration-200 flex items-center justify-center'
+                    className='w-full lg:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold
+                    py-4 lg:py-5 px-10 rounded-2xl lg:rounded-full
+                    flex-shrink-0 transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl mt-2 lg:mt-0 lg:ml-2'
                 >
-                    Rechercher
+                    <FontAwesomeIcon icon={faMagnifyingGlass} className="text-base" />
+                    <span className="text-base tracking-wide">Rechercher</span>
                 </button>
 
             </form>

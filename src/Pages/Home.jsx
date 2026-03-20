@@ -36,67 +36,71 @@ const truncateLocationName = (name) => {
     return name;
 };
 
-// --- SOUS-COMPOSANTS UI (Pour alléger le composant principal) ---
+// --- SOUS-COMPOSANTS UI (Style OnTheGo - Épuré) ---
 
 const ArrowButton = ({ onClick, direction, theme }) => {
     const isDark = theme === 'dark';
-    const classes = `absolute top-1/2 -translate-y-1/2 z-10 p-3 rounded-full shadow-lg cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center 
-        ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-white hover:bg-gray-100 text-gray-700'}`;
+    const classes = `absolute top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-md cursor-pointer transition-colors duration-200 hidden lg:flex items-center justify-center 
+        ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-100'}`;
     
     return (
         <div 
-            className={`${classes} ${direction === 'left' ? 'left-4' : 'right-4'}`} 
+            className={`${classes} ${direction === 'left' ? '-left-6' : '-right-6'}`} 
             onClick={onClick}
         >
-            <FontAwesomeIcon icon={direction === 'left' ? faChevronLeft : faChevronRight} className="text-xl" />
+            <FontAwesomeIcon icon={direction === 'left' ? faChevronLeft : faChevronRight} className="text-lg" />
         </div>
     );
 };
 
-const FeatureCard = ({ icon, title, description, colorClass, theme }) => (
-    <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center md:items-start transform hover:scale-105 transition-transform duration-300 ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'}`}>
-        <FontAwesomeIcon icon={icon} className={`text-5xl mb-4 ${colorClass}`} />
-        <h4 className='font-bold text-xl mb-2'>{title}</h4>
-        <p className={`text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            {description}
-        </p>
-    </div>
-);
+// Fusion de FeatureCard et StepCard avec le nouveau design
+const CleanCard = ({ icon, title, description, color, theme }) => {
+    // Mapping des couleurs pour le design épuré
+    const colorStyles = {
+        blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
+        yellow: "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20",
+        green: "text-green-500 bg-green-50 dark:bg-green-900/20",
+    };
+    
+    const selectedStyle = colorStyles[color] || colorStyles.blue;
 
-const StepCard = ({ icon, title, description, colorClass, theme }) => (
-    <div className={`md:w-1/3 p-6 rounded-lg shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'}`}>
-        <FontAwesomeIcon icon={icon} className={`text-5xl mb-4 ${colorClass}`} />
-        <h4 className='font-bold text-xl mb-2'>{title}</h4>
-        <p className={`text-base leading-relaxed ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            {description}
-        </p>
-    </div>
-);
+    return (
+        <div className="flex flex-col items-center text-center p-6">
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${selectedStyle}`}>
+                <FontAwesomeIcon icon={icon} className="text-3xl" />
+            </div>
+            <h4 className={`font-bold text-xl mb-3 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{title}</h4>
+            <p className={`text-[15px] leading-relaxed ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                {description}
+            </p>
+        </div>
+    );
+};
 
 const InfoSection = ({ title, text, imageSrc, imageAlt, btnText, btnLink, theme, reverse = false }) => (
-    <section className={`mt-24 flex flex-col ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'} gap-12 items-center max-w-7xl mx-auto mb-24`}>
+    <section className={`flex flex-col ${reverse ? 'md:flex-row-reverse' : 'md:flex-row'} gap-12 lg:gap-20 items-center max-w-7xl mx-auto mb-32`}>
         <img
             src={imageSrc}
             alt={imageAlt}
-            className='w-full md:w-1/2 rounded-2xl shadow-xl object-cover h-auto transition-transform duration-300 hover:scale-[1.02]'
+            className='w-full md:w-1/2 rounded-3xl shadow-lg object-cover h-auto'
         />
-        <div className='w-full md:w-1/2 md:p-8'>
-            <h2 className={`font-extrabold text-3xl sm:text-4xl mb-6 leading-tight ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className='w-full md:w-1/2'>
+            <h2 className={`font-bold text-3xl sm:text-4xl mb-6 leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 {title}
             </h2>
-            <p className={`leading-relaxed text-lg mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+            <p className={`leading-relaxed text-[17px] mb-8 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 {text}
             </p>
             {btnText && (
-                <div className='text-center md:text-left'>
+                <div>
                     {btnLink ? (
                          <Link to={btnLink}>
-                            <Button className='px-8 py-3 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all duration-300 transform hover:scale-105'>
+                            <Button className='px-8 py-4 rounded-full bg-kombigreen-500 text-white font-semibold hover:bg-kombigreen-600 shadow-md transition-all'>
                                 {btnText}
                             </Button>
                          </Link>
                     ) : (
-                        <Button className='px-8 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all duration-300 transform hover:scale-105'>
+                        <Button className='px-8 py-4 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md transition-all'>
                             {btnText}
                         </Button>
                     )}
@@ -110,7 +114,6 @@ const InfoSection = ({ title, text, imageSrc, imageAlt, btnText, btnLink, theme,
 
 const Home = () => {
     // 1. Hooks & State
-    // Note: On extrait listPublicTrips mais on NE L'AJOUTE PAS aux dépendances du useEffect
     const { trips, loading: loadingTrips, listPublicTrips } = useTrips();
     const { user, defaultCountry, loading: authLoading } = useAuth();
     const { theme } = useColorScheme();
@@ -119,40 +122,37 @@ const Home = () => {
     const [pendingReservations, setPendingReservations] = useState([]); 
     const [loadingReservations, setLoadingReservations] = useState(false); 
 
-    // 2. Computed Values (Styles & Data)
+    // 2. Computed Values
     const currentCountry = user?.country || defaultCountry?.countryName;
     const tripItems = trips || [];
     
-    // Utilisation de useMemo pour éviter de recalculer les objets de style à chaque render
     const colors = useMemo(() => ({
-        pageBg: theme === 'dark' ? 'bg-gray-900' : '',
+        pageBg: theme === 'dark' ? 'bg-gray-900' : 'bg-white',
         sectionBg: theme === 'dark' ? 'bg-gray-800' : 'bg-white',
-        text: theme === 'dark' ? 'text-gray-100' : 'text-gray-900',
-        paragraph: theme === 'dark' ? 'text-gray-300' : 'text-gray-700',
-        border: theme === 'dark' ? 'border-gray-700' : '',
+        lightBg: theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50',
+        text: theme === 'dark' ? 'text-white' : 'text-gray-900',
+        paragraph: theme === 'dark' ? 'text-gray-400' : 'text-gray-600',
+        border: theme === 'dark' ? 'border-gray-800' : 'border-gray-100',
     }), [theme]);
 
     const sliderSettings = useMemo(() => ({
         dots: true,
         infinite: true,
         speed: 500,
-        slidesToShow: 4,
+        slidesToShow: 3, // Adapté pour un affichage plus aéré
         slidesToScroll: 1,
         initialSlide: 0,
         nextArrow: <ArrowButton direction="right" theme={theme} />,
         prevArrow: <ArrowButton direction="left" theme={theme} />,
-        autoplay: true,
-        autoplaySpeed: 3000,
+        autoplay: false,
         responsive: [
-            { breakpoint: 1280, settings: { slidesToShow: 3, slidesToScroll: 1 } },
-            { breakpoint: 1024, settings: { slidesToShow: 2, slidesToScroll: 1 } },
-            { breakpoint: 768, settings: { slidesToShow: 1, slidesToScroll: 1, centerMode: true, centerPadding: '20px' } }
+            { breakpoint: 1280, settings: { slidesToShow: 3 } },
+            { breakpoint: 1024, settings: { slidesToShow: 2 } },
+            { breakpoint: 768, settings: { slidesToShow: 1, centerMode: true, centerPadding: '20px' } }
         ]
     }), [theme]);
 
     // 3. Effects
-
-    // CORRECTION ICI : listPublicTrips retiré des dépendances pour éviter la boucle infinie
     useEffect(() => {
         if (authLoading) return;
         
@@ -161,25 +161,22 @@ const Home = () => {
         if (countryCode) {
             listPublicTrips({
                 page: 1,
-                tripStatus: 0, // Published
+                tripStatus: 0,
                 country: countryCode,
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authLoading, user, defaultCountry]); 
 
-    // Charger les réservations actives
     useEffect(() => {
         const loadPendingReservations = async () => {
             if (!user || authLoading) return;
 
             setLoadingReservations(true);
             try {
-                const STATUS_FILTER = 0; // Ajuster selon votre logique métier (0 = en attente, 1 = confirmé ?)
-                // Assurez-vous que getReservationsWithStatus est stable ou ne cause pas de re-render
+                const STATUS_FILTER = 0; 
                 const response = await getReservationsWithStatus(1, STATUS_FILTER);
                 
-                // Protection contre les réponses vides ou mal formées
                 if (response && response.items) {
                     const latest = response.items.slice(0, 4).map(item => ({
                         ...item,
@@ -197,59 +194,56 @@ const Home = () => {
 
         loadPendingReservations();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, authLoading]); // getReservationsWithStatus retiré pour sécurité
-
+    }, [user, authLoading]); 
 
     // 4. Render
     return (
-        <div className={`${colors.pageBg} ${colors.text} transition-colors duration-300 pb-20`}>
+        <div className={`${colors.pageBg} transition-colors duration-300 min-h-screen font-sans`}>
             <HeroSection 
                 label="BIENVENUE SUR KOMBICAR"
                 showCountrySelect={!user && !authLoading && !!defaultCountry} 
                 currentCountry={currentCountry}
             />
 
-            <main className={`${SECTION_PADDING} py-16 mt-[250px] lg:mt-[100px]`}>
+            <main className={`${SECTION_PADDING} pt-40 lg:pt-32 pb-16`}>
                 
                 {/* --- SECTION: Réservations Actives --- */}
                 {user && (
-                    <section className='mb-24 max-w-7xl mx-auto'>
-                        <h2 className={`font-extrabold text-3xl sm:text-4xl mb-8 ${colors.text}`}>
-                            <FontAwesomeIcon icon={faClock} className="mr-3 text-red-500" />
+                    <section className='mb-32 max-w-7xl mx-auto'>
+                        <h2 className={`font-bold text-2xl sm:text-3xl mb-8 ${colors.text}`}>
+                            <FontAwesomeIcon icon={faClock} className="mr-3 text-kombigreen-500" />
                             Vos Trajets et Réservations Actives
                         </h2>
                         
                         {loadingReservations ? (
                             <div className="flex justify-center py-10">
-                                <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-blue-500" />
+                                <FontAwesomeIcon icon={faSpinner} spin size="2x" className="text-gray-400" />
                             </div>
                         ) : pendingReservations.length === 0 ? (
-                            <div className={`${colors.sectionBg} border ${colors.border} p-6 rounded-lg shadow-xl text-center`}>
-                                <p className={`${colors.paragraph} text-lg`}>
+                            <div className={`${colors.sectionBg} border ${colors.border} p-10 rounded-3xl shadow-sm text-center`}>
+                                <p className={`${colors.paragraph} text-[15px] mb-6`}>
                                     Vous n'avez aucune réservation ou aucun trajet confirmé en cours.
                                 </p>
-                                <Link to="/results" className='mt-4 inline-block'>
-                                    <Button className='bg-blue-500 hover:bg-blue-600 px-6 py-2'>Rechercher un trajet</Button>
+                                <Link to="/results">
+                                    <Button className='bg-orange-500 hover:bg-orange-600 text-white rounded-full px-8 py-3 font-semibold shadow-md'>
+                                        Rechercher un trajet
+                                    </Button>
                                 </Link>
                             </div>
                         ) : (
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                                 {pendingReservations.map((r) => (
-                                    <div key={r.reservation.id} className={`${colors.sectionBg} border ${colors.border} p-5 rounded-xl shadow-md`}>
-                                        <h4 className='font-bold text-xl mb-2 text-blue-500'>
-                                            {r.departureArea.homeTownName} → {r.arrivalArea.homeTownName}
+                                    <div key={r.reservation.id} className={`${colors.sectionBg} border ${colors.border} p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow`}>
+                                        <h4 className={`font-bold text-lg mb-3 ${colors.text}`}>
+                                            {r.departureArea.homeTownName} <FontAwesomeIcon icon={faArrowRight} className="text-gray-300 mx-2 text-sm" /> {r.arrivalArea.homeTownName}
                                         </h4>
-                                        <p className={`${colors.paragraph} text-sm mb-1`}>
-                                            <FontAwesomeIcon icon={faClock} className="mr-2 text-yellow-500" />
-                                            Départ : {dayjs(r.trip.departureDate).format('DD MMM à HH:mm')}
-                                        </p>
-                                        <p className={`${colors.paragraph} text-sm mb-3`}>
-                                            <FontAwesomeIcon icon={faUserTag} className="mr-2 text-green-500" />
-                                            {r.reservation.numberReservedPlaces} place(s) réservée(s)
-                                        </p>
-                                        <Link to={`/profile/reservations`} className='mt-3 inline-block'>
-                                            <Button className='text-sm px-4 py-2 bg-green-500 hover:bg-red-600'>
-                                                <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+                                        <div className={`space-y-2 mb-5 ${colors.paragraph} text-sm`}>
+                                            <p><FontAwesomeIcon icon={faClock} className="mr-2 text-gray-400" /> Départ : {dayjs(r.trip.departureDate).format('DD MMM YYYY à HH:mm')}</p>
+                                            <p><FontAwesomeIcon icon={faUserTag} className="mr-2 text-gray-400" /> {r.reservation.numberReservedPlaces} place(s) réservée(s)</p>
+                                        </div>
+                                        <Link to={`/profile/reservations`}>
+                                            <Button className='w-full text-sm px-4 py-2.5 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-xl font-medium'>
+                                                <FontAwesomeIcon icon={faCheckCircle} className="mr-2 text-green-500" />
                                                 Détails & Actions
                                             </Button>
                                         </Link>
@@ -261,43 +255,46 @@ const Home = () => {
                 )}
 
                 {/* --- SECTION: Comment ça marche --- */}
-                <section className='mb-24 max-w-7xl mx-auto'>
-                    <h2 className={`text-center font-extrabold text-3xl sm:text-4xl mb-12 ${colors.text}`}>Comment ça marche ?</h2>
-                    <div className='flex flex-col md:flex-row justify-between gap-8 text-center'>
-                        <StepCard icon={faSearch} colorClass="text-blue-500" title="Trouvez votre trajet" description="Recherchez des trajets de covoiturage ou des taxis vers votre destination." theme={theme} />
-                        <StepCard icon={faTicket} colorClass="text-yellow-500" title="Réservez votre place" description="Sélectionnez le trajet qui vous convient et réservez votre place en quelques clics." theme={theme} />
-                        <StepCard icon={faCar} colorClass="text-green-500" title="Voyagez en toute sérénité" description="Rendez-vous au point de départ, rencontrez votre chauffeur et profitez du voyage." theme={theme} />
+                <section className='mb-32 max-w-6xl mx-auto'>
+                    <h2 className={`text-center font-bold text-3xl sm:text-4xl mb-16 ${colors.text}`}>Comment ça marche ?</h2>
+                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-800'>
+                        <CleanCard icon={faSearch} color="blue" title="Trouvez votre trajet" description="Recherchez des trajets de covoiturage ou des taxis vers votre destination." theme={theme} />
+                        <CleanCard icon={faTicket} color="yellow" title="Réservez votre place" description="Sélectionnez le trajet qui vous convient et réservez votre place en quelques clics." theme={theme} />
+                        <CleanCard icon={faCar} color="green" title="Voyagez en toute sérénité" description="Rendez-vous au point de départ, rencontrez votre chauffeur et profitez du voyage." theme={theme} />
                     </div>
                 </section>
 
                 {/* --- SECTION: Avantages --- */}
-                <section className='max-w-7xl mx-auto w-full flex flex-col md:flex-row justify-between gap-8 text-center md:text-left mb-24'>
-                    <FeatureCard icon={faCoins} colorClass="text-green-500" title="Économisez sur vos trajets" description="Partagez les coûts, réduisez vos dépenses et profitez de tarifs abordables." theme={theme} />
-                    <FeatureCard icon={faBoltLightning} colorClass="text-yellow-500" title="Réservez en un éclair" description="Trouvez et réservez votre place en quelques clics. Votre prochain voyage n'attend pas !" theme={theme} />
-                    <FeatureCard icon={faNewspaper} colorClass="text-blue-500" title="Voyagez en toute confiance" description="Bénéficiez d'un support dédié et de profils vérifiés pour des trajets sereins." theme={theme} />
+                <section className={`mb-32 py-20 rounded-3xl ${colors.lightBg}`}>
+                    <div className='max-w-6xl mx-auto'>
+                        <h2 className={`text-center font-bold text-3xl sm:text-4xl mb-16 ${colors.text}`}>Pourquoi choisir Kombicar ?</h2>
+                        <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
+                            <CleanCard icon={faCoins} color="green" title="Économisez sur vos trajets" description="Partagez les coûts, réduisez vos dépenses et profitez de tarifs abordables." theme={theme} />
+                            <CleanCard icon={faBoltLightning} color="yellow" title="Réservez en un éclair" description="Trouvez et réservez votre place en quelques clics. Votre prochain voyage n'attend pas !" theme={theme} />
+                            <CleanCard icon={faNewspaper} color="blue" title="Voyagez en toute confiance" description="Bénéficiez d'un support dédié et de profils vérifiés pour des trajets sereins." theme={theme} />
+                        </div>
+                    </div>
                 </section>
 
                 {/* --- SECTION: Covoiturage vs Taxi --- */}
-                <section className='max-w-7xl mx-auto w-full mb-24'>
-                    <h2 className={`text-center font-extrabold text-3xl sm:text-4xl mb-12 ${colors.text}`}>Covoiturage ou Taxi : choisissez votre option</h2>
-                    <div className='flex flex-col md:flex-row justify-between gap-8 text-center'>
-                        <div className={`md:w-1/2 p-8 rounded-2xl shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${colors.sectionBg}`}>
-                            <h3 className={`font-bold text-2xl mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>Covoiturage</h3>
-                            <p className={`text-base leading-relaxed mb-6 ${colors.paragraph}`}>
-                                Partagez les frais et faites de nouvelles rencontres.
-                            </p>
+                <section className='mb-32 max-w-5xl mx-auto'>
+                    <h2 className={`text-center font-bold text-3xl sm:text-4xl mb-12 ${colors.text}`}>Covoiturage ou Taxi : choisissez votre option</h2>
+                    <div className='flex flex-col md:flex-row gap-6'>
+                        <div className={`flex-1 p-10 rounded-3xl border ${colors.border} ${colors.sectionBg} text-center hover:shadow-lg transition-shadow`}>
+                            <h3 className={`font-bold text-2xl mb-4 ${colors.text}`}>Covoiturage</h3>
+                            <p className={`text-[15px] mb-8 ${colors.paragraph}`}>Partagez les frais et faites de nouvelles rencontres.</p>
                             <Link to="/covoiturage">
-                                <Button className='px-8 py-3 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all'>Rechercher un covoiturage</Button>
+                                <Button className='w-full sm:w-auto px-8 py-3.5 rounded-full bg-kombigreen-500 text-white font-semibold hover:bg-kombigreen-600'>
+                                    Rechercher un covoiturage
+                                </Button>
                             </Link>
                         </div>
-                        <div className={`md:w-1/2 p-8 rounded-2xl shadow-xl flex flex-col items-center transform hover:scale-105 transition-transform duration-300 ${colors.sectionBg}`}>
-                            <h3 className={`font-bold text-2xl mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>Taxi</h3>
-                            <p className={`text-base leading-relaxed mb-6 ${colors.paragraph}`}>
-                                Service rapide et adapté à tous vos déplacements, en ville ou hors ville.
-                            </p>
+                        <div className={`flex-1 p-10 rounded-3xl border ${colors.border} ${colors.sectionBg} text-center hover:shadow-lg transition-shadow`}>
+                            <h3 className={`font-bold text-2xl mb-4 ${colors.text}`}>Taxi</h3>
+                            <p className={`text-[15px] mb-8 ${colors.paragraph}`}>Service rapide et adapté à tous vos déplacements, en ville ou hors ville.</p>
                             <Button 
                                 onClick={() => toast.error('Service de taxi non disponible pour le moment.')} 
-                                className='px-8 py-3 rounded-full bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-all'>
+                                className='w-full sm:w-auto px-8 py-3.5 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600'>
                                 Réserver un taxi
                             </Button>
                         </div>
@@ -325,29 +322,28 @@ const Home = () => {
                 />
             </main>
 
-            {/* --- SECTION: Itinéraires Fréquents --- */}
-            <section className={`w-full text-left py-12 ${SECTION_PADDING} dark:bg-gray-800 bg-emerald-800`}>
-                <div className='max-w-7xl mx-auto'>
-                    <h3 className='text-white font-bold text-3xl sm:text-4xl mb-10'>Découvrez les Trajets Fréquents</h3>
-                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+            {/* --- SECTION: Itinéraires Fréquents (Rendu plus clair, fond blanc/gris très léger) --- */}
+            <section className={`py-20 border-t ${colors.border} ${colors.lightBg}`}>
+                <div className={`max-w-7xl mx-auto ${SECTION_PADDING}`}>
+                    <h3 className={`font-bold text-2xl sm:text-3xl mb-10 ${colors.text}`}>Découvrez les Trajets Fréquents</h3>
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
                         {loadingTrips ? (
-                            <p className="text-gray-300">Chargement des itinéraires...</p>
+                            <p className={`${colors.paragraph}`}>Chargement des itinéraires...</p>
                         ) : tripItems.length === 0 ? (
-                            <p className="text-gray-300">Aucun itinéraire fréquent trouvé.</p>
+                            <p className={`${colors.paragraph}`}>Aucun itinéraire fréquent trouvé.</p>
                         ) : (
                             tripItems.map((tripData) => (
                                 <Link 
                                     to={`/trip-detail/${tripData.trip.id}`} 
                                     key={tripData.trip.id} 
-                                    className={`p-6 rounded-lg shadow-md flex justify-between items-center group transition-colors duration-200 cursor-pointer 
-                                    hover:bg-emerald-700 dark:hover:bg-gray-700 ${colors.sectionBg}`}
+                                    className={`p-5 rounded-2xl border ${colors.border} ${colors.sectionBg} flex justify-between items-center group transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 cursor-pointer`}
                                 >
-                                    <div className={`flex items-center gap-4 group-hover:text-white ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
-                                        <p className='font-semibold'>{truncateLocationName(tripData.departureArea?.homeTownName)}</p>
-                                        <FontAwesomeIcon icon={faArrowRight} className='text-lg text-gray-500 group-hover:translate-x-1 transition-transform group-hover:text-white' />
-                                        <p className='font-semibold'>{truncateLocationName(tripData.arrivalArea?.homeTownName)}</p>
+                                    <div className={`flex items-center gap-3 ${colors.text}`}>
+                                        <p className='font-semibold text-[15px]'>{truncateLocationName(tripData.departureArea?.homeTownName)}</p>
+                                        <FontAwesomeIcon icon={faArrowRight} className='text-sm text-gray-400 group-hover:text-blue-500 transition-colors' />
+                                        <p className='font-semibold text-[15px]'>{truncateLocationName(tripData.arrivalArea?.homeTownName)}</p>
                                     </div>
-                                    <FontAwesomeIcon icon={faChevronRight} className='text-xl text-gray-500 group-hover:text-green-500 transition-colors' />
+                                    <FontAwesomeIcon icon={faChevronRight} className='text-gray-300 group-hover:text-blue-500 transition-colors' />
                                 </Link>
                             ))
                         )}
@@ -356,16 +352,16 @@ const Home = () => {
             </section>
 
             {/* --- SECTION: Slider --- */}
-            <section className={`py-20 ${SECTION_PADDING} text-center bg-gray-50 dark:bg-gray-900`}>
-                <h2 className={`font-extrabold text-3xl sm:text-4xl lg:text-5xl mb-12 ${colors.text}`}>
+            <section className={`py-24 ${SECTION_PADDING} text-center ${colors.pageBg}`}>
+                <h2 className={`font-bold text-3xl sm:text-4xl mb-16 ${colors.text}`}>
                     Explorez nos itinéraires les plus recherchés
                 </h2>
                 <div className='relative max-w-7xl mx-auto'>
                     {!loadingTrips && tripItems.length > 0 && (
                         tripItems.length > 1 ? (
-                            <Slider {...sliderSettings}>
+                            <Slider {...sliderSettings} className="-mx-3">
                                 {tripItems.map((tripData) => (
-                                    <div key={tripData.trip.id} className="px-3">
+                                    <div key={tripData.trip.id} className="px-3 py-4">
                                         <TripCard trip={tripData} />
                                     </div>
                                 ))}
@@ -381,18 +377,18 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* --- CTA: Conducteurs --- */}
-            <section className={`py-20 ${SECTION_PADDING} bg-gray-100 dark:bg-gray-800`}>
-                <div className='max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-center md:text-left'>
-                    <div className='md:w-3/4'>
-                        <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${colors.text}`}>Vous êtes un conducteur ?</h2>
-                        <p className={`leading-relaxed text-lg mb-8 ${colors.paragraph}`}>
+            {/* --- CTA: Conducteurs (Bannière épurée) --- */}
+            <section className={`py-20 ${colors.lightBg} border-t ${colors.border}`}>
+                <div className={`max-w-6xl mx-auto ${SECTION_PADDING} flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-10`}>
+                    <div className='md:w-2/3'>
+                        <h2 className={`font-bold text-3xl sm:text-4xl mb-4 ${colors.text}`}>Vous êtes un conducteur ?</h2>
+                        <p className={`text-[17px] ${colors.paragraph}`}>
                             Partagez votre trajet, réduisez vos frais et rencontrez de nouvelles personnes.
                         </p>
                     </div>
-                    <div className='md:w-1/4 text-center md:text-right'>
+                    <div className='md:w-1/3 flex justify-center md:justify-end'>
                         <Link to="/publish-trip">
-                            <Button className='px-8 py-4 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all transform hover:scale-105'>
+                            <Button className='px-8 py-4 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600 shadow-md transition-all'>
                                 Publier mon trajet
                             </Button>
                         </Link>
@@ -401,14 +397,14 @@ const Home = () => {
             </section>
             
             {/* --- CTA: Profil --- */}
-            <section className={`py-20 ${SECTION_PADDING} bg-gray-50 dark:bg-gray-800`}>
-                <div className='max-w-7xl mx-auto text-center'>
-                    <h2 className={`font-extrabold text-3xl sm:text-4xl mb-4 ${colors.text}`}>Votre espace personnel</h2>
-                    <p className={`leading-relaxed text-lg mb-8 max-w-2xl mx-auto ${colors.paragraph}`}>
+            <section className={`py-24 text-center ${colors.pageBg}`}>
+                <div className={`max-w-3xl mx-auto ${SECTION_PADDING}`}>
+                    <h2 className={`font-bold text-3xl sm:text-4xl mb-6 ${colors.text}`}>Votre espace personnel</h2>
+                    <p className={`text-[17px] mb-10 ${colors.paragraph}`}>
                         Gérez vos trajets, suivez vos réservations et construisez votre réputation au sein de la communauté Kombicar.
                     </p>
                     <Link to="/profile">
-                        <Button className='px-8 py-4 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all transform hover:scale-105'>
+                        <Button className='px-10 py-4 rounded-full border-2 border-blue-500 text-blue-600 dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all'>
                             Gérer mon profil
                         </Button>
                     </Link>
@@ -418,4 +414,4 @@ const Home = () => {
     );
 };
 
-export default Home;     
+export default Home;

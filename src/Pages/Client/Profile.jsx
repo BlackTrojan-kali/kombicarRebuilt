@@ -5,7 +5,7 @@ import {
     faPlusCircle, faHistory, faRoute, faInfoCircle, faWallet,
     faEdit, faTimesCircle, faTrash, faIdCard, faBookmark,
     faSpinner, faCamera, faCalendarAlt, faMoneyBillWave,
-    faArrowLeft, faArrowRight, faUsers // Nouveau : Icône pour les réservations/passagers
+    faArrowLeft, faArrowRight, faUsers, faArrowRightLong, faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { Link, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
@@ -16,7 +16,6 @@ import useAuth from '../../hooks/useAuth';
 import useTrips from '../../hooks/useTrips';
 import useColorScheme from '../../hooks/useColorScheme';
 import EditTripModal from '../../Components/Modals/EditTripModal';
-// Importation de la nouvelle modal de modification de profil
 import EditProfileModal from '../../Components/Modals/EditProfileModal'; 
 
 dayjs.locale('fr');
@@ -36,29 +35,28 @@ const generateInitialsSvg = (firstName, lastName, theme) => {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
-// Le composant de pagination est également une bonne abstraction
 const Pagination = ({ page, totalPages, setPage, theme }) => {
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     return (
-        <div className={`flex justify-center items-center gap-4 mt-6 text-sm ${textColorPrimary}`}>
+        <div className={`flex justify-center items-center gap-4 mt-8 text-[15px] ${textColorPrimary}`}>
             <button
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className={`px-4 py-2 rounded-lg ${page === 1 ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-200 ${page === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'}`}
                 aria-label="Page précédente"
             >
-                <FontAwesomeIcon icon={faArrowLeft} /> Précédent
+                <FontAwesomeIcon icon={faArrowLeft} />
             </button>
-            <span className={`px-3 py-1 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                Page {page} sur {totalPages}
+            <span className={`px-4 py-2 rounded-full font-semibold ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                {page} / {totalPages || 1}
             </span>
             <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= totalPages}
-                className={`px-4 py-2 rounded-lg ${page >= totalPages ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-200 ${page >= totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'}`}
                 aria-label="Page suivante"
             >
-                Suivant <FontAwesomeIcon icon={faArrowRight} />
+                <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>
     );
@@ -71,12 +69,7 @@ const Profile = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    // ===========================================
-    // NOUVEAU : État pour la modal d'édition de profil
-    // ===========================================
     const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
-    
-    // États existants pour les trajets
     const [publishedTrips, setPublishedTrips] = useState([]);
     const [completedTrips, setCompletedTrips] = useState([]);
     const [loadingSpecificTrips, setLoadingSpecificTrips] = useState(true);
@@ -84,14 +77,13 @@ const Profile = () => {
     const [publishedTotalPages, setPublishedTotalPages] = useState(0);
     const [completedPage, setCompletedPage] = useState(1);
     const [completedTotalPages, setCompletedTotalPages] = useState(0);
-    const [isModalOpen, setIsModalOpen] = useState(false); // Pour EditTripModal
+    const [isModalOpen, setIsModalOpen] = useState(false); 
     const [selectedTrip, setSelectedTrip] = useState(null);
 
-    // Charger les trajets de l'utilisateur
     const loadUserTrips = async (page, status, setTrips, setTotalPages) => {
         if (!user || loadingUser) return;
         setLoadingSpecificTrips(true);
-        const perPage = 5; // Taille de page fixe
+        const perPage = 5; 
         try {
             const response = await fetchTrips({ pageIndex: page, status: status, pageSize: perPage });
             setTrips(response.items || []);
@@ -106,7 +98,7 @@ const Profile = () => {
     useEffect(() => {
         if (!user && !loadingUser) {
             navigate('/auth/signin');
-        } else {
+        } else if (user) {
             loadUserTrips(publishedPage, 0, setPublishedTrips, setPublishedTotalPages);
             loadUserTrips(completedPage, 2, setCompletedTrips, setCompletedTotalPages);
         }
@@ -120,24 +112,17 @@ const Profile = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedTrip(null);
-        // Recharger les trajets après modification/fermeture de la modal de trajet
         loadUserTrips(publishedPage, 0, setPublishedTrips, setPublishedTotalPages);
         loadUserTrips(completedPage, 2, setCompletedTrips, setCompletedTotalPages);
     };
 
-    // NOUVEAU : Fonction de redirection vers la liste des réservations du trajet
     const handleViewReservations = (tripId) => {
-        // Redirige vers une page spécifique pour visualiser les réservations du trajet (par exemple /reservations/trip/:tripId)
         navigate(`driver-reservations/${tripId}`);
     };
 
-    // ===========================================
-    // NOUVEAU : Fonctions pour la modal de profil
-    // ===========================================
     const handleOpenEditProfileModal = () => setIsEditProfileModalOpen(true);
     const handleCloseEditProfileModal = () => {
         setIsEditProfileModalOpen(false);
-        // Recharger les trajets si le profil est mis à jour (car le nom pourrait changer, affectant le SVG)
         loadUserTrips(publishedPage, 0, setPublishedTrips, setPublishedTotalPages);
         loadUserTrips(completedPage, 2, setCompletedTrips, setCompletedTotalPages);
     }
@@ -154,6 +139,7 @@ const Profile = () => {
             cancelButtonText: 'Non, garder',
             background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
             color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+            borderRadius: '1rem',
         });
 
         if (result.isConfirmed) {
@@ -179,6 +165,7 @@ const Profile = () => {
             cancelButtonText: 'Annuler',
             background: theme === 'dark' ? '#1F2937' : '#FFFFFF',
             color: theme === 'dark' ? '#F9FAFB' : '#1F2937',
+            borderRadius: '1rem',
         });
 
         if (result.isConfirmed) {
@@ -188,12 +175,10 @@ const Profile = () => {
     };
 
     const handleViewReviews = (tripId) => {
-        // Redirige vers la page des avis pour ce trajet
         navigate(`/reviews/${tripId}`);
     };
 
     const handleSubmitReview = (tripId) => {
-        // Redirige vers un formulaire pour soumettre un avis pour ce trajet
         navigate(`/reviews/create/${tripId}`);
     };
 
@@ -210,17 +195,19 @@ const Profile = () => {
         }
     };
 
-    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
+    // Design épuré
+    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50/5'; // Fond grisâtre
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
-    const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
+    const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
     const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-    const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
+    const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200';
+    const pillBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
     
     if (loadingUser || loadingSpecificTrips) {
         return (
-            <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
-                <FontAwesomeIcon icon={faSpinner} spin size="2x" />
-                <p className="ml-4 text-xl">Chargement du profil et des trajets...</p>
+            <div className={`flex flex-col items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
+                <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                <p className="text-lg text-gray-500">Chargement de votre espace...</p>
             </div>
         );
     }
@@ -230,23 +217,27 @@ const Profile = () => {
     }
 
     return (
-        <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
-            <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
-                <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-                    <div className='flex flex-col items-center sm:flex-row sm:items-start sm:gap-6'>
+        <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-28 pb-20 transition-colors duration-300 font-sans`}>
+            <main className='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8'>
+                
+                {/* --- HEADER PROFIL --- */}
+                <div className={`${cardBg} rounded-[2rem] shadow-sm p-8 sm:p-10 mb-10 border ${borderColor} relative overflow-hidden`}>
+                    <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-500 to-blue-400 opacity-20"></div>
+                    
+                    <div className='flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 relative z-10 -mt-2'>
                         
-                        {/* Section Photo de Profil */}
+                        {/* Photo de Profil */}
                         <div className='relative w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 group'>
                             <img
-                                src={user.pictureProfileUrl ? `${API_URL}` + user.pictureProfileUrl : generateInitialsSvg(user.firstName, user.lastName, theme)}
+                                src={user.pictureProfileUrl ? `${API_URL}${user.pictureProfileUrl}` : generateInitialsSvg(user.firstName, user.lastName, theme)}
                                 alt={`Profil de ${user.firstName} ${user.lastName}`}
-                                className='w-full h-full rounded-full object-cover border-4 border-blue-500 dark:border-blue-400 shadow-md transition-opacity duration-300 group-hover:opacity-75'
+                                className={`w-full h-full rounded-full object-cover border-4 ${cardBg} shadow-md transition-opacity duration-300 group-hover:opacity-80`}
                             />
                             <div
                                 onClick={handleImageClick}
-                                className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             >
-                                <FontAwesomeIcon icon={faCamera} size="2x" className="text-white" />
+                                <FontAwesomeIcon icon={faCamera} className="text-white text-2xl" />
                             </div>
                             <input
                                 type="file"
@@ -257,175 +248,192 @@ const Profile = () => {
                             />
                         </div>
                         
-                        {/* Section Infos Utilisateur */}
-                        <div className='text-center sm:text-left mt-4 sm:mt-0 flex-1'>
+                        {/* Infos Utilisateur */}
+                        <div className='text-center md:text-left flex-1 mb-2'>
                             <h1 className={`text-3xl sm:text-4xl font-extrabold ${textColorPrimary} mb-2`}>
                                 {user.firstName} {user.lastName}
                             </h1>
-                            <p className={`text-lg ${textColorSecondary} mb-2`}>
-                                <FontAwesomeIcon icon={faUserCircle} className='mr-2 text-blue-500' />
-                                Membre depuis le {dayjs(user.createdAt).format('DD MMMM YYYY') || 'N/A'}
+                            <p className={`text-[15px] font-medium ${textColorSecondary} mb-4 flex items-center justify-center md:justify-start gap-2`}>
+                                <FontAwesomeIcon icon={faUserCircle} className='text-blue-500' />
+                                Membre depuis {dayjs(user.createdAt).format('MMMM YYYY')}
                             </p>
-                            <div className={`flex flex-wrap items-center justify-center sm:justify-start gap-3 ${textColorSecondary}`}>
+                            
+                            <div className="flex flex-wrap justify-center md:justify-start gap-3">
                                 {user.email && (
-                                    <p className='flex items-center'>
-                                        <FontAwesomeIcon icon={faEnvelope} className='mr-2 text-gray-500' /> {user.email}
-                                    </p>
+                                    <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${pillBg} ${textColorPrimary}`}>
+                                        <FontAwesomeIcon icon={faEnvelope} className='mr-2 text-gray-400' /> {user.email}
+                                    </span>
                                 )}
                                 {user.phoneNumber && (
-                                    <p className='flex items-center'>
-                                        <FontAwesomeIcon icon={faPhone} className='mr-2 text-gray-500' /> {user.phoneNumber}
-                                    </p>
+                                    <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${pillBg} ${textColorPrimary}`}>
+                                        <FontAwesomeIcon icon={faPhone} className='mr-2 text-gray-400' /> {user.phoneNumber}
+                                    </span>
                                 )}
                             </div>
                         </div>
                         
-                        {/* Bouton Modifier le Profil */}
-                        <div className='mt-4 sm:mt-0 flex-shrink-0'>
+                        {/* Bouton Modifier */}
+                        <div className='mt-6 md:mt-0 flex-shrink-0 mb-2'>
                             <button
                                 onClick={handleOpenEditProfileModal}
-                                className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                                className="px-6 py-3 text-[15px] font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors shadow-sm"
                             >
-                                <FontAwesomeIcon icon={faEdit} /> Modifier le Profil
+                                <FontAwesomeIcon icon={faEdit} className="mr-2" /> Modifier le Profil
                             </button>
-                            <Link
-                                to="/suggestions"
-                                className="flex mt-8 items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md"
-                            >
-                                <FontAwesomeIcon icon={faEdit} />Liste des suggestions
-                            </Link>
                         </div>
                     </div>
                 </div>
 
-                <div className={`${cardBg} rounded-2xl shadow-xl p-6 mb-8 border ${borderColor}`}>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <button
-                            onClick={() => navigate('/profile/car')}
-                            className="flex flex-col items-center justify-center p-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200 text-sm md:text-base"
-                        >
-                            <FontAwesomeIcon icon={faPlusCircle} className="text-2xl mb-2" />
-                            Ajouter Un Vehicule
-                        </button>
-                        <button
-                            onClick={() => navigate('/profile/reservations')}
-                            className="flex flex-col items-center justify-center p-4 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors duration-200 text-sm md:text-base"
-                        >
-                            <FontAwesomeIcon icon={faBookmark} className="text-2xl mb-2" />
-                            Mes Réservations
-                        </button>
-                        <button
-                            onClick={() => navigate('/profile/withdrawals')}
-                            className="flex flex-col items-center justify-center p-4 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors duration-200 text-sm md:text-base"
-                        >
-                            <FontAwesomeIcon icon={faWallet} className="text-2xl mb-2" />
-                            Mes Retraits
-                        </button>
-                        <button
-                            onClick={() => navigate('/profile/licence')}
-                            className="flex flex-col items-center justify-center p-4 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white transition-colors duration-200 text-sm md:text-base"
-                        >
-                            <FontAwesomeIcon icon={faIdCard} className="text-2xl mb-2" />
-                            Gérer mon Permis
-                        </button>
-                    </div>
+                {/* --- MENU D'ACTIONS RAPIDES (Style Cartes) --- */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-10">
+                    <button
+                        onClick={() => navigate('/profile/car')}
+                        className={`${cardBg} flex flex-col items-center justify-center p-6 rounded-3xl border ${borderColor} hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all group`}
+                    >
+                        <div className="w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <FontAwesomeIcon icon={faCarSide} className="text-2xl" />
+                        </div>
+                        <span className={`text-[15px] font-semibold ${textColorPrimary}`}>Véhicules</span>
+                    </button>
+                    
+                    <button
+                        onClick={() => navigate('/profile/reservations')}
+                        className={`${cardBg} flex flex-col items-center justify-center p-6 rounded-3xl border ${borderColor} hover:shadow-md hover:border-green-300 dark:hover:border-green-700 transition-all group`}
+                    >
+                        <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/30 text-green-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <FontAwesomeIcon icon={faBookmark} className="text-2xl" />
+                        </div>
+                        <span className={`text-[15px] font-semibold ${textColorPrimary}`}>Réservations</span>
+                    </button>
+                    
+                    <button
+                        onClick={() => navigate('/profile/withdrawals')}
+                        className={`${cardBg} flex flex-col items-center justify-center p-6 rounded-3xl border ${borderColor} hover:shadow-md hover:border-purple-300 dark:hover:border-purple-700 transition-all group`}
+                    >
+                        <div className="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <FontAwesomeIcon icon={faWallet} className="text-2xl" />
+                        </div>
+                        <span className={`text-[15px] font-semibold ${textColorPrimary}`}>Retraits</span>
+                    </button>
+                    
+                    <button
+                        onClick={() => navigate('/profile/licence')}
+                        className={`${cardBg} flex flex-col items-center justify-center p-6 rounded-3xl border ${borderColor} hover:shadow-md hover:border-orange-300 dark:hover:border-orange-700 transition-all group`}
+                    >
+                        <div className="w-14 h-14 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <FontAwesomeIcon icon={faIdCard} className="text-2xl" />
+                        </div>
+                        <span className={`text-[15px] font-semibold ${textColorPrimary}`}>Permis</span>
+                    </button>
                 </div>
 
-                {user.bio && (
-                    <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-                        <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-                            <FontAwesomeIcon icon={faInfoCircle} className='mr-2 text-gray-500' />
-                            À propos de moi
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    {/* --- A PROPOS --- */}
+                    {user.bio && (
+                        <div className={`md:col-span-1 ${cardBg} rounded-3xl shadow-sm p-8 border ${borderColor}`}>
+                            <h2 className={`text-xl font-bold ${textColorPrimary} mb-4`}>
+                                À propos de moi
+                            </h2>
+                            <p className={`text-[15px] leading-relaxed ${textColorSecondary} italic`}>"{user.bio}"</p>
+                        </div>
+                    )}
+
+                    {/* --- STATISTIQUES --- */}
+                    <div className={`${user.bio ? 'md:col-span-2' : 'md:col-span-3'} ${cardBg} rounded-3xl shadow-sm p-8 border ${borderColor}`}>
+                        <h2 className={`text-xl font-bold ${textColorPrimary} mb-6`}>
+                            Statistiques
                         </h2>
-                        <p className={`${textColorSecondary} leading-relaxed`}>{user.bio}</p>
-                    </div>
-                )}
-
-                <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-                    <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-                        Statistiques et Évaluation
-                    </h2>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
-                        <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
-                            <FontAwesomeIcon icon={faCarSide} className='text-4xl text-green-500 mr-4 flex-shrink-0' />
-                            <div>
-                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user.tripsCompleted || 0}</p>
-                                <p className={`${textColorSecondary}`}>Trajets effectués</p>
+                        <div className='flex flex-wrap gap-4 sm:gap-8'>
+                            <div className="flex flex-col">
+                                <span className={`text-3xl font-extrabold ${textColorPrimary}`}>{user.tripsCompleted || 0}</span>
+                                <span className={`text-[15px] font-medium ${textColorSecondary}`}>Trajets effectués</span>
                             </div>
-                        </div>
-                        <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
-                            <FontAwesomeIcon icon={faStar} className='text-4xl text-yellow-500 mr-4 flex-shrink-0' />
-                            <div>
-                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user?.note}</p>
-                                <p className={`${textColorSecondary}`}>Note moyenne</p>
+                            <div className={`w-px h-12 ${borderColor} border-r hidden sm:block`}></div>
+                            <div className="flex flex-col">
+                                <span className="text-3xl font-extrabold text-yellow-500 flex items-center gap-2">
+                                    {user?.note ? user.note.toFixed(1) : 'N/A'} <FontAwesomeIcon icon={faStar} className="text-xl" />
+                                </span>
+                                <span className={`text-[15px] font-medium ${textColorSecondary}`}>Note moyenne</span>
                             </div>
-                        </div>
-                        <div className={`flex items-center ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} p-4 rounded-lg`}>
-                            <FontAwesomeIcon icon={faWallet} className='text-4xl text-purple-500 mr-4 flex-shrink-0' />
-                            <div>
-                                <p className={`text-xl font-semibold ${textColorPrimary}`}>{user?.balance || 0} FCFA</p>
-                                <p className={`${textColorSecondary}`}>Solde du portefeuille</p>
+                            <div className={`w-px h-12 ${borderColor} border-r hidden sm:block`}></div>
+                            <div className="flex flex-col">
+                                <span className={`text-3xl font-extrabold ${textColorPrimary}`}>{user?.balance || 0} <span className="text-lg">XAF</span></span>
+                                <span className={`text-[15px] font-medium ${textColorSecondary}`}>Solde</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-                    <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-                        <FontAwesomeIcon icon={faRoute} className='mr-2 text-blue-500' />
-                        Mes Trajets Publiés
-                    </h2>
+                {/* --- MES TRAJETS PUBLIÉS --- */}
+                <div className={`${cardBg} rounded-3xl shadow-sm p-6 sm:p-10 mb-10 border ${borderColor}`}>
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className={`text-2xl font-bold ${textColorPrimary}`}>
+                            Trajets publiés
+                        </h2>
+                        <Link to="/publish-trip" className="hidden sm:flex items-center text-blue-500 hover:text-blue-600 font-semibold text-sm transition-colors">
+                            <FontAwesomeIcon icon={faPlusCircle} className="mr-2" /> Publier un trajet
+                        </Link>
+                    </div>
+
                     {publishedTrips.length > 0 ? (
                         <>
-                            <div className='flex flex-col gap-6'>
-                                {publishedTrips.map(tripData => {
+                            <div className='flex flex-col'>
+                                {publishedTrips.map((tripData, index) => {
                                     const isPublished = tripData.trip.status === 0;
+                                    const isLast = index === publishedTrips.length - 1;
+                                    
                                     return (
-                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-start transition-transform transform hover:scale-[1.01] duration-200`}>
-                                            <div className="flex-1 w-full">
-                                                <h3 className={`text-lg font-bold ${textColorPrimary}`}>
-                                                    {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
+                                        <div key={tripData.trip.id} className={`py-6 flex flex-col lg:flex-row justify-between lg:items-center gap-6 ${!isLast ? `border-b ${borderColor}` : ''}`}>
+                                            
+                                            {/* Info Trajet */}
+                                            <div className="flex-1">
+                                                <h3 className={`text-xl font-bold ${textColorPrimary} flex items-center gap-3 mb-2`}>
+                                                    {tripData.departureArea.homeTownName}
+                                                    <FontAwesomeIcon icon={faArrowRightLong} className="text-gray-300 dark:text-gray-600 text-sm" />
+                                                    {tripData.arrivalArea.homeTownName}
                                                 </h3>
-                                                <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
-                                                    <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
-                                                    <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
+                                                <div className={`flex flex-wrap items-center gap-4 text-[15px] font-medium ${textColorSecondary}`}>
+                                                    <span className="flex items-center gap-2">
+                                                        <FontAwesomeIcon icon={faCalendarAlt} className="text-gray-400" />
+                                                        {dayjs(tripData.trip.departureDate).format('DD MMM YYYY, HH:mm')}
+                                                    </span>
+                                                    <span className="flex items-center gap-2">
+                                                        <FontAwesomeIcon icon={faMoneyBillWave} className="text-gray-400" />
+                                                        {tripData.trip.pricePerPlace} XAF
+                                                    </span>
                                                 </div>
                                             </div>
                                             
-                                            {/* Actions : Changement de 'flex-wrap justify-center md:justify-end gap-2' */}
-                                            {/* en 'flex-col gap-2 w-full md:w-auto mt-4 md:mt-0' pour une mise en page verticale */}
-                                            <div className="flex flex-col gap-2 w-full sm:w-1/2 md:w-auto mt-4 md:mt-0 flex-shrink-0">
+                                            {/* Actions */}
+                                            <div className="flex flex-wrap lg:flex-nowrap gap-2 sm:gap-3 w-full lg:w-auto">
                                                 {isPublished && (
                                                     <>
                                                         <button
-                                                            onClick={() => handleViewReservations(tripData.trip.id)} // Nouveau bouton
-                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors w-full"
+                                                            onClick={() => handleViewReservations(tripData.trip.id)}
+                                                            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-xl transition-colors"
                                                         >
-                                                            <FontAwesomeIcon icon={faUsers} /> Voir les réservations
+                                                            <FontAwesomeIcon icon={faUsers} /> Réservations
                                                         </button>
                                                         <button
                                                             onClick={() => handleEditTrip(tripData)}
-                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors w-full"
+                                                            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors"
+                                                            title="Modifier"
                                                         >
-                                                            <FontAwesomeIcon icon={faEdit} /> Modifier
+                                                            <FontAwesomeIcon icon={faEdit} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleCancelTrip(tripData.trip.id)}
-                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full"
+                                                            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:hover:bg-orange-900/40 rounded-xl transition-colors"
+                                                            title="Annuler"
                                                         >
-                                                            <FontAwesomeIcon icon={faTimesCircle} /> Annuler
+                                                            <FontAwesomeIcon icon={faTimesCircle} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteTrip(tripData)}
-                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors w-full"
+                                                            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded-xl transition-colors"
+                                                            title="Supprimer"
                                                         >
-                                                            <FontAwesomeIcon icon={faTrash} /> Supprimer
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleViewReviews(tripData.trip.id)}
-                                                            className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors w-full"
-                                                        >
-                                                            <FontAwesomeIcon icon={faStar} /> Voir les avis
+                                                            <FontAwesomeIcon icon={faTrash} />
                                                         </button>
                                                     </>
                                                 )}
@@ -437,42 +445,48 @@ const Profile = () => {
                             <Pagination page={publishedPage} totalPages={publishedTotalPages} setPage={setPublishedPage} theme={theme} />
                         </>
                     ) : (
-                        <p className={`${textColorSecondary} text-center py-4`}>Aucun trajet publié pour le moment.</p>
+                        <div className="text-center py-10">
+                            <p className={`text-[15px] ${textColorSecondary} mb-4`}>Vous n'avez aucun trajet publié pour le moment.</p>
+                            <Link to="/publish-trip" className="inline-block sm:hidden">
+                                <button className="rounded-full bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-sm">Publier un trajet</button>
+                            </Link>
+                        </div>
                     )}
                 </div>
 
-                <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-                    <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-                        <FontAwesomeIcon icon={faHistory} className='mr-2 text-purple-500' />
-                        Historique des Trajets Effectués
+                {/* --- HISTORIQUE --- */}
+                <div className={`${cardBg} rounded-3xl shadow-sm p-6 sm:p-10 mb-10 border ${borderColor}`}>
+                    <h2 className={`text-2xl font-bold ${textColorPrimary} mb-8`}>
+                        Historique
                     </h2>
                     {completedTrips.length > 0 ? (
                         <>
-                            <div className='flex flex-col gap-6'>
-                                {completedTrips.map(tripData => {
+                            <div className='flex flex-col'>
+                                {completedTrips.map((tripData, index) => {
                                     const isCompleted = tripData.trip.status === 2;
+                                    const isLast = index === completedTrips.length - 1;
+
                                     return (
-                                        <div key={tripData.trip.id} className={`${cardBg} rounded-xl p-6 shadow-sm border ${borderColor} flex flex-col md:flex-row justify-between items-center transition-transform transform hover:scale-[1.01] duration-200`}>
-                                            <div className="flex-1">
-                                                <h3 className={`text-lg font-bold ${textColorPrimary}`}>
-                                                    {tripData.departureArea.homeTownName} - {tripData.arrivalArea.homeTownName}
+                                        <div key={tripData.trip.id} className={`py-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${!isLast ? `border-b ${borderColor}` : ''}`}>
+                                            <div>
+                                                <h3 className={`text-[17px] font-bold ${textColorPrimary} mb-1 flex items-center gap-2`}>
+                                                    {tripData.departureArea.homeTownName}
+                                                    <FontAwesomeIcon icon={faChevronRight} className="text-gray-300 text-xs" />
+                                                    {tripData.arrivalArea.homeTownName}
                                                 </h3>
-                                                <div className={`text-sm ${textColorSecondary} mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2`}>
-                                                    <div className="flex items-center"><FontAwesomeIcon icon={faCalendarAlt} className='mr-2' /> Date: {dayjs(tripData.trip.departureDate).format('DD MMMM YYYY à HH:mm')}</div>
-                                                    <div className="flex items-center"><FontAwesomeIcon icon={faMoneyBillWave} className='mr-2' /> Prix: {tripData.trip.pricePerPlace} XAF</div>
+                                                <div className={`text-sm ${textColorSecondary}`}>
+                                                    {dayjs(tripData.trip.departureDate).format('DD MMM YYYY')} • {tripData.trip.pricePerPlace} XAF
                                                 </div>
                                             </div>
                                             
-                                            <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-4 md:mt-0 flex-shrink-0">
-                                                {isCompleted && (
-                                                    <button
-                                                        onClick={() => handleSubmitReview(tripData.trip.id)}
-                                                        className="flex items-center gap-1 px-3 py-2 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                                                    >
-                                                        <FontAwesomeIcon icon={faStar} /> Soumettre un avis
-                                                    </button>
-                                                )}
-                                            </div>
+                                            {isCompleted && (
+                                                <button
+                                                    onClick={() => handleSubmitReview(tripData.trip.id)}
+                                                    className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors sm:w-auto w-full mt-2 sm:mt-0"
+                                                >
+                                                    <FontAwesomeIcon icon={faStar} className="text-yellow-500" /> Laisser un avis
+                                                </button>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -480,23 +494,13 @@ const Profile = () => {
                             <Pagination page={completedPage} totalPages={completedTotalPages} setPage={setCompletedPage} theme={theme} />
                         </>
                     ) : (
-                        <p className={`${textColorSecondary} text-center py-4`}>Aucun historique de trajet à afficher.</p>
+                        <p className={`text-center text-[15px] ${textColorSecondary} py-10`}>Aucun trajet terminé à afficher.</p>
                     )}
                 </div>
             </main>
             
-            {/* Modal pour modifier un trajet (existante) */}
-            <EditTripModal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                tripToEdit={selectedTrip}
-            />
-
-            {/* NOUVEAU : Modal pour modifier le profil utilisateur */}
-            <EditProfileModal
-                isOpen={isEditProfileModalOpen}
-                onClose={handleCloseEditProfileModal}
-            />
+            <EditTripModal isOpen={isModalOpen} onClose={handleCloseModal} tripToEdit={selectedTrip} />
+            <EditProfileModal isOpen={isEditProfileModalOpen} onClose={handleCloseEditProfileModal} />
         </div>
     );
 };

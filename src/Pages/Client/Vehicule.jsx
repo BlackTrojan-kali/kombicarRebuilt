@@ -4,6 +4,7 @@ import {
   faPlusCircle, faEdit, faFileUpload, faCarSide, faTag,
   faChair, faPalette, faIdCard, faShieldAlt, faSpinner,
   faTrashAlt, faCheckCircle, faTimesCircle, faList, faFileAlt,
+  faTemperatureHigh, faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import useColorScheme from '../../hooks/useColorScheme';
@@ -44,13 +45,15 @@ const MyVehicle = () => {
     }
   }, [user]);
 
-  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : '';
+  // Design variables
+  const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50/5'; // Fond grisâtre
   const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
-  const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-600';
+  const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
   const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
-  const borderColor = theme === 'dark' ? 'border-gray-700' : 'border-gray-200';
+  const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200';
   const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50';
-  const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
+  const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-200';
+  const pillBg = theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
   const swalBg = theme === 'dark' ? '#1F2937' : '#FFFFFF';
   const swalColor = theme === 'dark' ? '#F9FAFB' : '#1F2937';
 
@@ -104,6 +107,7 @@ const MyVehicle = () => {
       cancelButtonText: 'Annuler',
       background: swalBg,
       color: swalColor,
+      borderRadius: '1.5rem'
     }).then(async (result) => {
       if (result.isConfirmed) {
         await deleteCar(carId);
@@ -150,6 +154,7 @@ const MyVehicle = () => {
       cancelButtonText: 'Annuler',
       background: swalBg,
       color: swalColor,
+      borderRadius: '1.5rem'
     }).then(async (result) => {
       if (result.isConfirmed) {
         await updateVehicleVerificationState(carId, !isVerified);
@@ -159,140 +164,159 @@ const MyVehicle = () => {
 
   if (!user) {
     return (
-      <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
-        <p className="text-xl">Veuillez vous connecter pour voir vos véhicules.</p>
+      <div className={`flex flex-col items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary} text-center px-4`}>
+        <FontAwesomeIcon icon={faInfoCircle} className="text-5xl text-blue-500 mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Veuillez vous connecter</h2>
+        <p className={textColorSecondary}>Vous devez être connecté pour gérer vos véhicules.</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
-        <p className="text-xl">
-          <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
-          Chargement de vos véhicules...
-        </p>
+      <div className={`flex flex-col items-center justify-center min-h-screen ${pageBgColor} ${textColorPrimary}`}>
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <p className={`text-lg font-medium ${textColorSecondary}`}>Chargement de vos véhicules...</p>
       </div>
     );
   }
+
   return (
-    <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-20 pb-10 transition-colors duration-300`}>
+    <div className={`${pageBgColor} ${textColorPrimary} min-h-screen pt-28 pb-20 transition-colors duration-300 font-sans`}>
       <main className='max-w-6xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className="flex justify-between items-center mb-8">
-            <h1 className={`text-4xl font-extrabold ${textColorPrimary}`}>
-            Gérer Mes Véhicules 🚗
-            </h1>
+        
+        {/* --- HEADER --- */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+            <div>
+                <h1 className={`text-3xl sm:text-4xl font-extrabold ${textColorPrimary} mb-2`}>
+                    Mes Véhicules
+                </h1>
+                <p className={`${textColorSecondary} text-[15px]`}>Gérez vos voitures, motos et documents associés.</p>
+            </div>
             <button
                 onClick={openCreateModal}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-md transition-colors duration-200 flex items-center flex-shrink-0"
             >
                 <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
                 Ajouter un Véhicule
             </button>
         </div>
 
+        {/* --- LISTE DES VÉHICULES --- */}
         {cars.length === 0 ? (
-            <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor} text-center`}>
-                <p className={`${textColorSecondary} text-lg mb-4`}>
-                Vous n'avez pas encore de véhicule enregistré.
+            <div className={`${cardBg} rounded-3xl shadow-sm p-10 mb-10 border border-dashed border-gray-300 dark:border-gray-700 text-center`}>
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FontAwesomeIcon icon={faCarSide} className="text-3xl text-gray-400" />
+                </div>
+                <h3 className={`text-2xl font-bold mb-3 ${textColorPrimary}`}>Aucun véhicule</h3>
+                <p className={`${textColorSecondary} text-[15px] mb-8 max-w-md mx-auto`}>
+                    Vous n'avez pas encore de véhicule enregistré. Ajoutez-en un pour commencer à proposer des trajets en tant que conducteur.
                 </p>
                 <button
-                onClick={openCreateModal}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center mx-auto"
+                    onClick={openCreateModal}
+                    className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-md transition-colors duration-200 inline-flex items-center"
                 >
-                <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
-                Ajouter Mon Premier Véhicule
+                    <FontAwesomeIcon icon={faPlusCircle} className="mr-2" />
+                    Ajouter Mon Premier Véhicule
                 </button>
             </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {cars.map(car => (
-                    <div key={car.id} className={`${cardBg} rounded-2xl shadow-xl p-6 border ${borderColor}`}>
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className={`text-2xl font-bold ${textColorPrimary}`}>
-                                <FontAwesomeIcon icon={faCarSide} className="mr-3 text-blue-500" />
-                                {car.brand} {car.model}
-                            </h2>
-                            <div className="flex space-x-2">
+                    <div key={car.id} className={`${cardBg} rounded-3xl shadow-sm hover:shadow-md transition-shadow p-6 sm:p-8 border ${borderColor} flex flex-col`}>
+                        
+                        {/* En-tête de la carte */}
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center flex-shrink-0">
+                                    <FontAwesomeIcon icon={faCarSide} className="text-xl" />
+                                </div>
+                                <div>
+                                    <h2 className={`text-xl font-bold ${textColorPrimary}`}>
+                                        {car.brand} {car.model}
+                                    </h2>
+                                    <p className={`text-sm font-medium ${textColorSecondary} uppercase tracking-wide mt-0.5`}>
+                                        {car.registrationCode}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {/* Statut Vérifié */}
+                            {car.isVerified ? (
+                                <span className="bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border border-green-100 dark:border-green-800/50">
+                                    <FontAwesomeIcon icon={faCheckCircle} /> Vérifié
+                                </span>
+                            ) : (
+                                <span className="bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border border-gray-200 dark:border-gray-700">
+                                    <FontAwesomeIcon icon={faTimesCircle} /> Non vérifié
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Caractéristiques (Tags) */}
+                        <div className="flex flex-wrap gap-2 mb-8">
+                            <span className={`px-3 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 ${pillBg} ${textColorPrimary}`}>
+                                <FontAwesomeIcon icon={faPalette} className="text-gray-400" /> {car.color}
+                            </span>
+                            <span className={`px-3 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 ${pillBg} ${textColorPrimary}`}>
+                                <FontAwesomeIcon icon={faChair} className="text-gray-400" /> {car.numberPlaces} places
+                            </span>
+                            <span className={`px-3 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 ${pillBg} ${textColorPrimary}`}>
+                                <FontAwesomeIcon icon={faList} className="text-gray-400" /> {vehicleTypeMap[car.vehiculeType] || 'Inconnu'}
+                            </span>
+                            {car.airConditionned && (
+                                <span className={`px-3 py-1.5 rounded-xl text-[13px] font-medium flex items-center gap-2 ${pillBg} ${textColorPrimary}`}>
+                                    <FontAwesomeIcon icon={faTemperatureHigh} className="text-blue-500" /> Climatisé
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="mt-auto">
+                            <hr className={`border-t ${borderColor} mb-4`} />
+                            
+                            {/* Actions Utilisateur (Style épuré) */}
+                            <div className="flex flex-wrap gap-2">
                                 <Link
                                     to={`/profile/car/documents/${car.id}`}
-                                    className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow-sm transition-colors duration-200"
-                                    title="Voir les documents"
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 rounded-xl font-semibold text-[14px] transition-colors"
                                 >
-                                    <FontAwesomeIcon icon={faFileAlt} />
+                                    <FontAwesomeIcon icon={faFileAlt} /> Documents
                                 </Link>
                                 <button
                                     onClick={() => openEditModal(car)}
-                                    className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md shadow-sm transition-colors duration-200"
-                                    title="Modifier"
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 rounded-xl font-semibold text-[14px] transition-colors"
                                 >
-                                    <FontAwesomeIcon icon={faEdit} />
+                                    <FontAwesomeIcon icon={faEdit} /> Modifier
                                 </button>
                                 <button
                                     onClick={() => handleDeleteCar(car.id)}
-                                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-md shadow-sm transition-colors duration-200"
+                                    className="flex items-center justify-center w-11 h-[42px] bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-400 rounded-xl transition-colors"
                                     title="Supprimer"
                                 >
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </button>
                             </div>
-                        </div>
 
-                        <div className="text-sm">
-                            <p className="flex items-center mb-1">
-                                <FontAwesomeIcon icon={faIdCard} className={`mr-2 ${textColorSecondary}`} />
-                                <strong className={textColorPrimary}>Immatriculation:</strong> {car.registrationCode}
-                            </p>
-                            <p className="flex items-center mb-1">
-                                <FontAwesomeIcon icon={faPalette} className={`mr-2 ${textColorSecondary}`} />
-                                <strong className={textColorPrimary}>Couleur:</strong> {car.color}
-                            </p>
-                            <p className="flex items-center mb-1">
-                                <FontAwesomeIcon icon={faChair} className={`mr-2 ${textColorSecondary}`} />
-                                <strong className={textColorPrimary}>Places:</strong> {car.numberPlaces}
-                            </p>
-                            <p className="flex items-center mb-1">
-                                <FontAwesomeIcon icon={faList} className={`mr-2 ${textColorSecondary}`} />
-                                <strong className={textColorPrimary}>Type:</strong> {vehicleTypeMap[car.vehiculeType] || 'Inconnu'}
-                            </p>
-                            <div className="flex items-center mb-1">
-                                {car.airConditionned ? (
-                                    <FontAwesomeIcon icon={faCheckCircle} className="mr-2 text-green-500" />
-                                ) : (
-                                    <FontAwesomeIcon icon={faTimesCircle} className="mr-2 text-red-500" />
-                                )}
-                                <p><strong className={textColorPrimary}>Climatisation:</strong> {car.airConditionned ? 'Oui' : 'Non'}</p>
-                            </div>
-                            <div className="flex items-center">
-                                {car.isVerified ? (
-                                    <FontAwesomeIcon icon={faCheckCircle} className="mr-2 text-green-500" />
-                                ) : (
-                                    <FontAwesomeIcon icon={faTimesCircle} className="mr-2 text-red-500" />
-                                )}
-                                <p><strong className={textColorPrimary}>Statut:</strong> {car.isVerified ? 'Vérifié' : 'Non Vérifié'}</p>
-                            </div>
-                            
                             {/* --- Section Admin par véhicule --- */}
                             {user?.isAdmin && (
-                                <div className="mt-4 pt-4 border-t border-dashed border-gray-600">
-                                    <h3 className={`text-base font-semibold ${textColorPrimary} mb-2 flex items-center`}>
-                                        <FontAwesomeIcon icon={faShieldAlt} className='mr-2 text-red-500' />
-                                        Admin
+                                <div className={`mt-4 pt-4 border-t border-dashed ${borderColor}`}>
+                                    <h3 className={`text-sm font-bold ${textColorPrimary} mb-3 flex items-center`}>
+                                        <FontAwesomeIcon icon={faShieldAlt} className='mr-2 text-purple-500' /> Espace Admin
                                     </h3>
                                     <button
                                         onClick={() => handleUpdateVerificationState(car.id, car.isVerified)}
-                                        className={`w-full py-2 font-semibold rounded-md shadow-sm transition-colors duration-200 flex items-center justify-center text-sm ${
-                                        car.isVerified ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600 hover:bg-green-700'
-                                        } text-white`}
+                                        className={`w-full py-2.5 rounded-xl font-semibold transition-colors duration-200 flex items-center justify-center text-[14px] ${
+                                        car.isVerified ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                        }`}
                                         disabled={loading}
                                     >
                                         {loading ? (
-                                        <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                                            <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
                                         ) : (
-                                        <>
-                                            <FontAwesomeIcon icon={car.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
-                                            {car.isVerified ? 'Annuler la Vérification' : 'Marquer comme Vérifié'}
-                                        </>
+                                            <>
+                                                <FontAwesomeIcon icon={car.isVerified ? faTimesCircle : faCheckCircle} className="mr-2" />
+                                                {car.isVerified ? 'Révoquer la Vérification' : 'Approuver le Véhicule'}
+                                            </>
                                         )}
                                     </button>
                                 </div>
@@ -303,81 +327,95 @@ const MyVehicle = () => {
             </div>
         )}
 
-        {/* --- Section Téléchargement de Documents (référencée à un véhicule sélectionné) --- */}
+        {/* --- SECTION UPLOAD DOCUMENTS --- */}
         {cars.length > 0 && (
-          <div className={`${cardBg} rounded-2xl shadow-xl p-8 mb-8 border ${borderColor}`}>
-            <h2 className={`text-2xl font-bold ${textColorPrimary} mb-4 pb-3 border-b ${borderColor}`}>
-              <FontAwesomeIcon icon={faFileUpload} className='mr-2 text-green-500' />
-              Télécharger les Documents du Véhicule
+          <div className={`${cardBg} rounded-3xl shadow-sm p-8 sm:p-10 mb-10 border ${borderColor}`}>
+            <h2 className={`text-2xl font-bold ${textColorPrimary} mb-2`}>
+              Documents du véhicule
             </h2>
-            <form onSubmit={handleUploadDocument} className="space-y-4">
+            <p className={`${textColorSecondary} text-[15px] mb-8`}>
+                Téléchargez votre carte grise, assurance ou photos pour faire vérifier votre véhicule.
+            </p>
+
+            <form onSubmit={handleUploadDocument} className="max-w-3xl space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label htmlFor="selectCar" className={`block text-sm font-bold ${textColorPrimary} mb-2`}>
+                            Véhicule concerné
+                        </label>
+                        <select
+                            id="selectCar"
+                            value={selectedCarId || ''}
+                            onChange={(e) => setSelectedCarId(e.target.value)}
+                            className={`w-full p-3.5 rounded-xl ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium`}
+                            required
+                        >
+                            <option value="" disabled>Sélectionnez un véhicule...</option>
+                            {cars.map(car => (
+                                <option key={car.id} value={car.id}>
+                                    {car.brand} {car.model} ({car.registrationCode})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label htmlFor="documentType" className={`block text-sm font-bold ${textColorPrimary} mb-2`}>
+                            Type de document
+                        </label>
+                        <select
+                            id="documentType"
+                            value={documentType}
+                            onChange={handleDocumentTypeChange}
+                            className={`w-full p-3.5 rounded-xl ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium`}
+                            required
+                        >
+                            <option value="" disabled>Sélectionnez le type...</option>
+                            {Object.entries(documentTypeMap).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                    {label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
                 <div>
-                    <label htmlFor="selectCar" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>
-                        Sélectionner un Véhicule :
-                    </label>
-                    <select
-                        id="selectCar"
-                        value={selectedCarId || ''}
-                        onChange={(e) => setSelectedCarId(e.target.value)}
-                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        required
+                    <label htmlFor="documentFile" className={`block text-sm font-bold ${textColorPrimary} mb-2`}>Fichier (Image ou PDF)</label>
+                    <div className="flex items-center">
+                        <input
+                            type="file"
+                            id="documentFile"
+                            onChange={handleDocumentFileChange}
+                            className={`w-full p-3 rounded-xl ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400 cursor-pointer`}
+                            required
+                        />
+                    </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-end">
+                    <button
+                        type="submit"
+                        className={`w-full sm:w-auto py-3.5 px-8 rounded-full font-bold transition-all duration-200 ${
+                            isUploading || !selectedCarId || !documentFile || !documentType
+                            ? 'bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+                        } flex items-center justify-center`}
+                        disabled={isUploading || !selectedCarId || !documentFile || !documentType}
                     >
-                        <option value="">Sélectionner un véhicule</option>
-                        {cars.map(car => (
-                            <option key={car.id} value={car.id}>
-                                {car.brand} {car.model} ({car.registrationCode})
-                            </option>
-                        ))}
-                    </select>
+                        {isUploading ? (
+                            <>
+                                <FontAwesomeIcon icon={faSpinner} spin className="mr-3" />
+                                Téléchargement...
+                            </>
+                        ) : (
+                            <>
+                                <FontAwesomeIcon icon={faFileUpload} className="mr-3" />
+                                Envoyer le document
+                            </>
+                        )}
+                    </button>
                 </div>
-                <div>
-                    <label htmlFor="documentType" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Type de Document :</label>
-                    <select
-                        id="documentType"
-                        value={documentType}
-                        onChange={handleDocumentTypeChange}
-                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        required
-                    >
-                        <option value="">Sélectionner un type</option>
-                        {Object.entries(documentTypeMap).map(([value, label]) => (
-                            <option key={value} value={value}>
-                                {label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="documentFile" className={`block text-sm font-medium ${textColorPrimary} mb-1`}>Fichier :</label>
-                    <input
-                        type="file"
-                        id="documentFile"
-                        onChange={handleDocumentFileChange}
-                        className={`w-full p-3 rounded-lg ${inputBg} ${textColorPrimary} border ${inputBorder} file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100`}
-                        required
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200 ${
-                        isUploading || !selectedCarId || !documentFile || !documentType
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700 text-white shadow-md'
-                    } flex items-center justify-center`}
-                    disabled={isUploading || !selectedCarId || !documentFile || !documentType}
-                >
-                    {isUploading ? (
-                        <>
-                            <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
-                            Téléchargement...
-                        </>
-                    ) : (
-                        <>
-                            <FontAwesomeIcon icon={faFileUpload} className="mr-2" />
-                            Télécharger le Document
-                        </>
-                    )}
-                </button>
             </form>
           </div>
         )}
@@ -389,7 +427,6 @@ const MyVehicle = () => {
         onClose={closeCarModal}
         title={editingCarData ? "Modifier le Véhicule" : "Ajouter un Nouveau Véhicule"}
         size="lg"
-       
       >
         <CarForm
           initialCarData={editingCarData}
@@ -397,7 +434,6 @@ const MyVehicle = () => {
           isEditing={!!editingCarData}
           isLoading={loading}
           theme={theme}
-          
         />
       </Modal>
     </div>
