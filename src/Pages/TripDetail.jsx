@@ -1,4 +1,4 @@
-import { faCalendar, faRoad, faInfoCircle, faCar, faCircle, faCommentDots, faUsers, faMap, faTemperatureHigh } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faRoad, faInfoCircle, faCar, faCircle, faCommentDots, faUsers, faMap, faTemperatureHigh, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -15,10 +15,18 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 // --- CORRECTION BUG LEAFLET (Icônes manquantes) ---
-// Leaflet a un petit bug connu avec React où les icônes par défaut disparaissent. Ceci le corrige.
 import iconMarker from 'leaflet/dist/images/marker-icon.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// L'application de la correction doit se faire ici pour écraser la configuration par défaut
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: iconRetina,
+    iconUrl: iconMarker,
+    shadowUrl: iconShadow
+});
+
 dayjs.locale('fr');
 
 const TripDetail = () => {
@@ -28,6 +36,9 @@ const TripDetail = () => {
     const [trip, setTrip] = useState(null);
     const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // État pour le bouton Back to Top
+    const [showTopBtn, setShowTopBtn] = useState(false);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -38,6 +49,20 @@ const TripDetail = () => {
         };
         fetchDetails();
     }, [tripId, user]); 
+
+    // Écouteur d'événement pour afficher/masquer le bouton Back to Top
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 300) {
+                setShowTopBtn(true);
+            } else {
+                setShowTopBtn(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -50,8 +75,8 @@ const TripDetail = () => {
         }
     };
 
-    // Variables de couleurs avec le fond grisâtre demandé
-    const pageBg = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'; // Fond grisâtre
+    // Variables de couleurs
+    const pageBg = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'; 
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
     const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200';
@@ -118,7 +143,7 @@ const TripDetail = () => {
     const placesLeft = tripData.placesLeft;
 
     return (
-        <div className={`min-h-screen pt-28 pb-20 ${pageBg} ${textColorPrimary} transition-colors duration-300 font-sans`}>
+        <div className={`min-h-screen pt-28 pb-20 ${pageBg} ${textColorPrimary} transition-colors duration-300 font-sans relative`}>
             
             <main className='max-w-5xl mx-auto px-4 sm:px-6 lg:px-8'>
                 
@@ -172,10 +197,9 @@ const TripDetail = () => {
                         <div className="mb-10">
                             <h2 className={`text-xl font-bold mb-4 ${textColorPrimary}`}>Itinéraire</h2>
                             
-                            {/* Les coordonnées. Remplacez "latitude" et "longitude" par les vrais noms de vos champs API si différents */}
                             <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden shadow-inner relative z-0">
                                 {(() => {
-                                    // Coordonnées de fallback (Yaoundé -> Douala) si l'API ne renvoie pas de coordonnées exactes
+                                    // Coordonnées de fallback (Yaoundé -> Douala) 
                                     const depLat = departureArea?.latitude || 3.8480;
                                     const depLng = departureArea?.longitude || 11.5021;
                                     const arrLat = arrivalArea?.latitude || 4.0511;
@@ -183,12 +207,12 @@ const TripDetail = () => {
 
                                     const positionDepart = [depLat, depLng];
                                     const positionArrivee = [arrLat, arrLng];
-                                    const bounds = [positionDepart, positionArrivee]; // Pour centrer la carte sur les deux points
+                                    const bounds = [positionDepart, positionArrivee];
 
                                     return (
                                         <MapContainer 
                                             bounds={bounds} 
-                                            scrollWheelZoom={false} // Désactivé pour ne pas gêner le scroll de la page
+                                            scrollWheelZoom={false}
                                             className="h-full w-full"
                                         >
                                             <TileLayer
@@ -290,10 +314,12 @@ const TripDetail = () => {
                 </div>
             </main>
 
+          
+
             {/* Modal de réservation */}
             {isModalOpen && trip && <ReservationModal trip={trip} onClose={handleCloseModal} />}
         </div>
     );
 };
-
+ 
 export default TripDetail;
