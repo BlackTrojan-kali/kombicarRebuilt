@@ -206,7 +206,7 @@ const Home = () => {
             />
 
             <main className={`${SECTION_PADDING} pt-40 lg:pt-32 pb-16`}>
-                
+<br /><br /><br />
                 {/* --- SECTION: Réservations Actives --- */}
                 {user && (
                     <section className='mb-32 max-w-7xl mx-auto'>
