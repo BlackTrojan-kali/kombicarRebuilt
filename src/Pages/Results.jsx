@@ -146,7 +146,7 @@ const Results = () => {
     };
 
     // Variables de style
-    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'; // Fond gris clair typique BlaBlaCar
+    const pageBgColor = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50/5'; // Fond gris clair typique BlaBlaCar
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
     const filterLabelColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';

@@ -76,7 +76,7 @@ const TripDetail = () => {
     };
 
     // Variables de couleurs
-    const pageBg = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'; 
+    const pageBg = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50/5'; 
     const textColorPrimary = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const textColorSecondary = theme === 'dark' ? 'text-gray-400' : 'text-gray-500';
     const borderColor = theme === 'dark' ? 'border-gray-800' : 'border-gray-200';
@@ -158,7 +158,7 @@ const TripDetail = () => {
                     <div className='w-full md:w-3/5 flex flex-col'>
                         
                         {/* 1. Itinéraire Vertical */}
-                        <div className="mb-10">
+                        <div className="mb-10 bg-white p-5 rounded-md border-2">
                             <div className="flex flex-col relative">
                                 {/* Départ */}
                                 <div className="flex items-start gap-6 relative z-10">
