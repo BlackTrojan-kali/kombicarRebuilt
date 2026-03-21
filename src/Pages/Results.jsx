@@ -171,7 +171,7 @@ const Results = () => {
             <div className='pt-[180px] lg:pt-[100px] relative z-20 max-w-7xl mx-auto'>
                 <SearchBar />
             </div>
-
+<br /><br /><br /><br />
             <main className='px-4 sm:px-6 lg:px-12 xl:px-24 py-10 max-w-6xl mx-auto mt-20 lg:mt-8'>
                 
                 {/* En-tête de recherche dynamique type BlaBlaCar */}

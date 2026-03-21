@@ -253,7 +253,7 @@ const Home = () => {
                         )}
                     </section>
                 )}
-
+                <br /><br /><br />
                 {/* --- SECTION: Comment ça marche --- */}
                 <section className='mb-32 max-w-6xl mx-auto'>
                     <h2 className={`text-center font-bold text-3xl sm:text-4xl mb-16 ${colors.text}`}>Comment ça marche ?</h2>
