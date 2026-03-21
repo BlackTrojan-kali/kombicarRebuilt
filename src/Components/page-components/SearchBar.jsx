@@ -192,7 +192,7 @@ const SearchBar = () => {
                         <input
                             type="number"
                             min="0"
-                            placeholder='Prix Max (ex: 50€)'
+                            placeholder='Prix Max (ex: 50 XAF)'
                             value={maxPrice === 0 ? '' : maxPrice}
                             onChange={(e) => setMaxPrice(Number(e.target.value))}
                             className='flex-grow outline-none bg-transparent placeholder-gray-400 text-base font-medium w-full'
