@@ -88,6 +88,7 @@ import VtcAdminDisputeDetail from "./Pages/Dashboard/VTC/VtcAdminDisputeDetail";
 import VtcAdminDisputes from "./Pages/Dashboard/VTC/VtcAdminDisputes";
 import VtcAdminReviews from "./Pages/Dashboard/VTC/VtcAdminReviews";
 import CustomLocationsPage from "./Pages/Dashboard/VTC/CustomLocationsPage";
+import DeleteAccountRequest from "./Pages/DeleteAccountRequest";
 const Routes = () => {
   const route = useRoutes([
     {
@@ -113,6 +114,10 @@ const Routes = () => {
         {
           path: "taxi",
           element: <Taxi />,
+        },
+        {
+          path:"delete-account",
+          element:<DeleteAccountRequest/>
         },
         {
           path:"/contact",
