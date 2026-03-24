@@ -2,15 +2,16 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faShieldAlt, faMapMarkerAlt, faCamera, faUserLock, 
-    faCreditCard, faShareNodes, faTrashAlt, faEnvelope 
+    faCreditCard, faShareNodes, faTrashAlt, faEnvelope,
+    faMicrophone, faAddressBook, faBell, faPhone
 } from '@fortawesome/free-solid-svg-icons';
 
 const PrivacyPolicy = () => {
     // Date de dernière mise à jour
-    const lastUpdated = "23 Février 2026";
+    const lastUpdated = "24 Mars 2026";
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+        <div className="min-h-screen bg-gray-50/5 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
             <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 
                 {/* En-tête */}
@@ -30,12 +31,12 @@ const PrivacyPolicy = () => {
                     <section>
                         <p className="leading-relaxed">
                             Chez <strong>KombiCar</strong>, votre vie privée n'est pas une option, c'est une priorité absolue. 
-                            Pour vous offrir un service de VTC et de covoiturage fiable et sécurisé, nous devons collecter certaines informations. 
-                            Cette page vous explique de manière claire et transparente <strong>quelles données nous collectons, pourquoi nous en avons besoin, et comment nous les protégeons</strong>.
+                            Pour vous offrir un service de VTC et de covoiturage fiable et sécurisé, nous devons collecter certaines informations via les permissions de votre appareil. 
+                            Cette page vous explique de manière claire et transparente <strong>quelles données et permissions nous demandons, pourquoi nous en avons besoin, et comment nous les protégeons</strong>.
                         </p>
                     </section>
 
-                    {/* La Géolocalisation */}
+                    {/* La Géolocalisation (Crucial pour Play Store) */}
                     <section className="flex gap-4 md:gap-6">
                         <div className="flex-shrink-0 mt-1">
                             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xl">
@@ -43,11 +44,11 @@ const PrivacyPolicy = () => {
                             </div>
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Géolocalisation (Votre position exacte)</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Géolocalisation (Premier plan et Arrière-plan)</h2>
                             <p className="mb-3">La position GPS est le cœur de notre application. Voici précisément ce que nous en faisons :</p>
                             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                <li><strong>Pour les passagers :</strong> Nous l'utilisons pour localiser votre point de départ, trouver le chauffeur le plus proche et calculer le prix de la course. La position n'est suivie que lorsque l'application est ouverte ou qu'une course est active.</li>
-                                <li><strong>Pour les chauffeurs :</strong> Votre position est suivie en arrière-plan lorsque vous êtes "En ligne". Cela permet de vous attribuer des courses et de fournir un tracé GPS précis au passager et à l'administration pour garantir la sécurité du trajet.</li>
+                                <li><strong>Passagers (Position au premier plan) :</strong> Nous l'utilisons pour localiser votre point de départ, trouver le chauffeur le plus proche et estimer le prix. La position n'est suivie que lorsque l'application est ouverte ou qu'une course est active.</li>
+                                <li><strong>Chauffeurs (Position en arrière-plan) :</strong> KombiCar collecte les données de localisation en arrière-plan pour permettre l'attribution de courses, calculer la distance parcourue et garantir la sécurité des trajets, <strong>même lorsque l'application est fermée ou non utilisée</strong>, à condition que le chauffeur soit en ligne.</li>
                                 <li><strong>Sécurité :</strong> En cas de litige ou de problème de sécurité, le tracé de la course est conservé sur nos serveurs sécurisés pour audit.</li>
                             </ul>
                         </div>
@@ -61,25 +62,64 @@ const PrivacyPolicy = () => {
                             </div>
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Appareil Photo et Fichiers</h2>
-                            <p className="mb-3">Nous ne déclenchons <strong>jamais</strong> votre appareil photo à votre insu. Nous vous demandons cet accès uniquement pour :</p>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Appareil Photo, Stockage et Documents</h2>
+                            <p className="mb-3">Nous demandons l'accès à votre caméra et à votre galerie (fichiers/médias) uniquement pour :</p>
                             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                                <li><strong>Vérification d'identité (KYC) :</strong> Scanner ou photographier votre pièce d'identité et votre permis de conduire (obligatoire pour les chauffeurs) afin de prévenir la fraude.</li>
-                                <li><strong>Validation des véhicules :</strong> Prendre en photo l'état du véhicule (extérieur, intérieur, plaque d'immatriculation) pour garantir le confort des passagers.</li>
+                                <li><strong>Vérification d'identité (KYC) :</strong> Scanner ou télécharger vos documents officiels (pièce d'identité, permis de conduire, assurance) afin de certifier les comptes.</li>
+                                <li><strong>Validation des véhicules :</strong> Ajouter les informations et photos du véhicule (marque, modèle, plaque d'immatriculation, état général) pour le dossier du chauffeur.</li>
                                 <li><strong>Photo de profil :</strong> Permettre aux passagers et chauffeurs de se reconnaître lors du point de rencontre.</li>
                             </ul>
                         </div>
                     </section>
 
+                    {/* Microphone et Appels */}
+                    <section className="flex gap-4 md:gap-6">
+                        <div className="flex-shrink-0 mt-1">
+                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center text-xl">
+                                <FontAwesomeIcon icon={faMicrophone} />
+                            </div>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Microphone et Appels Téléphoniques</h2>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                <li><strong>Appels intégrés :</strong> L'accès au microphone (<FontAwesomeIcon icon={faPhone} className="mx-1" />) permet aux chauffeurs et aux passagers de s'appeler via l'application (VoIP) pour coordonner le point de rendez-vous, sans révéler leurs numéros de téléphone personnels.</li>
+                                <li><strong>Enregistrement de sécurité :</strong> En cas d'urgence signalée via notre bouton SOS, l'application peut utiliser le microphone pour enregistrer l'audio de l'habitacle à des fins d'enquête et de sécurité.</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    {/* Contacts et Notifications */}
+                    <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+                        <section>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                                <FontAwesomeIcon icon={faAddressBook} className="text-orange-500" />
+                                Contacts
+                            </h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                L'accès à votre répertoire téléphonique est optionnel. Il est demandé uniquement si vous souhaitez utiliser la fonction <strong>"Partager ma course"</strong> avec un proche de confiance, définir des contacts d'urgence (SOS), ou inviter des amis via notre programme de parrainage.
+                            </p>
+                        </section>
+
+                        <section>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                                <FontAwesomeIcon icon={faBell} className="text-yellow-500" />
+                                Notifications (Push)
+                            </h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                Nous demandons l'autorisation de vous envoyer des notifications pour vous alerter de l'arrivée de votre chauffeur, des mises à jour de statut de votre course, des messages reçus dans le chat interne, ou de la validation de vos documents.
+                            </p>
+                        </section>
+                    </div>
+
                     {/* Données Personnelles et Financières */}
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                         <section>
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
-                                <FontAwesomeIcon icon={faUserLock} className="text-purple-500" />
+                                <FontAwesomeIcon icon={faUserLock} className="text-indigo-500" />
                                 Données Personnelles
                             </h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                Lors de votre inscription, nous collectons votre nom, prénom, adresse e-mail et numéro de téléphone. Ces informations servent à créer votre compte, à vous envoyer des reçus de course, et permettent au chauffeur/passager de vous contacter via l'application. <strong>Votre véritable numéro de téléphone peut être masqué</strong> lors des appels via la plateforme pour protéger votre vie privée.
+                                Nous collectons votre nom, prénom, adresse e-mail et numéro de téléphone pour gérer votre compte et éditer vos factures. <strong>Votre véritable numéro de téléphone peut être masqué</strong> lors des appels via la plateforme pour protéger votre vie privée.
                             </p>
                         </section>
 
@@ -89,7 +129,7 @@ const PrivacyPolicy = () => {
                                 Données Financières
                             </h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                Si vous utilisez des paiements par carte bancaire ou Mobile Money, vos données sont traitées par nos prestataires de paiement certifiés (ex: Stripe, opérateurs locaux). <strong>KombiCar ne stocke jamais les numéros complets de votre carte bancaire</strong> sur ses serveurs. Nous conservons uniquement l'historique de vos transactions, recharges et retraits.
+                                Vos paiements par carte bancaire ou Mobile Money sont traités par nos prestataires de paiement certifiés. <strong>KombiCar ne stocke jamais vos informations de paiement complètes</strong>. Nous conservons uniquement l'historique de vos transactions.
                             </p>
                         </section>
                     </div>
@@ -105,11 +145,11 @@ const PrivacyPolicy = () => {
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Avec qui partageons-nous vos données ?</h2>
-                            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">Vos données ne sont jamais vendues à des tiers à des fins publicitaires. Elles sont partagées uniquement dans ces contextes :</p>
+                            <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">Vos données ne sont jamais vendues à des tiers. Elles sont partagées uniquement dans ces contextes :</p>
                             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                                 <li><strong>Entre utilisateurs :</strong> Le chauffeur voit le prénom, la note et la destination du passager. Le passager voit le prénom, la photo, la plaque d'immatriculation et la position en temps réel du chauffeur.</li>
-                                <li><strong>Prestataires de services :</strong> Hébergeurs (serveurs cloud), services de paiement, et services d'envoi de SMS/Emails.</li>
-                                <li><strong>Autorités légales :</strong> Sur réquisition judiciaire valide, nous pouvons être tenus de fournir le tracé GPS ou les informations d'un trajet à la police en cas d'incident grave.</li>
+                                <li><strong>Prestataires de services :</strong> Hébergeurs cloud, services de paiement, et services de communication (SMS/Emails).</li>
+                                <li><strong>Autorités légales :</strong> Sur réquisition judiciaire valide, nous pouvons fournir les informations d'un trajet aux autorités en cas d'incident grave.</li>
                             </ul>
                         </div>
                     </section>
@@ -125,7 +165,7 @@ const PrivacyPolicy = () => {
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Vos droits et suppression (Droit à l'oubli)</h2>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                                 Vous êtes propriétaire de vos données. À tout moment, depuis les paramètres de l'application, vous pouvez demander la <strong>suppression définitive de votre compte</strong>. 
-                                Une fois la demande effectuée, vos données personnelles seront effacées de nos bases de données sous 30 jours, à l'exception des données financières et des historiques de courses que nous sommes légalement obligés de conserver à des fins comptables et fiscales.
+                                Une fois la demande effectuée, vos données personnelles seront effacées sous 30 jours, à l'exception des données financières et des historiques de courses que nous sommes légalement tenus de conserver à des fins fiscales.
                             </p>
                         </div>
                     </section>
