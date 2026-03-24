@@ -1,36 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faExclamationTriangle, faUserSlash, faArrowLeft, 
-    faFileAlt, faCar, faCheckCircle, faEnvelope
+    faFileAlt, faCar, faCheckCircle, faEnvelope,
+    faIdCard, faCloudUploadAlt, faTimes
 } from '@fortawesome/free-solid-svg-icons';
 
 const DeleteAccountRequest = () => {
     const [formData, setFormData] = useState({
         email: '',
         reason: '',
-        confirmText: ''
+        confirmText: '',
+        identityDoc: null
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    
+    const fileInputRef = useRef(null);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({ ...formData, identityDoc: file });
+        }
+    };
+
+    const removeFile = () => {
+        setFormData({ ...formData, identityDoc: null });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Sécurité : on exige que l'utilisateur tape "SUPPRIMER"
-        if (formData.confirmText !== 'SUPPRIMER') return;
+        if (formData.confirmText !== 'SUPPRIMER' || !formData.identityDoc) return;
         
         setIsSubmitting(true);
         
-        // Simulation de l'appel API vers votre backend
-        // Ici, vous traiterez la demande pour le UserID correspondant
+        // Création du FormData pour l'envoi de fichier + texte
+        const submitData = new FormData();
+        submitData.append('email', formData.email);
+        submitData.append('reason', formData.reason);
+        submitData.append('identityDoc', formData.identityDoc); // Sera traité comme un Document côté serveur
+        
+        // Simulation de l'appel API
         setTimeout(() => {
             setIsSubmitting(false);
             setIsSuccess(true);
-        }, 1500);
+        }, 2000);
     };
 
     if (isSuccess) {
@@ -40,7 +62,7 @@ const DeleteAccountRequest = () => {
                     <FontAwesomeIcon icon={faCheckCircle} className="text-6xl text-green-500 mb-6" />
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Demande envoyée</h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-8">
-                        Votre demande de suppression a bien été transmise à nos équipes. Un e-mail de confirmation vous sera envoyé, et vos données seront définitivement effacées sous 30 jours.
+                        Votre demande de suppression a bien été transmise. Notre équipe va vérifier votre pièce d'identité. Un e-mail de confirmation vous sera envoyé, et vos données seront définitivement effacées sous 30 jours.
                     </p>
                     <button 
                         onClick={() => window.history.back()}
@@ -100,7 +122,7 @@ const DeleteAccountRequest = () => {
                             <div>
                                 <strong className="block text-gray-900 dark:text-gray-200">Véhicules enregistrés</strong>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    Toutes les caractéristiques de vos véhicules (marque, modèle, couleur, code d'immatriculation, nombre de places, type de véhicule et présence de climatisation) seront effacées de la base de données.
+                                    Toutes les caractéristiques de vos véhicules (marque, modèle, couleur, immatriculation, configuration) seront effacées.
                                 </span>
                             </div>
                         </li>
@@ -111,7 +133,7 @@ const DeleteAccountRequest = () => {
                             <div>
                                 <strong className="block text-gray-900 dark:text-gray-200">Documents et Justificatifs</strong>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    Les métadonnées de vos documents (noms, types, dates de création) ainsi que les URL menant à vos fichiers stockés seront définitivement révoquées et supprimées.
+                                    Vos fichiers stockés et leurs métadonnées associées seront définitivement révoqués et supprimés.
                                 </span>
                             </div>
                         </li>
@@ -140,6 +162,59 @@ const DeleteAccountRequest = () => {
                                     placeholder="votre.email@exemple.com"
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Zone d'upload du document d'identité */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Pièce d'identité (Vérification) <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                Pour des raisons de sécurité, veuillez fournir une copie de la pièce d'identité associée à ce compte (CNI, Passeport, Permis). Ce document sera supprimé immédiatement après la vérification.
+                            </p>
+                            
+                            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-xl hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-gray-50 dark:bg-gray-800/50">
+                                <div className="space-y-1 text-center w-full">
+                                    {!formData.identityDoc ? (
+                                        <>
+                                            <FontAwesomeIcon icon={faIdCard} className="mx-auto h-12 w-12 text-gray-400" />
+                                            <div className="flex justify-center text-sm text-gray-600 dark:text-gray-400 mt-4">
+                                                <label htmlFor="identityDoc" className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-3 py-1 shadow-sm border border-gray-200 dark:border-gray-600">
+                                                    <span>Sélectionner un fichier</span>
+                                                    <input 
+                                                        id="identityDoc" 
+                                                        name="identityDoc" 
+                                                        type="file" 
+                                                        className="sr-only" 
+                                                        accept="image/jpeg, image/png, application/pdf"
+                                                        onChange={handleFileChange}
+                                                        ref={fileInputRef}
+                                                    />
+                                                </label>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-2">PNG, JPG, PDF jusqu'à 5MB</p>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center justify-between bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div className="flex items-center overflow-hidden">
+                                                <FontAwesomeIcon icon={faFileAlt} className="text-blue-500 text-xl mr-3 flex-shrink-0" />
+                                                <div className="truncate text-left">
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{formData.identityDoc.name}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{(formData.identityDoc.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button" 
+                                                onClick={removeFile}
+                                                className="ml-4 flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors p-2"
+                                                aria-label="Supprimer le fichier"
+                                            >
+                                                <FontAwesomeIcon icon={faTimes} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -181,9 +256,9 @@ const DeleteAccountRequest = () => {
 
                         <button 
                             type="submit" 
-                            disabled={formData.confirmText !== 'SUPPRIMER' || isSubmitting}
+                            disabled={formData.confirmText !== 'SUPPRIMER' || !formData.identityDoc || isSubmitting}
                             className={`w-full py-4 px-6 rounded-lg text-white font-bold text-lg transition-all duration-200 
-                                ${formData.confirmText === 'SUPPRIMER' && !isSubmitting
+                                ${formData.confirmText === 'SUPPRIMER' && formData.identityDoc && !isSubmitting
                                     ? 'bg-red-600 hover:bg-red-700 shadow-md hover:shadow-lg transform hover:-translate-y-0.5' 
                                     : 'bg-red-400 dark:bg-red-900 cursor-not-allowed opacity-70'
                                 }`}
@@ -194,10 +269,10 @@ const DeleteAccountRequest = () => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Traitement en cours...
+                                    Envoi en cours...
                                 </span>
                             ) : (
-                                "Confirmer la suppression"
+                                "Envoyer la demande de suppression"
                             )}
                         </button>
                     </form>
