@@ -32,6 +32,7 @@ const COUNTRIES = {
     TG: { code: 228, name: 'Togo' },
     GN: { code: 224, name: 'Guinée' },
     BF: { code: 226, name: 'Burkina Faso' },
+    GA: { code: 241, name: 'Gabon' },
     FR: { code: 33, name: 'France' },
 };
 

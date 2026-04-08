@@ -7,7 +7,7 @@ const SignInAdmin = () => {
   // On ne récupère plus le "loading" global du contexte pour éviter les conflits de chargement infini
   const { user, loginAdmin, loginAdminConfirmCode } = useAuth();
   
-  console.log(user);
+ 
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
