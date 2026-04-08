@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '../../hooks/useAuth'; // Assurez-vous que le chemin d'importation est correct
+import useAuth from '../../hooks/useAuth'; 
 
 const SignInAdmin = () => {
   const navigate = useNavigate();
-  const { user, loginAdmin, loginAdminConfirmCode, loading } = useAuth();
+  // On ne récupère plus le "loading" global du contexte pour éviter les conflits de chargement infini
+  const { user, loginAdmin, loginAdminConfirmCode } = useAuth();
   
-  // Console.log conservé selon votre logique originale
   console.log(user);
 
   const [email, setEmail] = useState('');
@@ -14,6 +14,9 @@ const SignInAdmin = () => {
   const [confirmationCode, setConfirmationCode] = useState('');
   const [error, setError] = useState('');
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  
+  // État local strict pour gérer le verrouillage du bouton
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSignIn = async (e) => {
     e.preventDefault(); 
@@ -29,12 +32,23 @@ const SignInAdmin = () => {
         return; 
     }
 
-    const result = await loginAdmin({ email, password });
+    setIsSubmitting(true); // On verrouille le bouton
     
-    if (result && result.twoFactorRequired) {
-      setTwoFactorRequired(true);
-    } else if (result && result.success) {
-      navigate('/admin/dashboard');
+    try {
+      // On attend le résultat de la fonction
+      const result = await loginAdmin({ email, password });
+      
+      if (result && result.twoFactorRequired) {
+        setTwoFactorRequired(true);
+      } else if (result && result.success) {
+        navigate('/admin/dashboard');
+      }
+    } catch (err) {
+      // Capture au cas où loginAdmin renvoie une exception non gérée qui ferait planter l'UI
+      console.error("Erreur inattendue dans le composant SignIn :", err);
+    } finally {
+      // Le bloc finally s'exécute TOUJOURS, qu'il y ait un succès ou un crash.
+      setIsSubmitting(false); // On déverrouille le bouton
     }
   };
 
@@ -47,10 +61,19 @@ const SignInAdmin = () => {
       return;
     }
 
-    const success = await loginAdminConfirmCode({ email, password, code: confirmationCode });
-
-    if (success) {
-      navigate('/admin/dashboard');
+    setIsSubmitting(true); // On verrouille le bouton
+    
+    try {
+      const success = await loginAdminConfirmCode({ email, password, code: confirmationCode });
+      
+      if (success) {
+        navigate('/admin/dashboard');
+      }
+    } catch (err) {
+      console.error("Erreur inattendue lors de la confirmation :", err);
+    } finally {
+      // Le bouton se déverrouille quoi qu'il arrive
+      setIsSubmitting(false); 
     }
   };
 
@@ -59,7 +82,6 @@ const SignInAdmin = () => {
       
       {/* Panneau de gauche - Décoratif (Caché sur mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden items-center justify-center">
-        {/* Cercles décoratifs */}
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
         
@@ -89,7 +111,7 @@ const SignInAdmin = () => {
             </p>
           </div>
 
-          {/* Message d'erreur */}
+          {/* Message d'erreur local (si la validation côté client échoue) */}
           {error && (
             <div className="flex items-center p-4 text-sm text-red-800 border border-red-200 rounded-xl bg-red-50">
               <svg className="flex-shrink-0 inline w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -153,11 +175,11 @@ const SignInAdmin = () => {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white transition-all duration-200
-                           ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
+                           ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'}`}
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -192,11 +214,11 @@ const SignInAdmin = () => {
               
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white transition-all duration-200
-                           ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900'}`}
+                           ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900'}`}
               >
-                {loading ? (
+                {isSubmitting ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

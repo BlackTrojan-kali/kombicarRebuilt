@@ -191,11 +191,11 @@ export function UsersAdminContextProvider({ children }) {
             const response = await api.put(url);
             toast.success("Pays d'accès de l'administrateur mis à jour avec succès !");
            
-      // 2. Rafraîchissement automatique du Token Admin
-      const currentRefreshToken = localStorage.getItem('refreshToken');
-      if (currentRefreshToken) {
-          await refreshAdminToken(currentRefreshToken);
-      }
+            // Rafraîchissement automatique du Token Admin
+            const currentRefreshToken = localStorage.getItem('refreshToken');
+            if (currentRefreshToken) {
+                await refreshAdminToken(currentRefreshToken);
+            }
       
             return response.data;
         } catch (error) {
@@ -209,7 +209,7 @@ export function UsersAdminContextProvider({ children }) {
         }
     };
 
-    // 8. NOUVELLE FONCTION AJOUTÉE : GET /api/v1/users/admin/verify-user-email/{email}
+    // 8. GET /api/v1/users/admin/verify-user-email/{email}
     const verifyUserEmailAsSuperAdmin = async (email) => {
         setIsLoading(true);
         setError(null);
@@ -229,6 +229,30 @@ export function UsersAdminContextProvider({ children }) {
         }
     };
 
+    // 9. PUT /api/v1/users/admin/update-password
+    const updateUserPasswordAsSuperAdmin = async (userId, newPassword) => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const url = `/api/v1/users/admin/update-password`;
+            const payload = {
+                userId: userId,
+                newPassword: newPassword
+            };
+            const response = await api.put(url, payload);
+            toast.success("Le mot de passe a été mis à jour avec succès.");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour du mot de passe (Super Admin):", error);
+            const errorMessage = error.response?.data?.detail || error.response?.data?.message || "Échec de la mise à jour du mot de passe.";
+            setError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     // ###################################
     // # EXPORTATION DE DONNÉES
     // ###################################
@@ -238,21 +262,17 @@ export function UsersAdminContextProvider({ children }) {
         setIsExportingUsers(true);
         setExportUsersError(null);
         try {
-            // responseType: 'blob' est requis pour gérer les fichiers binaires/fichiers téléchargés
             const response = await api.get('/api/v1/users/export', {
                 responseType: 'blob',
             });
             
-            // Création d'un lien temporaire dans le DOM pour forcer le téléchargement
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            // Vous pouvez personnaliser le nom du fichier par défaut ici
             link.setAttribute('download', 'users_export.csv'); 
             document.body.appendChild(link);
             link.click();
             
-            // Nettoyage après le téléchargement
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(url);
             
@@ -286,7 +306,7 @@ export function UsersAdminContextProvider({ children }) {
         
         // --- EXPORTATION ---
         isExportingUsers, exportUsersError,
-        exportUsers, // <--- NOUVELLE FONCTION AJOUTÉE ICI
+        exportUsers, 
 
         // Fonctions d'administration
         updateUserRoleAsSuperAdmin,
@@ -296,7 +316,8 @@ export function UsersAdminContextProvider({ children }) {
         listVerifiedConductors,
         listStandardUsers,
         updateAdminCountryAccess,
-        verifyUserEmailAsSuperAdmin, // <-- Ajout de la nouvelle fonction
+        verifyUserEmailAsSuperAdmin,
+        updateUserPasswordAsSuperAdmin, // <--- NOUVELLE FONCTION AJOUTÉE ICI
     };
 
     return (

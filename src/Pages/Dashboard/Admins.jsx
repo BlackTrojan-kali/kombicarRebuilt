@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUserTie, faEnvelope, faPhone, faCalendarAlt, faKey, faEye, faTrash, faUserPlus,
     faCheckCircle, faTimesCircle, faArrowLeft, faArrowRight, faCrown, faUserShield,
-    faSyncAlt, faDownload // Ajout des icônes de chargement et d'export
+    faSyncAlt, faDownload
 } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
@@ -44,10 +44,11 @@ const Admins = () => {
         error: adminListError,
         pagination,
         updateUserRoleAsSuperAdmin,
+        updateUserPasswordAsSuperAdmin, // <-- AJOUT ICI : récupération de la fonction
         addAdminUser: addAdmin,
         deleteUserAsAdmin: deleteAdmin,
-        exportUsers,      // <--- Récupération de l'export
-        isExportingUsers  // <--- État de chargement de l'export
+        exportUsers,
+        isExportingUsers
     } = useUserAdminContext(); 
     
     // États locaux
@@ -107,17 +108,81 @@ const Admins = () => {
         setAdminToEdit(null);
     };
 
-    // --- NOUVELLE FONCTION D'EXPORT ---
+    // --- FONCTION D'EXPORT ---
     const handleExportCSV = async () => {
         if (!exportUsers) {
-        toast.error("La fonction d'exportation n'est pas disponible.");
-        return;
+            toast.error("La fonction d'exportation n'est pas disponible.");
+            return;
         }
         try {
-        await exportUsers();
+            await exportUsers();
         } catch (error) {
-        console.error("L'exportation a échoué", error);
+            console.error("L'exportation a échoué", error);
         }
+    };
+
+    // --- NOUVELLE FONCTION : CHANGER LE MOT DE PASSE VIA SWEETALERT ---
+    const handleChangePassword = (userId, userName) => {
+        const html = `
+            <div class="flex flex-col gap-4 p-2 text-sm text-left">
+                <div>
+                    <label for="swal-input-password" class="${isDark ? "text-gray-300" : "text-gray-700"} font-semibold mb-1 block">Nouveau mot de passe :</label>
+                    <input id="swal-input-password" type="password" class="w-full border ${isDark ? "border-gray-600 bg-gray-700 text-white" : "border-gray-300 bg-gray-50 text-gray-900"} rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors" placeholder="Entrez le nouveau mot de passe">
+                </div>
+                <div>
+                    <label for="swal-input-confirm" class="${isDark ? "text-gray-300" : "text-gray-700"} font-semibold mb-1 block">Confirmer le mot de passe :</label>
+                    <input id="swal-input-confirm" type="password" class="w-full border ${isDark ? "border-gray-600 bg-gray-700 text-white" : "border-gray-300 bg-gray-50 text-gray-900"} rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors" placeholder="Confirmez le mot de passe">
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: 'Modifier le mot de passe',
+            text: `Pour l'utilisateur : ${userName}`,
+            html: html,
+            showCancelButton: true,
+            confirmButtonText: 'Enregistrer',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#f59e0b', // Couleur ambrée pour matcher l'icône "Clé"
+            cancelButtonColor: isDark ? '#4b5563' : '#9ca3af',
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            customClass: {
+                popup: "rounded-2xl shadow-xl",
+                title: "text-lg",
+            },
+            preConfirm: () => {
+                const password = document.getElementById('swal-input-password').value;
+                const confirm = document.getElementById('swal-input-confirm').value;
+
+                if (!password || !confirm) {
+                    Swal.showValidationMessage('Veuillez remplir tous les champs.');
+                    return false;
+                }
+                if (password !== confirm) {
+                    Swal.showValidationMessage('Les mots de passe ne correspondent pas.');
+                    return false;
+                }
+                if (password.length < 6) {
+                    Swal.showValidationMessage('Le mot de passe doit contenir au moins 6 caractères.');
+                    return false;
+                }
+                return password;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed && result.value) {
+                const newPassword = result.value;
+                try {
+                    await toast.promise(updateUserPasswordAsSuperAdmin(userId, newPassword), {
+                        loading: `Mise à jour du mot de passe en cours...`,
+                        success: `Le mot de passe de ${userName} a été mis à jour !`,
+                        error: (err) => `Échec de la mise à jour : ${err.message || "Erreur serveur."}`,
+                    });
+                } catch (err) {
+                    console.error("Erreur lors de la modification du mot de passe :", err);
+                }
+            }
+        });
     };
 
     const handleChangeRole = (userId, userName, currentRole) => {
@@ -398,6 +463,7 @@ const Admins = () => {
                                                     </td>
                                                     <td className="py-4 px-4">
                                                         <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                            {/* BOUTON DETAILS */}
                                                             <button
                                                                 onClick={() => toast(`Affichage des détails de ${admin.firstName} ${admin.lastName}`, { icon: 'ℹ️' })}
                                                                 className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300 transition-colors"
@@ -405,6 +471,17 @@ const Admins = () => {
                                                             >
                                                                 <FontAwesomeIcon icon={faEye} />
                                                             </button>
+                                                            
+                                                            {/* NOUVEAU BOUTON : CHANGER MOT DE PASSE */}
+                                                            <button
+                                                                onClick={() => handleChangePassword(admin.id, `${admin.firstName} ${admin.lastName}`)}
+                                                                className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-900/50 dark:text-amber-400 transition-colors"
+                                                                title="Changer le mot de passe"
+                                                            >
+                                                                <FontAwesomeIcon icon={faKey} />
+                                                            </button>
+
+                                                            {/* BOUTON CHANGER ROLE */}
                                                             <button
                                                                 onClick={() => handleChangeRole(admin.id, `${admin.firstName} ${admin.lastName}`, admin.role)}
                                                                 className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 transition-colors"
@@ -412,6 +489,8 @@ const Admins = () => {
                                                             >
                                                                 <FontAwesomeIcon icon={faUserShield} />
                                                             </button>
+
+                                                            {/* BOUTON SUPPRIMER */}
                                                             <button
                                                                 onClick={() => handleDeleteAdmin(admin.id, `${admin.firstName} ${admin.lastName}`)}
                                                                 className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 transition-colors"
