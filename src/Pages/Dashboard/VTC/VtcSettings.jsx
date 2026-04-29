@@ -23,7 +23,8 @@ export default function VtcSettings() {
         paymentAmountMultiple: 0,
         webhookTrustPaywayIdempotencyCacheSeconds: 0,
         webhookCinetPayIdempotencyCacheSeconds: 0,
-        emergencyContactsMaxCount: 0
+        emergencyContactsMaxCount: 0,
+        sharingPreBookedDiscountPercent: 0 // <-- NOUVEAU CHAMP AJOUTÉ
     });
 
     // Charger les données au montage
@@ -65,7 +66,8 @@ export default function VtcSettings() {
             paymentAmountMultiple: Number(formData.paymentAmountMultiple),
             webhookTrustPaywayIdempotencyCacheSeconds: Number(formData.webhookTrustPaywayIdempotencyCacheSeconds),
             webhookCinetPayIdempotencyCacheSeconds: Number(formData.webhookCinetPayIdempotencyCacheSeconds),
-            emergencyContactsMaxCount: Number(formData.emergencyContactsMaxCount)
+            emergencyContactsMaxCount: Number(formData.emergencyContactsMaxCount),
+            sharingPreBookedDiscountPercent: Number(formData.sharingPreBookedDiscountPercent) // <-- NOUVEAU CHAMP AJOUTÉ
         };
 
         await updateSettings(payload);
@@ -166,6 +168,14 @@ export default function VtcSettings() {
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Commission globale de la plateforme (%)</label>
                             <input type="number" step="0.1" name="commissionFixPercent" value={formData.commissionFixPercent} onChange={handleChange} className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500 transition outline-none" />
                         </div>
+                        
+                        {/* NOUVEAU CHAMP AJOUTÉ ICI */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remise partage de course anticipé (%)</label>
+                            <input type="number" step="0.1" name="sharingPreBookedDiscountPercent" value={formData.sharingPreBookedDiscountPercent} onChange={handleChange} className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500 transition outline-none" />
+                            <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">Pourcentage de remise appliquée aux passagers rejoignant une course en avance.</p>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Multiple d'arrondi des montants (ex: 50, 100)</label>
                             <input type="number" name="paymentAmountMultiple" value={formData.paymentAmountMultiple} onChange={handleChange} className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500 transition outline-none" />
