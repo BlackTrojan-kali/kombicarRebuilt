@@ -347,10 +347,10 @@ export function AuthContextProvider({ children }) {
         }
     }, [setLoading]);
 
-    const resetPassword = useCallback(async (token, newPassword) => {
+    const resetPassword = useCallback(async (token, newPassword,email) => {
         setLoading(true);
         try {
-            const response = await api.post('/api/users/reset-password', { token, newPassword });
+            const response = await api.post('/api/users/reset-password', { email,token, newPassword });
             toast.success(response.data.message || 'Votre mot de passe a été réinitialisé avec succès !');
             return true;
         } catch (error) {

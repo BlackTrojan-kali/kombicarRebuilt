@@ -40,7 +40,7 @@ console.log(searchParams)    // Ton AuthContext (d'après ton code) ne prend pas
         }
 
         // CORRECTION : On envoie uniquement ce qu'attend le AuthContext (token, newPassword)
-        const success = await resetPassword(token, newPassword); 
+        const success = await resetPassword(email,token, newPassword); 
         
         if (success) {
             // Redirection vers le Signin de ton architecture AuthLayout
