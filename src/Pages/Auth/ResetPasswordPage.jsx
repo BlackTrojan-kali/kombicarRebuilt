@@ -15,9 +15,9 @@ export default function ResetPasswordPage() {
     // L'email peut être extrait si tu veux l'afficher, mais il n'est pas utile pour l'API
     const email = searchParams.get('email'); 
     
-    // Ton AuthContext (d'après ton code) ne prend pas l'email dans cette fonction
+console.log(searchParams)    // Ton AuthContext (d'après ton code) ne prend pas l'email dans cette fonction
     const { resetPassword, loading } = useContext(authContext); 
-    
+
     const navigate = useNavigate();
     const { theme } = useColorScheme(); 
     

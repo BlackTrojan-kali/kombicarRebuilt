@@ -102,6 +102,10 @@ const Routes = () => {
       element: <ClientLayout />,
       children: [
         {
+  path: "reset-password",
+  element: <ResetPasswordPage />,
+},
+        {
           index: true,
           element: <Home />,
         },
@@ -245,10 +249,7 @@ const Routes = () => {
           element: <ForgotPasswordPage />,
         },
       // Par ceci :
-{
-  path: "reset-password",
-  element: <ResetPasswordPage />,
-},
+
       ],
     },
     {
