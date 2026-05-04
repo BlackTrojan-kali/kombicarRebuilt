@@ -10,7 +10,9 @@ const useColorScheme = () => ({ theme: 'light' }); // Simulé
 const Input = (props) => <input {...props} />; // Utilisation de Input comme dans Signin
 
 export default function ResetPasswordPage() {
-    const { token } = useParams(); 
+    // Récupération du token ET de l'email depuis les paramètres de l'URL
+    const { token, email } = useParams(); 
+    
     // Assurez-vous que votre fonction resetPassword est bien: resetPassword(email, token, newPassword)
     const { resetPassword, loading } = useContext(authContext); 
     
@@ -19,7 +21,7 @@ export default function ResetPasswordPage() {
     
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [email, setEmail] = useState(''); // Ajout du champ email
+    // La ligne useState pour l'email a été supprimée puisqu'il vient de l'URL
 
     // Styles dynamiques (tirés de votre composant Signin)
     const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
@@ -28,20 +30,17 @@ export default function ResetPasswordPage() {
     const labelColor = theme === 'dark' ? 'text-gray-300' : 'text-gray-700';
     const cardBg = theme === 'dark' ? 'bg-gray-800' : 'bg-white';
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
+             // Assurez-vous d'avoir importé 'toast' si vous l'utilisez
              toast.error("Les mots de passe ne correspondent pas.");
              return;
         }
 
-        // Vérifiez si votre API nécessite l'email. Si oui, décommentez la ligne:
-        // const success = await resetPassword(email, token, newPassword); 
-        
-        // Si votre API n'a besoin que du token et du mot de passe (moins sécurisé):
-        const success = await resetPassword(token, newPassword); 
+        // Appel de l'API avec l'email, le token et le nouveau mot de passe
+        const success = await resetPassword(email, token, newPassword); 
         
         if (success) {
             // Redirection vers la page de connexion après succès
@@ -49,8 +48,8 @@ export default function ResetPasswordPage() {
         }
     };
     
-    // Si le token est absent de l'URL, on affiche un message d'erreur ou on redirige
-    if (!token) {
+    // Si le token (ou l'email) est absent de l'URL, on affiche un message d'erreur ou on redirige
+    if (!token || !email) {
         return (
             <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : ''} flex items-center justify-center p-6`}>
                 <div className={`p-8 rounded-lg ${cardBg} shadow-xl max-w-md w-full text-center`}>
@@ -76,7 +75,8 @@ export default function ResetPasswordPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     
-                    {/* // ** Optionnel: Si votre API nécessite l'email **
+                    {/* Le bloc optionnel pour l'email a été gardé commenté comme demandé */}
+                    {/* 
                     <div className="grid gap-2">
                         <label htmlFor="email" className={labelColor}>Email</label>
                         <Input
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    // ** Fin Optionnel ** */}
+                    */}
 
                     <div className="grid gap-2">
                         <label htmlFor="newPassword" className={labelColor}>Nouveau mot de passe</label>
