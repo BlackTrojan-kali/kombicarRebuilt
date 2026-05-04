@@ -1,8 +1,7 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useCallback, useMemo } from "react";
 import api from '../../api/api';
 import useAuth from "../../hooks/useAuth";
 import { toast } from "sonner";
-
 
 // Renommage du contexte
 export const TripAdminContext = createContext({});
@@ -16,8 +15,8 @@ export function TripAdminContextProvider({ children }) {
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
- 
-const listAdminTrips = async (searchCriteria = {}) => {
+
+    const listAdminTrips = useCallback(async (searchCriteria = {}) => {
         setLoading(true);
         setError(null);
         
@@ -53,9 +52,10 @@ const listAdminTrips = async (searchCriteria = {}) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [defaultCountry]); // Ajout de defaultCountry en dépendance
+
     // 1. PUT /api/v1/trips/admin/change-status/{tripId}/{status}
-    const changeTripStatusAsAdmin = async (tripId, status) => {
+    const changeTripStatusAsAdmin = useCallback(async (tripId, status) => {
         if (authLoading) return;
         setLoading(true);
         setError(null);
@@ -71,10 +71,10 @@ const listAdminTrips = async (searchCriteria = {}) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [authLoading]); // Ajout de authLoading en dépendance
     
     // 2. DELETE /api/v1/trips/admin/{tripId}
-    const deleteTripAsAdmin = async (tripId) => {
+    const deleteTripAsAdmin = useCallback(async (tripId) => {
         if (authLoading) return;
         setLoading(true);
         setError(null);
@@ -90,10 +90,10 @@ const listAdminTrips = async (searchCriteria = {}) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [authLoading]); // Ajout de authLoading en dépendance
 
     // 3. NOUVELLE FONCTION AJOUTÉE : GET /api/v1/trips/admin/list-trips-infos/{tripId}
-    const getTripInfosAsAdmin = async (tripId) => {
+    const getTripInfosAsAdmin = useCallback(async (tripId) => {
         if (authLoading) return;
         setLoading(true);
         setError(null);
@@ -109,9 +109,10 @@ const listAdminTrips = async (searchCriteria = {}) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [authLoading]); // Ajout de authLoading en dépendance
 
-    const contextValue = {
+    // OPTIMISATION MAJEURE : On mémorise l'objet contexte
+    const contextValue = useMemo(() => ({
         trips,
         setTrips,
         loading,
@@ -120,13 +121,24 @@ const listAdminTrips = async (searchCriteria = {}) => {
         // Fonctions API 
         changeTripStatusAsAdmin,
         deleteTripAsAdmin,
-        getTripInfosAsAdmin, // <-- Ajout de la dernière fonction
+        getTripInfosAsAdmin,
         
         // Données utilisateur
         userId: user?.id || null,
         authLoading,
         defaultCountry
-    };
+    }), [
+        trips, 
+        loading, 
+        error, 
+        listAdminTrips, 
+        changeTripStatusAsAdmin, 
+        deleteTripAsAdmin, 
+        getTripInfosAsAdmin, 
+        user?.id, 
+        authLoading, 
+        defaultCountry
+    ]);
 
     return (
         <TripAdminContext.Provider value={contextValue}>
@@ -138,4 +150,4 @@ const listAdminTrips = async (searchCriteria = {}) => {
 // NOTE: Le hook d'utilisation est généralement exporté pour la consommation
 export const useTripAdmin = () => {
     return useContext(TripAdminContext);
-}
+}   

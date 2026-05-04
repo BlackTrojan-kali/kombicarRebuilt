@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useCallback, useMemo } from "react";
 import api from '../../api/api';
 import { toast } from "sonner";
 import useAuth from "../../hooks/useAuth";
@@ -50,7 +50,7 @@ export function CarAdminContextProvider({ children }) {
     // MÉTHODES DE LISTE ET RECHERCHE (ADMIN)
     // ==========================================
 
-    const fetchAdminCars = async (page = 1, isVerified) => {
+    const fetchAdminCars = useCallback(async (page = 1, isVerified) => {
         setIsLoadingAdminCars(true);
         setAdminCarListError(null);
         try {
@@ -72,9 +72,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsLoadingAdminCars(false);
         }
-    };
+    }, []);
 
-    const searchAdminCars = async (page = 1, filters = {}) => {
+    const searchAdminCars = useCallback(async (page = 1, filters = {}) => {
         setIsLoadingAdminCars(true);
         setAdminCarListError(null);
         try {
@@ -96,13 +96,13 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsLoadingAdminCars(false);
         }
-    };
+    }, []);
 
     // ==========================================
     // MÉTHODES VÉHICULES D'UN CHAUFFEUR (ADMIN)
     // ==========================================
 
-    const fetchVehiclesByDriverId = async (userId) => {
+    const fetchVehiclesByDriverId = useCallback(async (userId) => {
         setIsLoadingDriverCars(true);
         setDriverCarsError(null);
         try {
@@ -118,13 +118,13 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsLoadingDriverCars(false);
         }
-    };
+    }, []);
 
     // ==========================================
     // MÉTHODES DE GESTION UNITAIRE (ADMIN)
     // ==========================================
 
-    const getCarById = async (id) => {
+    const getCarById = useCallback(async (id) => {
         setIsCarDetailsLoading(true);
         setError(null);
         try {
@@ -138,9 +138,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsCarDetailsLoading(false);
         }
-    };
+    }, []);
 
-    const updateCar = async (id, carData) => {
+    const updateCar = useCallback(async (id, carData) => {
         setLoading(true);
         try {
             const response = await api.put(`/api/v1/vehicules/admin/update`, carData);
@@ -154,9 +154,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [carDetails]); // Ajout de carDetails en dépendance car on l'utilise dans le if
 
-    const deleteCar = async (id) => {
+    const deleteCar = useCallback(async (id) => {
         setLoading(true);
         try {
             await api.delete(`/api/v1/vehicules/admin/${id}`);
@@ -170,19 +170,19 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [carDetails]); // Idem
 
     // ==========================================
     // GESTION DES DOCUMENTS (ADMIN)
     // ==========================================
 
-    const fetchAdminVehicleDocuments = async (vehiculeId) => {
+    const fetchAdminVehicleDocuments = useCallback(async (vehiculeId) => {
         setIsLoadingAdminVehicleDocuments(true);
         setAdminVehicleDocumentsError(null);
         try {
             const response = await api.get(`/api/v1/vehicules/admin/${vehiculeId}/documents`);
             setAdminVehicleDocuments(response.data);
-            setCarDocuments(response.data); // Synchronisation pour compatibilité
+            setCarDocuments(response.data);
             return response.data;
         } catch (error) {
             setAdminVehicleDocumentsError(error.response?.data?.description);
@@ -192,9 +192,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsLoadingAdminVehicleDocuments(false);
         }
-    };
+    }, []);
 
-    const uploadVehicleDocument = async (documentType, vehiculeId, file) => {
+    const uploadVehicleDocument = useCallback(async (documentType, vehiculeId, file) => {
         setLoading(true);
         const formData = new FormData();
         formData.append("file", file);
@@ -203,7 +203,7 @@ export function CarAdminContextProvider({ children }) {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             toast.success("Document téléversé (Admin).");
-            await fetchAdminVehicleDocuments(vehiculeId); // Rafraîchissement auto
+            await fetchAdminVehicleDocuments(vehiculeId);
             return response.data;
         } catch (err) {
             toast.error(err.response?.data?.description || "Échec upload.");
@@ -211,9 +211,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [fetchAdminVehicleDocuments]); // Dépendance à fetchAdminVehicleDocuments
 
-    const downloadDocument = async (fileName) => {
+    const downloadDocument = useCallback(async (fileName) => {
         setLoading(true);
         try {
             const response = await api.get(`${fileName}`, { responseType: 'blob' });
@@ -230,18 +230,17 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     // ==========================================
     // VÉRIFICATION & PERMIS (ADMIN)
     // ==========================================
 
-    const updateVehicleVerificationState = async (vehiculeId, isVerified) => {
+    const updateVehicleVerificationState = useCallback(async (vehiculeId, isVerified) => {
         setLoading(true);
         try {
             const response = await api.put(`/api/v1/vehicules/update-verify-state/${vehiculeId}/${isVerified}`);
             
-            // Mise à jour locale dans les différentes listes
             setAdminCars(prev => prev.map(car => car.id === vehiculeId ? { ...car, isVerified } : car));
             setDriverCars(prev => prev.map(car => car.id === vehiculeId ? { ...car, isVerified } : car));
             if (carDetails?.id === vehiculeId) setCarDetails(prev => ({ ...prev, isVerified }));
@@ -254,9 +253,9 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [carDetails]); // Dépendance à carDetails
 
-    const fetchAdminDrivingLicences = async (page = 1, verificationState = 0) => {
+    const fetchAdminDrivingLicences = useCallback(async (page = 1, verificationState = 0) => {
         setIsLoadingAdminLicences(true);
         setAdminLicenceListError(null);
         try {
@@ -276,41 +275,28 @@ export function CarAdminContextProvider({ children }) {
         } finally {
             setIsLoadingAdminLicences(false);
         }
-    };
+    }, []);
 
-    const contextValue = {
-        loading,
-        error,
-        getCarById,
-        updateCar,
-        deleteCar,
-        uploadVehicleDocument,
-        updateVehicleVerificationState,
-        adminCars,
-        adminCarPagination,
-        isLoadingAdminCars,
-        adminCarListError,
-        fetchAdminCars,
-        searchAdminCars,
-        downloadDocument,
-        carDetails,
-        isCarDetailsLoading,
-        carDocuments,
-        adminLicences,
-        adminLicencePagination,
-        isLoadingAdminLicences,
-        adminLicenceListError,
-        fetchAdminDrivingLicences,
-        adminVehicleDocuments,
-        isLoadingAdminVehicleDocuments,
-        adminVehicleDocumentsError,
-        fetchAdminVehicleDocuments,
-        // Nouveaux ajouts
-        driverCars,
-        isLoadingDriverCars,
-        driverCarsError,
-        fetchVehiclesByDriverId,
-    };
+    // OPTIMISATION MAJEURE : On enveloppe la valeur dans useMemo
+    const contextValue = useMemo(() => ({
+        loading, error, adminCars, adminCarPagination, isLoadingAdminCars, 
+        adminCarListError, carDetails, isCarDetailsLoading, carDocuments, 
+        driverCars, isLoadingDriverCars, driverCarsError, adminLicences, 
+        adminLicencePagination, isLoadingAdminLicences, adminLicenceListError, 
+        adminVehicleDocuments, isLoadingAdminVehicleDocuments, adminVehicleDocumentsError,
+        getCarById, updateCar, deleteCar, uploadVehicleDocument, 
+        updateVehicleVerificationState, fetchAdminCars, searchAdminCars, 
+        downloadDocument, fetchAdminDrivingLicences, fetchAdminVehicleDocuments, fetchVehiclesByDriverId
+    }), [
+        loading, error, adminCars, adminCarPagination, isLoadingAdminCars, 
+        adminCarListError, carDetails, isCarDetailsLoading, carDocuments, 
+        driverCars, isLoadingDriverCars, driverCarsError, adminLicences, 
+        adminLicencePagination, isLoadingAdminLicences, adminLicenceListError, 
+        adminVehicleDocuments, isLoadingAdminVehicleDocuments, adminVehicleDocumentsError,
+        getCarById, updateCar, deleteCar, uploadVehicleDocument, 
+        updateVehicleVerificationState, fetchAdminCars, searchAdminCars, 
+        downloadDocument, fetchAdminDrivingLicences, fetchAdminVehicleDocuments, fetchVehiclesByDriverId
+    ]);
 
     return (
         <carAdminContext.Provider value={contextValue}>
