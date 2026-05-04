@@ -244,10 +244,11 @@ const Routes = () => {
           path: "forgot-password",
           element: <ForgotPasswordPage />,
         },
-        {
-          path: "reset-password/:email/:token",
-          element: <ResetPasswordPage />,
-        },
+      // Par ceci :
+{
+  path: "reset-password",
+  element: <ResetPasswordPage />,
+},
       ],
     },
     {

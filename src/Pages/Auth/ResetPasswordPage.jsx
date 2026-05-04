@@ -1,29 +1,30 @@
 "use client";
 import { useContext, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Import de useNavigate
+import { useSearchParams, useNavigate } from 'react-router-dom'; // Remplacement par useSearchParams
 import { authContext } from '../../contexts/AuthContext'; 
+import { toast } from "sonner"; // Import essentiel pour éviter un crash au clic
 
-// Simulation des hooks pour le style et le contexte (à remplacer par vos imports réels)
-// Note: Assurez-vous d'importer useColorScheme si vous l'utilisez pour le thème.
-const useColorScheme = () => ({ theme: 'light' }); // Simulé
-// const Input = ({ id, type, placeholder, required, className, value, onChange }) => <input {...{ id, type, placeholder, required, className, value, onChange }} />;
-const Input = (props) => <input {...props} />; // Utilisation de Input comme dans Signin
+// Simulation des hooks pour le style et le contexte
+const useColorScheme = () => ({ theme: 'light' }); 
+const Input = (props) => <input {...props} />; 
 
 export default function ResetPasswordPage() {
-    // Récupération du token ET de l'email depuis les paramètres de l'URL
-    const { token, email } = useParams(); 
+    // Utilisation de useSearchParams pour lire "?email=...&token=..."
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token');
+    // L'email peut être extrait si tu veux l'afficher, mais il n'est pas utile pour l'API
+    const email = searchParams.get('email'); 
     
-    // Assurez-vous que votre fonction resetPassword est bien: resetPassword(email, token, newPassword)
+    // Ton AuthContext (d'après ton code) ne prend pas l'email dans cette fonction
     const { resetPassword, loading } = useContext(authContext); 
     
     const navigate = useNavigate();
-    const { theme } = useColorScheme(); // Hook pour le thème
+    const { theme } = useColorScheme(); 
     
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    // La ligne useState pour l'email a été supprimée puisqu'il vient de l'URL
 
-    // Styles dynamiques (tirés de votre composant Signin)
+    // Styles dynamiques
     const textColor = theme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     const inputBg = theme === 'dark' ? 'bg-gray-700' : 'bg-white';
     const inputBorder = theme === 'dark' ? 'border-gray-600' : 'border-gray-300';
@@ -34,29 +35,29 @@ export default function ResetPasswordPage() {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
-             // Assurez-vous d'avoir importé 'toast' si vous l'utilisez
              toast.error("Les mots de passe ne correspondent pas.");
              return;
         }
 
-        // Appel de l'API avec l'email, le token et le nouveau mot de passe
-        const success = await resetPassword(email, token, newPassword); 
+        // CORRECTION : On envoie uniquement ce qu'attend le AuthContext (token, newPassword)
+        const success = await resetPassword(token, newPassword); 
         
         if (success) {
-            // Redirection vers la page de connexion après succès
-            navigate('/signin'); 
+            // Redirection vers le Signin de ton architecture AuthLayout
+            navigate('/auth/signin'); 
         }
     };
     
-    // Si le token (ou l'email) est absent de l'URL, on affiche un message d'erreur ou on redirige
-    if (!token || !email) {
+    // Vérification : si le token est absent, on bloque la procédure
+    if (!token) {
         return (
             <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : ''} flex items-center justify-center p-6`}>
                 <div className={`p-8 rounded-lg ${cardBg} shadow-xl max-w-md w-full text-center`}>
                     <h2 className={`text-2xl font-bold mb-4 ${textColor}`}>Lien Invalide</h2>
                     <p className="text-gray-500 dark:text-gray-400">Le lien de réinitialisation de mot de passe est manquant ou invalide. Veuillez refaire une demande.</p>
                     <button 
-                        onClick={() => navigate('/forgot-password')}
+                        // Redirection ajustée pour correspondre à ton routeur
+                        onClick={() => navigate('/auth/forgot-password')} 
                         className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-md font-semibold"
                     >
                         Nouvelle demande
@@ -74,22 +75,12 @@ export default function ResetPasswordPage() {
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    
-                    {/* Le bloc optionnel pour l'email a été gardé commenté comme demandé */}
-                    {/* 
-                    <div className="grid gap-2">
-                        <label htmlFor="email" className={labelColor}>Email</label>
-                        <Input
-                            id="email"
-                            placeholder="votre@email.com"
-                            type="email"
-                            required={true}
-                            className={`formInput w-full p-3 rounded-md border ${inputBorder} ${inputBg} ${textColor} focus:ring-blue-500 focus:border-blue-500`}
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    */}
+                    {/* Affichage optionnel de l'email pour rassurer l'utilisateur */}
+                    {email && (
+                        <div className="text-center text-sm mb-4 text-gray-500">
+                            Compte : <span className="font-semibold">{email}</span>
+                        </div>
+                    )}
 
                     <div className="grid gap-2">
                         <label htmlFor="newPassword" className={labelColor}>Nouveau mot de passe</label>
