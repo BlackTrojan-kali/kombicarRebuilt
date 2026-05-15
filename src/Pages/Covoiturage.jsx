@@ -230,7 +230,7 @@ const Covoiturage = () => {
                                         </div>
                                     </button>
                                 </a>
-                                <a href="https://play.google.com/store/apps/details?id=com.kombicar.app" target="_blank" rel="noopener noreferrer" aria-label="Télécharger sur Google Play">
+                                <a href="https://play.google.com/store/apps/details?id=com.kombicar.mobile" target="_blank" rel="noopener noreferrer" aria-label="Télécharger sur Google Play">
                                     <button type="button" className="flex items-center justify-center w-[210px] py-3.5 text-white bg-gray-900 rounded-2xl hover:bg-gray-800 shadow-md transition-all dark:bg-gray-900 dark:hover:bg-black">
                                         <div className="mr-3">
                                             <svg viewBox="30 336.7 120.9 129.2" width="24" fill="currentColor">
