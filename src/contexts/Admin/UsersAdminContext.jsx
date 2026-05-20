@@ -10,11 +10,11 @@ export function UsersAdminContextProvider({ children }) {
     const { refreshUserToken } = useAuth(); 
 
     // ===================================
-    // 6. GESTION DES EXPORTS
+    // États globaux pour la gestion des listes et opérations
     // ===================================
     const [isExportingUsers, setIsExportingUsers] = useState(false);
     const [exportUsersError, setExportUsersError] = useState(null);
-    // États globaux pour la gestion des listes et opérations
+    
     const [userList, setUserList] = useState([]);
     const [pagination, setPagination] = useState({
         totalCount: 0,
@@ -254,7 +254,7 @@ export function UsersAdminContextProvider({ children }) {
     };
 
     // ###################################
-    // # EXPORTATION DE DONNÉES
+    // # 10. EXPORTATION DE DONNÉES
     // ###################################
 
     /** Exporte la liste des utilisateurs au format CSV. */
@@ -289,6 +289,54 @@ export function UsersAdminContextProvider({ children }) {
         }
     };
 
+    /** NOUVEAU: Exporte la liste complète des utilisateurs (simples + conducteurs) au format Excel (.xlsx). */
+    const exportExcelUsersAdmin = async () => {
+        setIsExportingUsers(true);
+        setExportUsersError(null);
+        try {
+            // Utilisation de responseType: 'blob' indispensable pour les fichiers binaires comme Excel
+            const response = await api.get('/api/v1/users/admin/export-excel', {
+                responseType: 'blob', 
+            });
+            
+            // Format de la date pour le nom de fichier
+            const today = new Date().toISOString().split('T')[0];
+            const fileName = `admin_users_export_${today}.xlsx`;
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName); 
+            document.body.appendChild(link);
+            link.click();
+            
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            toast.success("Exportation Excel générée avec succès !");
+            return response.data;
+        } catch (error) {
+            console.error("Erreur lors de l'exportation Excel des utilisateurs:", error);
+            
+            // Tentative de lecture du message d'erreur si l'API renvoie un JSON malgré le responseType blob
+            let errorMessage = "Échec de l'exportation des utilisateurs au format Excel.";
+            if (error.response?.data) {
+                try {
+                    const errorData = JSON.parse(await error.response.data.text());
+                    errorMessage = errorData.message || errorData.description || errorMessage;
+                } catch (e) {
+                    // Si l'erreur n'est pas parsable en JSON
+                }
+            }
+            
+            setExportUsersError(errorMessage);
+            toast.error(errorMessage);
+            throw error;
+        } finally {
+            setIsExportingUsers(false);
+        }
+    };
+
 
     // ###################################
     // # VALEUR DU CONTEXTE EXPORTÉE
@@ -307,6 +355,7 @@ export function UsersAdminContextProvider({ children }) {
         // --- EXPORTATION ---
         isExportingUsers, exportUsersError,
         exportUsers, 
+        exportExcelUsersAdmin, // <--- NOUVELLE FONCTION D'EXPORT EXCEL AJOUTÉE ICI
 
         // Fonctions d'administration
         updateUserRoleAsSuperAdmin,
@@ -317,7 +366,7 @@ export function UsersAdminContextProvider({ children }) {
         listStandardUsers,
         updateAdminCountryAccess,
         verifyUserEmailAsSuperAdmin,
-        updateUserPasswordAsSuperAdmin, // <--- NOUVELLE FONCTION AJOUTÉE ICI
+        updateUserPasswordAsSuperAdmin, 
     };
 
     return (

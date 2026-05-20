@@ -4,7 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUserTie, faEnvelope, faPhone, faStar, faTrash, 
   faUserPlus, faSyncAlt, faArrowLeft, faArrowRight,
-  faTachometerAlt, faThumbsUp, faThumbsDown, faIdCard, faCar
+  faTachometerAlt, faThumbsUp, faThumbsDown, faIdCard, faCar,
+  faFileExcel // Ajout de l'icône Excel
 } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { toast } from "sonner";
@@ -23,7 +24,9 @@ const Drivers = () => {
     isLoading, 
     listVerifiedConductors,
     error, 
-    deleteUserAsAdmin 
+    deleteUserAsAdmin,
+    exportExcelUsersAdmin, // Récupération de la nouvelle fonction
+    isExportingUsers       // Récupération de l'état de chargement de l'export
   } = useUserAdminContext();
 
   const [currentPage, setCurrentPage] = useState(1); 
@@ -101,20 +104,33 @@ const Drivers = () => {
   return (
     <div className="pl-12 pt-6 pb-40 bg-gray-50 dark:bg-gray-900 min-h-full">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 mr-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 mr-6 gap-4">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">
           Liste des Chauffeurs Vérifiés 🚗
         </h1>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          {/* Bouton Export Excel */}
+          <button
+            onClick={exportExcelUsersAdmin}
+            disabled={isExportingUsers}
+            className={`bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all active:scale-95 flex items-center ${isExportingUsers ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            <FontAwesomeIcon icon={isExportingUsers ? faSyncAlt : faFileExcel} className={`${isExportingUsers ? 'animate-spin' : ''} mr-2`} />
+            {isExportingUsers ? 'Génération...' : 'Exporter Excel'}
+          </button>
+          
+          {/* Bouton Actualiser */}
           <button
             onClick={() => listVerifiedConductors(currentPage)}
-            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-2 px-4 rounded-lg transition-all"
+            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center"
           >
             <FontAwesomeIcon icon={faSyncAlt} className={`${isLoading ? 'animate-spin' : ''} mr-2`} />
             Actualiser
           </button>
+
+          {/* Bouton Ajouter */}
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all active:scale-95"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all active:scale-95 flex items-center"
           >
             <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
             Ajouter
@@ -195,7 +211,7 @@ const Drivers = () => {
                           </span>
                         </td>
 
-                        {/* Actions (MODIFIÉ ICI) */}
+                        {/* Actions */}
                         <td className="py-4 px-4">
                           <div className="flex justify-center gap-2">
                             {/* Bouton pour voir le Permis */}

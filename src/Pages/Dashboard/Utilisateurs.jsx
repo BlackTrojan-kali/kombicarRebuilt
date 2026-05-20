@@ -12,14 +12,13 @@ import {
   faCrown,
   faSyncAlt,
   faCalendarAlt,
-  faDownload, // Ajout de l'icône de téléchargement
+  faFileExcel, // Remplacement de l'icône de téléchargement par l'icône Excel
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import { toast } from "sonner";
 import useColorScheme from "../../hooks/useColorScheme";
 import { useRole } from "../../contexts/Admin/RoleContext";
 import { useUserAdminContext } from "../../contexts/Admin/UsersAdminContext";
-// import { UserContext } from "../../contexts/UserContext"; // Décommentez si l'export est ici
 
 const ROLES = {
   NONE: 0,
@@ -77,7 +76,7 @@ const Utilisateurs = () => {
   const { theme } = useColorScheme();
   const isDark = theme === "dark";
 
-  // Récupération des fonctions du contexte (Assurez-vous qu'exportUsers y est bien)
+  // Récupération des fonctions du contexte
   const {
     listStandardUsers,
     userList: standardUserList,
@@ -86,8 +85,8 @@ const Utilisateurs = () => {
     error: standardUserListError,
     updateUserRoleAsSuperAdmin,
     deleteUserAsAdmin,
-    exportUsers,      // <--- Récupération de l'export
-    isExportingUsers, // <--- État de chargement de l'export
+    exportExcelUsersAdmin, // <--- Récupération de l'export Excel
+    isExportingUsers,      // <--- État de chargement de l'export
   } = useUserAdminContext(); 
 
   const { roles, getRoles } = useRole();
@@ -105,14 +104,14 @@ const Utilisateurs = () => {
   const handlePreviousPage = () =>
     hasPreviousPage && setCurrentPage((p) => p - 1);
 
-  // --- NOUVELLE FONCTION D'EXPORT ---
-  const handleExportCSV = async () => {
-    if (!exportUsers) {
+  // --- NOUVELLE FONCTION D'EXPORT EXCEL ---
+  const handleExportExcel = async () => {
+    if (!exportExcelUsersAdmin) {
       toast.error("La fonction d'exportation n'est pas disponible.");
       return;
     }
     try {
-      await exportUsers();
+      await exportExcelUsersAdmin();
     } catch (error) {
       console.error("L'exportation a échoué", error);
     }
@@ -255,19 +254,21 @@ const Utilisateurs = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          {/* BOUTON D'EXPORT */}
+          {/* BOUTON D'EXPORT EXCEL */}
           <button
-            onClick={handleExportCSV}
+            onClick={handleExportExcel}
             disabled={isExportingUsers || !totalCount}
-            className={`flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95 ${
+            className={`flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-all active:scale-95 ${
               isExportingUsers || !totalCount ? "opacity-60 cursor-not-allowed" : ""
             }`}
           >
             <FontAwesomeIcon
-              icon={isExportingUsers ? faSyncAlt : faDownload}
+              icon={isExportingUsers ? faSyncAlt : faFileExcel}
               className={isExportingUsers ? "animate-spin" : ""}
             />
-            <span className="hidden sm:inline">Exporter CSV</span>
+            <span className="hidden sm:inline">
+              {isExportingUsers ? "Génération..." : "Exporter Excel"}
+            </span>
           </button>
 
           {/* BOUTON ACTUALISER */}
