@@ -178,9 +178,8 @@ const Drivers = () => {
                             </div>
                             <div className="flex flex-col">
                               {/* Le lien sur le nom pointe toujours vers le profil général si vous l'avez */}
-                              <Link to={`/admin/users/details/${driver.id}`} className="font-bold hover:text-blue-500 transition-colors">
                                 {driver.firstName} {driver.lastName}
-                              </Link>
+                         
                               <span className="text-[10px] opacity-50 font-mono italic">{driver.id.substring(0, 8)}...</span>
                             </div>
                           </div>
