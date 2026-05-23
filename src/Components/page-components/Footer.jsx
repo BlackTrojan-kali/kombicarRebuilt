@@ -199,7 +199,7 @@ export function Footer() {
                                         <br />
                                         <br />
                                         <a
-                                            href="https://admin.kombicar.app/"
+                                            href="/admin/signin"
                                             className="hover:underline"
                                         >
                                             admin page
