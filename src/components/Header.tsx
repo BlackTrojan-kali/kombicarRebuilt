@@ -107,43 +107,60 @@ export const Header = () => {
             )}
           </nav>
 
-          {/* --- ACTIONS DESKTOP (Thème + Profil / Auth) --- */}
+          {/* --- ACTIONS DESKTOP (Thème + Profil / Auth / Notifications) --- */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
 
             {isAuthenticated && user ? (
-              // Dropdown Profil (Utilisateur connecté)
-              <div className="relative" ref={dropdownRef}>
-                <button 
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 p-1.5 rounded-full border border-border-main hover:bg-base transition-colors"
+              <div className="flex items-center gap-3">
+                
+                {/* --- NOUVEAU BOUTON NOTIFICATIONS DESKTOP --- */}
+                <Link 
+                  to="/notifications" 
+                  className="relative p-2 text-text-muted hover:text-kombi-orange-500 hover:bg-base rounded-full transition-colors"
+                  title="Notifications"
                 >
-                  <div className="w-8 h-8 rounded-full bg-kombi-dark-500 text-white flex items-center justify-center font-bold text-sm">
-                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                  </div>
-                  <span className="font-medium text-sm text-text-main hidden lg:block">
-                    {user.firstName}
-                  </span>
-                  <ChevronDown size={16} className="text-text-muted mr-1" />
-                </button>
+                  <Bell size={20} />
+                  {/* Pastille pour simuler une notification non lue (Tu peux la conditionner dynamiquement plus tard) */}
+                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-kombi-orange-500 border-2 border-surface rounded-full"></span>
+                </Link>
 
-                {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-surface border border-border-main rounded-xl shadow-lg overflow-hidden py-2">
-                    <Link to="/profil" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <User size={16} /> Mon profil
-                    </Link>
-                    <Link to="/trajets" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <Car size={16} /> Mes trajets
-                    </Link>
-                    <Link to="/conversations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <MessageSquare size={16} /> Messages
-                    </Link>
-                    <div className="border-t border-border-main my-2"></div>
-                    <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-left">
-                      <LogOut size={16} /> Déconnexion
-                    </button>
-                  </div>
-                )}
+                {/* Dropdown Profil (Utilisateur connecté) */}
+                <div className="relative" ref={dropdownRef}>
+                  <button 
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center gap-2 p-1.5 rounded-full border border-border-main hover:bg-base transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-kombi-dark-500 text-white flex items-center justify-center font-bold text-sm">
+                      {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                    </div>
+                    <span className="font-medium text-sm text-text-main hidden lg:block">
+                      {user.firstName}
+                    </span>
+                    <ChevronDown size={16} className="text-text-muted mr-1" />
+                  </button>
+
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-surface border border-border-main rounded-xl shadow-lg overflow-hidden py-2">
+                      <Link to="/profil" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <User size={16} /> Mon profil
+                      </Link>
+                      <Link to="/mes-trajets-conducteur" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <Car size={16} /> Mes trajets
+                      </Link>
+                      <Link to="/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <Calendar size={16} /> Mes réservations
+                      </Link>
+                      <Link to="/conversations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <MessageSquare size={16} /> Messages
+                      </Link>
+                      <div className="border-t border-border-main my-2"></div>
+                      <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 text-left">
+                        <LogOut size={16} /> Déconnexion
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               // Boutons Login / Register (Non connecté)
@@ -160,6 +177,15 @@ export const Header = () => {
 
           {/* --- BOUTON MENU MOBILE --- */}
           <div className="flex items-center gap-3 md:hidden">
+            {isAuthenticated && (
+              <Link 
+                to="/notifications" 
+                className="relative p-1.5 text-text-muted hover:text-kombi-orange-500 transition-colors"
+              >
+                <Bell size={22} />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-kombi-orange-500 border border-surface rounded-full"></span>
+              </Link>
+            )}
             <ThemeToggle />
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -215,9 +241,9 @@ export const Header = () => {
               
               {isAuthenticated && (
                 <>
-                  <MobileMenuItem to="/trajets" icon={Car} label="Mes covoiturages" />
-                  <MobileMenuItem to="/publier" icon={PlusCircle} label="Publier un trajet" />
-                  <MobileMenuItem to="/planifier" icon={Calendar} label="Planifier un trajet" />
+                  <MobileMenuItem to="/mes-reservations" icon={Calendar} label="Mes réservations" />
+                  <MobileMenuItem to="/mes-trajets-conducteur" icon={Car} label="Mes trajets (Conducteur)" />
+                  <MobileMenuItem to="/covoiturage/publier" icon={PlusCircle} label="Publier un trajet" />
                 </>
               )}
             </div>

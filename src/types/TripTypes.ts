@@ -86,28 +86,27 @@ export interface UpdateTripPayload {
 /**
  * DTO pour gérer la plage horaire lors d'une recherche.
  */
+// src/types/TripTypes.ts
+
 export interface TripDepartureHourFilter {
   acceptAllHour: boolean;
   startHour: number;
   endHour: number;
 }
 
-/**
- * Payload pour la recherche publique de trajets (Filtres).
- */
 export interface PublicTripSearchFilter {
   page: number;
-  tripStatus: TripStatus | number; // 1 (Active) la plupart du temps
-  maxPrice?: number; // Optionnel
-  tripDepartureHour?: TripDepartureHourFilter;
-  airConditionned?: boolean;
-  luggageAllowed?: boolean;
-  vehiculeType?: number;
-  notationOfCondutor?: number;
-  startAreaCity?: string;
-  endAreaCity?: string;
-  departureDate?: string; // Format: "YYYY-MM-DD"
-  country?: number;
+  tripStatus: number;
+  maxPrice?: number | null;
+  tripDepartureHour?: TripDepartureHourFilter | null;
+  airConditionned?: boolean | null;
+  luggageAllowed?: boolean | null;
+  vehiculeType?: number | null;
+  notationOfCondutor?: number | null;
+  startAreaCity?: string | null;
+  endAreaCity?: string | null;
+  departureDate?: string | null;
+  country?: number | null;
 }
 
 // ========================================================

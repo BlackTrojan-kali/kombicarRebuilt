@@ -9,6 +9,12 @@ import { UserProfile } from '../pages/profile/UserProfile';
 import { LicenceManagementPage } from '../pages/profile/LicenceManagementPage';
 import { VehiculeManagementPage } from '../pages/profile/VehiculeManagementPage';
 import { PublishTripPage } from '../pages/covoiturage/PublishTripPage';
+import { HomePage } from '../pages/HomePage';
+import { SearchPage } from '../pages/covoiturage/SearchPage';
+import { TripDetailsPage } from '../pages/covoiturage/TripDetailsPage';
+import { MyReservationsPage } from '../pages/covoiturage/MyReservationsPage';
+import { DriverTripsPage } from '../pages/covoiturage/DriverTripsPage';
+import { NotificationsPage } from '../pages/notifications/NotificationsPage';
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -36,7 +42,7 @@ export const router = createBrowserRouter([
       // Routes publiques avec Header
       {
         path: '/',
-        element: <div className="p-8 text-center text-text-main">Accueil Kombicar (Publique)</div>,
+        element: <HomePage/>,
       },
       
       // Routes protégées avec Header
@@ -47,10 +53,15 @@ export const router = createBrowserRouter([
             path: '/vtc',
             element: <div className="p-8 text-center text-text-main">VTC Dashboard</div>,
           },
-          { path: '/covoiturage/publier', element: <PublishTripPage /> },
+          { path: '/publier', element: <PublishTripPage /> },
+          { path: '/notifications', element: <NotificationsPage /> },
+          { path: '/trajets/:id', element: <TripDetailsPage /> 
+
+          },{ path: '/profil/mes-reservations', element: <MyReservationsPage /> }
+          ,{ path: '/profil/mes-trajets-conducteur', element: <DriverTripsPage /> }, // <-- AJOUT ICI
           {
             path: '/recherche',
-            element: <div className="p-8 text-center text-text-main">Recherche Covoiturage</div>,
+            element: <SearchPage/>,
           },
           {
             path: '/trajets',

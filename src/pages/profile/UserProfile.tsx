@@ -148,7 +148,7 @@ export const UserProfile = () => {
         </div>
 
         {/* Bouton Trajets */}
-        <Link to="/trajets" className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-kombi-blue-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
+        <Link to="/profil/mes-trajets-conducteur" className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-kombi-blue-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
           <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-kombi-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Car size={24} />
           </div>
@@ -170,7 +170,7 @@ export const UserProfile = () => {
         </Link>
 
         {/* Bouton Réservations */}
-        <Link to="/profil/reservations" className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-kombi-orange-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
+        <Link to="/profil/mes-reservations" className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-kombi-orange-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
           <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 text-kombi-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <CalendarClock size={24} />
           </div>
