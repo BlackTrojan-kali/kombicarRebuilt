@@ -2,19 +2,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react'; 
-// On importe maintenant le logo complet
+
 import logoComplet from '../assets/logo-complet.png';
 
-// --- ICÔNES SOCIAUX SUR-MESURE (Style Lucide) ---
+// --- ICÔNES SOCIAUX SUR-MESURE ---
 const FacebookIcon = ({ size = 20, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-  </svg>
-);
-
-const TwitterIcon = ({ size = 20, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
   </svg>
 );
 
@@ -25,7 +19,6 @@ const InstagramIcon = ({ size = 20, className = "" }) => (
     <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
   </svg>
 );
-// ------------------------------------------------
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -38,20 +31,16 @@ export const Footer = () => {
           {/* Section Marque et Description */}
           <div className="space-y-4">
             <Link to="/" className="inline-block">
-              {/* Utilisation du logo complet, hauteur ajustée à h-10 pour une bonne lisibilité */}
               <img src={logoComplet} alt="Logo Kombicar" className="h-10 w-auto object-contain" />
             </Link>
             <p className="text-sm text-text-muted leading-relaxed mt-2">
               Un voyage confortable en toute sécurité. La plateforme de covoiturage et VTC de référence.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              <a href="#" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
+              <a href="https://facebook.com/kombicar" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
                 <FacebookIcon size={20} />
               </a>
-              <a href="#" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
-                <TwitterIcon size={20} />
-              </a>
-              <a href="#" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
+              <a href="https://instagram.com/kombicar_cmr" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
                 <InstagramIcon size={20} />
               </a>
             </div>
@@ -65,7 +54,7 @@ export const Footer = () => {
                 <Link to="/recherche" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Rechercher un trajet</Link>
               </li>
               <li>
-                <Link to="/publier" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Publier un trajet</Link>
+                <Link to="/covoiturage/publier" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Publier un trajet</Link>
               </li>
               <li>
                 <Link to="/vtc" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Réserver un VTC</Link>
@@ -84,13 +73,15 @@ export const Footer = () => {
                 <Link to="/aide" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Centre d'aide</Link>
               </li>
               <li>
-                <Link to="/cgu" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Conditions Générales</Link>
+                <Link to="/securite" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Engagement Sécurité</Link>
               </li>
               <li>
-                <Link to="/confidentialite" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Confidentialité</Link>
+                <Link to="/privacy-policy" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Politique de confidentialité</Link>
               </li>
               <li>
-                <Link to="/securite" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Sécurité</Link>
+                <a href="https://admin.kombicar.app/" target="_blank" rel="noopener noreferrer" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">
+                  Portail Administration
+                </a>
               </li>
             </ul>
           </div>
@@ -105,7 +96,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-kombi-orange-500 shrink-0" />
-                <span className="text-sm text-text-muted">+237 6XX XX XX XX</span>
+                <span className="text-sm text-text-muted">+237 6 55 73 05 77 / (+237) 655 730 577</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-kombi-orange-500 shrink-0" />
@@ -119,10 +110,10 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-border-main mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-text-muted">
-            &copy; {currentYear} Kombicar. Tous droits réservés.
+            &copy; {currentYear} Kombicar™. Tous droits réservés.
           </p>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-medium text-text-muted bg-base px-2 py-1 rounded border border-border-main">Paiement Sécurisé</span>
+            <span className="text-xs font-medium text-text-muted bg-base px-2 py-1 rounded border border-border-main">Paiement Sécurisé Mobile Money</span>
           </div>
         </div>
       </div>

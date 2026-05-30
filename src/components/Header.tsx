@@ -5,10 +5,15 @@ import {
   Menu, X, Search, Car, PlusCircle, Calendar, 
   MessageSquare, Bell, User, Settings, HelpCircle, 
   LogOut, ChevronRight, ChevronDown, Wallet,
-  CalendarClock
+  CalendarClock, AlertTriangle,
+  Shield,
+  Star
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+
 import { useAuth } from '../features/auth/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
+import { sosService } from '../services/sosService';
 import logo from '../assets/logo.png'; // Utilisation stricte de l'icône "K"
 
 export const Header = () => {
@@ -53,6 +58,37 @@ export const Header = () => {
 
   const closeMenu = () => setIsMobileMenuOpen(false);
 
+  // --- FONCTIONNALITÉ SOS ---
+  const handleSOS = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir déclencher l'alerte SOS ? Les autorités et vos contacts d'urgence seront prévenus.")) return;
+
+    try {
+      if (!navigator.geolocation) {
+        toast.error("La géolocalisation n'est pas supportée par votre navigateur.");
+        return;
+      }
+
+      toast.loading("Obtention de votre position...", { id: "sos-toast" });
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+          await sosService.triggerSOS({
+            rideId: "ID_DE_LA_COURSE_ACTUELLE", // TODO: Remplacer par l'ID de la course active si disponible dans le contexte global
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+          toast.success("Alerte SOS envoyée avec succès.", { id: "sos-toast" });
+        } catch (apiError) {
+          toast.error("Échec de l'envoi de l'alerte au serveur.", { id: "sos-toast" });
+        }
+      }, (error) => {
+        toast.error("Impossible d'obtenir votre position GPS. Vérifiez vos autorisations.", { id: "sos-toast" });
+      });
+    } catch (error) {
+      toast.error("Une erreur inattendue s'est produite.", { id: "sos-toast" });
+    }
+  };
+
   // --- COMPOSANT RÉUTILISABLE POUR LES LIENS DU MENU MOBILE ---
   const MobileMenuItem = ({ to, icon: Icon, label, badge, highlighted = false }: any) => (
     <Link 
@@ -95,14 +131,19 @@ export const Header = () => {
             <Link to="/recherche" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
               Rechercher
             </Link>
-            
+            <Link to="/securite" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
+    Sécurité
+  </Link>
+  <Link to="/pourquoi-nous" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
+    Pourquoi Kombicar
+  </Link>
+            <Link to="/comment-ca-marche" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
+    Comment ça marche
+  </Link>
             {isAuthenticated && (
               <>
-                <Link to="/covoiturage/publier" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
+                <Link to="/publier" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
                   Publier un trajet
-                </Link>
-                <Link to="/vtc" className="text-text-main hover:text-kombi-orange-500 font-medium transition-colors">
-                  VTC
                 </Link>
               </>
             )}
@@ -115,6 +156,15 @@ export const Header = () => {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 
+                {/* --- BOUTON SOS DESKTOP --- */}
+                <button 
+                  onClick={handleSOS}
+                  className="relative p-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                  title="Déclencher une alerte SOS"
+                >
+                  <AlertTriangle size={20} />
+                </button>
+
                 {/* --- BOUTON NOTIFICATIONS DESKTOP --- */}
                 <Link 
                   to="/notifications" 
@@ -146,7 +196,6 @@ export const Header = () => {
                       <Link to="/profil" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <User size={16} /> Mon profil
                       </Link>
-                      {/* --- NOUVEAU LIEN WALLET DESKTOP --- */}
                       <Link to="/profil/retraits" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Wallet size={16} /> Mon portefeuille
                       </Link>
@@ -156,7 +205,6 @@ export const Header = () => {
                       <Link to="/profil/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Calendar size={16} /> Mes réservations
                       </Link>
-                      
                       <Link to="/planifier" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <CalendarClock size={16} /> Planifications
                       </Link>
@@ -187,13 +235,24 @@ export const Header = () => {
           {/* --- BOUTON MENU MOBILE --- */}
           <div className="flex items-center gap-3 md:hidden">
             {isAuthenticated && (
-              <Link 
-                to="/notifications" 
-                className="relative p-1.5 text-text-muted hover:text-kombi-orange-500 transition-colors"
-              >
-                <Bell size={22} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-kombi-orange-500 border border-surface rounded-full"></span>
-              </Link>
+              <>
+                {/* --- BOUTON SOS MOBILE --- */}
+                <button 
+                  onClick={handleSOS}
+                  className="relative p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                  title="SOS"
+                >
+                  <AlertTriangle size={22} />
+                </button>
+
+                <Link 
+                  to="/notifications" 
+                  className="relative p-1.5 text-text-muted hover:text-kombi-orange-500 transition-colors"
+                >
+                  <Bell size={22} />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-kombi-orange-500 border border-surface rounded-full"></span>
+                </Link>
+              </>
             )}
             <ThemeToggle />
             <button 
@@ -247,7 +306,12 @@ export const Header = () => {
             <div>
               <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-2">Trajets</p>
               <MobileMenuItem to="/recherche" icon={Search} label="Rechercher un trajet" highlighted={true} />
-              
+              <div>
+    <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-2">Informations</p>
+    <MobileMenuItem to="/securite" icon={Shield} label="Engagement Sécurité" />
+    <MobileMenuItem to="/pourquoi-nous" icon={Star} label="Pourquoi Kombicar" />
+  <MobileMenuItem to="/comment-ca-marche" icon={HelpCircle} label="Comment ça marche" />
+  </div>
               {isAuthenticated && (
                 <>
                   <MobileMenuItem to="/profil/mes-reservations" icon={Calendar} label="Mes réservations" />
@@ -271,11 +335,8 @@ export const Header = () => {
               <div>
                 <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-2 mt-6">Compte</p>
                 <MobileMenuItem to="/profil" icon={User} label="Mon profil" />
-                
-                <MobileMenuItem to="/planifier" icon={Calendar} label="plannificaiton trajet" />
-                {/* --- NOUVEAU LIEN WALLET MOBILE --- */}
+                <MobileMenuItem to="/planifier" icon={Calendar} label="Planification trajet" />
                 <MobileMenuItem to="/profil/retraits" icon={Wallet} label="Mon portefeuille" />
-                
                 <MobileMenuItem to="/parametres" icon={Settings} label="Paramètres" />
                 <MobileMenuItem to="/aide" icon={HelpCircle} label="Aide & support" />
                 

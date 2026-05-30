@@ -19,6 +19,9 @@ import { WalletPage } from '../pages/wallet/WalletPage';
 import { PlannedTripsPage } from '../pages/covoiturage/PlannedTripsPage';
 import { ConversationsPage } from '../pages/messages/ConversationsPage';
 import { DriverReviewsPage } from '../pages/reviews/DriverReviewsPage';
+import { SecurityPage } from '../pages/SecurityPage';
+import { HowItWorksPage } from '../pages/HowItWorksPage';
+import { WhyUsPage } from '../pages/WhyUsPage';
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -48,7 +51,9 @@ export const router = createBrowserRouter([
         path: '/',
         element: <HomePage/>,
       },
-      
+      { path: '/securite', element: <SecurityPage /> },
+      { path: '/pourquoi-nous', element: <WhyUsPage /> },
+      { path: '/comment-ca-marche', element: <HowItWorksPage /> },
       // Routes protégées avec Header
       {
         element: <ProtectedRoute />, 
