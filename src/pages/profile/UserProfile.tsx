@@ -181,7 +181,7 @@ export const UserProfile = () => {
         </Link>
 
         {/* Bouton Revues */}
-        <Link to="/profil/revues" className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-yellow-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
+        <Link to={`/conducteurs/${user.id}/avis`} className="group bg-surface border border-border-main rounded-2xl p-5 hover:border-yellow-500 transition-all hover:shadow-md flex flex-col justify-center gap-3">
           <div className="w-12 h-12 rounded-full bg-yellow-50 dark:bg-yellow-900/20 text-yellow-500 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Star size={24} />
           </div>

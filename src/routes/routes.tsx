@@ -18,6 +18,7 @@ import { NotificationsPage } from '../pages/notifications/NotificationsPage';
 import { WalletPage } from '../pages/wallet/WalletPage';
 import { PlannedTripsPage } from '../pages/covoiturage/PlannedTripsPage';
 import { ConversationsPage } from '../pages/messages/ConversationsPage';
+import { DriverReviewsPage } from '../pages/reviews/DriverReviewsPage';
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
           { path: '/profil/retraits', element: <WalletPage /> },
           { path: '/planifier', element: <PlannedTripsPage /> },
           { path: '/conversations', element: <ConversationsPage /> },
+          { path: '/conducteurs/:driverId/avis', element: <DriverReviewsPage /> },
           {
             path: '/recherche',
             element: <SearchPage/>,

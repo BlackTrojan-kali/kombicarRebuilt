@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Loader2, Calendar, MapPin, 
-  ArrowRight, Users, Clock, CheckCircle2, XCircle, AlertCircle
+  ArrowRight, Users, Clock, CheckCircle2, XCircle, AlertCircle, Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { reservationService } from '../../services/reservationService';
+import { reviewService } from '../../services/reviewService'; // <-- IMPORT DU SERVICE DES AVIS
 import type { UserReservationListItem } from '../../types/ReservationTypes';
 
 // Mapping des statuts de réservation (0 à 4 selon ton backend)
@@ -32,6 +33,10 @@ export const MyReservationsPage = () => {
     hasPreviousPage: false,
     totalCount: 0
   });
+
+  // États pour la modale d'évaluation
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedTripIdForReview, setSelectedTripIdForReview] = useState<number | null>(null);
 
   const fetchReservations = async () => {
     setIsLoading(true);
@@ -59,6 +64,11 @@ export const MyReservationsPage = () => {
   const handleTabChange = (statusValue: number) => {
     setActiveTab(statusValue);
     setCurrentPage(1); // Retour à la page 1 quand on change de filtre
+  };
+
+  const openReviewModal = (tripId: number) => {
+    setSelectedTripIdForReview(tripId);
+    setIsReviewModalOpen(true);
   };
 
   return (
@@ -155,12 +165,23 @@ export const MyReservationsPage = () => {
                     <p className="text-lg font-black text-text-main">
                       {totalPrice.toLocaleString('fr-FR')} <span className="text-xs font-bold text-text-muted uppercase">XAF</span>
                     </p>
-                    <Link 
-                      to={`/trajets/${trip.id}`}
-                      className="px-4 py-2 bg-base border border-border-main rounded-xl text-sm font-bold text-text-main hover:bg-surface transition-colors"
-                    >
-                      Voir le trajet
-                    </Link>
+                    <div className="flex gap-2">
+                      {/* BOUTON D'ÉVALUATION (Uniquement si Terminée) */}
+                      {reservation.status === 4 && (
+                        <button 
+                          onClick={() => openReviewModal(trip.id)}
+                          className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-900/50 hover:bg-yellow-100 dark:hover:bg-yellow-900/40 rounded-xl text-sm font-bold transition-colors flex items-center gap-1"
+                        >
+                          <Star size={16} /> Évaluer
+                        </button>
+                      )}
+                      <Link 
+                        to={`/trajets/${trip.id}`}
+                        className="px-4 py-2 bg-base border border-border-main rounded-xl text-sm font-bold text-text-main hover:bg-surface transition-colors"
+                      >
+                        Voir le trajet
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );
@@ -208,6 +229,114 @@ export const MyReservationsPage = () => {
         )}
       </div>
 
+      {/* MODALE D'ÉVALUATION */}
+      <ReviewModal 
+        isOpen={isReviewModalOpen} 
+        onClose={() => setIsReviewModalOpen(false)} 
+        tripId={selectedTripIdForReview} 
+      />
+
+    </div>
+  );
+};
+
+// ==========================================
+// --- COMPOSANT : MODALE D'ÉVALUATION ---
+// ==========================================
+const ReviewModal = ({ isOpen, onClose, tripId }: { isOpen: boolean, onClose: () => void, tripId: number | null }) => {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Réinitialiser la modale à l'ouverture
+  useEffect(() => {
+    if (isOpen) {
+      setRating(5);
+      setComment('');
+    }
+  }, [isOpen]);
+
+  if (!isOpen || !tripId) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating < 1 || rating > 5) return toast.error("La note doit être comprise entre 1 et 5.");
+
+    setIsSubmitting(true);
+    try {
+      await reviewService.createReview({
+        rating,
+        comment,
+        tripId
+      });
+      toast.success("Votre avis a été soumis avec succès !");
+      onClose();
+    } catch (error: any) {
+      toast.error(error.response?.data?.description || "Vous avez probablement déjà évalué ce trajet.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+      
+      <div className="relative bg-surface w-full max-w-md rounded-3xl p-6 shadow-2xl animate-fade-in-up">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold flex items-center gap-2 text-text-main">
+            <Star className="text-yellow-500 fill-yellow-500" /> Évaluer ce trajet
+          </h3>
+          <button onClick={onClose} className="p-2 bg-base hover:bg-border-main rounded-full transition-colors">
+             <XCircle size={20} className="text-text-muted" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* SÉLECTEUR D'ÉTOILES */}
+          <div className="flex flex-col items-center">
+            <label className="text-sm font-bold text-text-muted mb-2">Quelle note donnez-vous ?</label>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((starValue) => (
+                <button
+                  key={starValue}
+                  type="button"
+                  onClick={() => setRating(starValue)}
+                  className="p-1 focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star 
+                    size={36} 
+                    className={`${starValue <= rating ? 'text-yellow-500 fill-yellow-500' : 'text-border-main fill-transparent'} transition-colors`} 
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* CHAMP COMMENTAIRE */}
+          <div>
+            <label className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2 block">
+              Votre commentaire (Optionnel)
+            </label>
+            <textarea 
+              rows={4}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Comment s'est passé votre voyage ? Le conducteur était-il ponctuel et agréable ?"
+              className="w-full p-3 border border-border-main rounded-xl bg-base text-text-main focus:border-kombi-orange-500 focus:ring-1 focus:ring-kombi-orange-500 transition-all outline-none resize-none"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full bg-kombi-orange-500 hover:bg-kombi-orange-600 text-white font-bold py-3.5 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? <Loader2 className="animate-spin mr-2" size={20} /> : null}
+            {isSubmitting ? "Envoi en cours..." : "Soumettre mon avis"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

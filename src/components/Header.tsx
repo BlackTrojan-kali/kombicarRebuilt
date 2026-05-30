@@ -147,13 +147,13 @@ export const Header = () => {
                         <User size={16} /> Mon profil
                       </Link>
                       {/* --- NOUVEAU LIEN WALLET DESKTOP --- */}
-                      <Link to="/wallet" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                      <Link to="/profil/retraits" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Wallet size={16} /> Mon portefeuille
                       </Link>
                       <Link to="/mes-trajets-conducteur" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Car size={16} /> Mes trajets
                       </Link>
-                      <Link to="/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                      <Link to="/profil/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Calendar size={16} /> Mes réservations
                       </Link>
                       
@@ -250,7 +250,7 @@ export const Header = () => {
               
               {isAuthenticated && (
                 <>
-                  <MobileMenuItem to="/mes-reservations" icon={Calendar} label="Mes réservations" />
+                  <MobileMenuItem to="/profil/mes-reservations" icon={Calendar} label="Mes réservations" />
                   <MobileMenuItem to="/mes-trajets-conducteur" icon={Car} label="Mes trajets (Conducteur)" />
                   <MobileMenuItem to="/covoiturage/publier" icon={PlusCircle} label="Publier un trajet" />
                 </>
