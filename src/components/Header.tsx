@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Menu, X, Search, Car, PlusCircle, Calendar, 
   MessageSquare, Bell, User, Settings, HelpCircle, 
-  LogOut, ChevronRight, ChevronDown
+  LogOut, ChevronRight, ChevronDown, Wallet,
+  CalendarClock
 } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
@@ -114,14 +115,14 @@ export const Header = () => {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 
-                {/* --- NOUVEAU BOUTON NOTIFICATIONS DESKTOP --- */}
+                {/* --- BOUTON NOTIFICATIONS DESKTOP --- */}
                 <Link 
                   to="/notifications" 
                   className="relative p-2 text-text-muted hover:text-kombi-orange-500 hover:bg-base rounded-full transition-colors"
                   title="Notifications"
                 >
                   <Bell size={20} />
-                  {/* Pastille pour simuler une notification non lue (Tu peux la conditionner dynamiquement plus tard) */}
+                  {/* Pastille pour simuler une notification non lue */}
                   <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-kombi-orange-500 border-2 border-surface rounded-full"></span>
                 </Link>
 
@@ -145,11 +146,19 @@ export const Header = () => {
                       <Link to="/profil" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <User size={16} /> Mon profil
                       </Link>
+                      {/* --- NOUVEAU LIEN WALLET DESKTOP --- */}
+                      <Link to="/wallet" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <Wallet size={16} /> Mon portefeuille
+                      </Link>
                       <Link to="/mes-trajets-conducteur" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Car size={16} /> Mes trajets
                       </Link>
                       <Link to="/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Calendar size={16} /> Mes réservations
+                      </Link>
+                      
+                      <Link to="/planifier" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <CalendarClock size={16} /> Planifications
                       </Link>
                       <Link to="/conversations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <MessageSquare size={16} /> Messages
@@ -215,7 +224,7 @@ export const Header = () => {
                       {user.firstName} {user.lastName}
                     </h3>
                     <p className="text-gray-300 text-sm flex items-center gap-1 mt-0.5">
-                      ⭐ 4,9 • {user.reviewsCount} trajets
+                      ⭐ 4,9 • {user.reviewsCount || 0} trajets
                     </p>
                   </div>
                 </div>
@@ -262,6 +271,11 @@ export const Header = () => {
               <div>
                 <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 ml-2 mt-6">Compte</p>
                 <MobileMenuItem to="/profil" icon={User} label="Mon profil" />
+                
+                <MobileMenuItem to="/planifier" icon={Calendar} label="plannificaiton trajet" />
+                {/* --- NOUVEAU LIEN WALLET MOBILE --- */}
+                <MobileMenuItem to="/profil/retraits" icon={Wallet} label="Mon portefeuille" />
+                
                 <MobileMenuItem to="/parametres" icon={Settings} label="Paramètres" />
                 <MobileMenuItem to="/aide" icon={HelpCircle} label="Aide & support" />
                 

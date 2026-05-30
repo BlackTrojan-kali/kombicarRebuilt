@@ -15,6 +15,8 @@ import { TripDetailsPage } from '../pages/covoiturage/TripDetailsPage';
 import { MyReservationsPage } from '../pages/covoiturage/MyReservationsPage';
 import { DriverTripsPage } from '../pages/covoiturage/DriverTripsPage';
 import { NotificationsPage } from '../pages/notifications/NotificationsPage';
+import { WalletPage } from '../pages/wallet/WalletPage';
+import { PlannedTripsPage } from '../pages/covoiturage/PlannedTripsPage';
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -59,6 +61,8 @@ export const router = createBrowserRouter([
 
           },{ path: '/profil/mes-reservations', element: <MyReservationsPage /> }
           ,{ path: '/profil/mes-trajets-conducteur', element: <DriverTripsPage /> }, // <-- AJOUT ICI
+          { path: '/profil/retraits', element: <WalletPage /> },
+          { path: '/planifier', element: <PlannedTripsPage /> },
           {
             path: '/recherche',
             element: <SearchPage/>,
