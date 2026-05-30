@@ -8,6 +8,7 @@ import { EmailConfirmationPage } from '../pages/auth/EmailConfirmationPage';
 import { UserProfile } from '../pages/profile/UserProfile';
 import { LicenceManagementPage } from '../pages/profile/LicenceManagementPage';
 import { VehiculeManagementPage } from '../pages/profile/VehiculeManagementPage';
+import { PublishTripPage } from '../pages/covoiturage/PublishTripPage';
 
 export const router = createBrowserRouter([
   // ==========================================
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
             path: '/vtc',
             element: <div className="p-8 text-center text-text-main">VTC Dashboard</div>,
           },
+          { path: '/covoiturage/publier', element: <PublishTripPage /> },
           {
             path: '/recherche',
             element: <div className="p-8 text-center text-text-main">Recherche Covoiturage</div>,

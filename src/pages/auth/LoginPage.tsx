@@ -39,6 +39,13 @@ export const LoginPage = () => {
   // --- SOUMISSION CLASSIQUE ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Vérification de la longueur du mot de passe
+    if (formData.password.length < 8) {
+      toast.error('Le mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -152,6 +159,7 @@ export const LoginPage = () => {
                   type="password"
                   name="password"
                   required
+                  minLength={8}
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full bg-transparent outline-none text-text-main placeholder-text-muted"
