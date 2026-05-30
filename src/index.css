@@ -1,1 +1,60 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* 1. Variables CSS : Thème Clair par défaut */
+:root {
+  --bg-base: #f9fafb;
+  --bg-surface: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-main: #e5e7eb;
+}
+
+/* 2. Variables CSS : Thème Sombre (Activé par la classe .dark via le ThemeContext) */
+.dark {
+  --bg-base: #111827;
+  --bg-surface: #1f2937;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --border-main: #374151;
+}
+
+/* 3. Intégration à Tailwind v4 */
+@theme {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  /* Couleurs de la marque avec les suffixes -400, -500 (Base) et -600 */
+  --color-kombi-orange-400: #fbbf24;
+  --color-kombi-orange-500: #f59e0b; /* Couleur de base */
+  --color-kombi-orange-600: #d97706;
+
+  --color-kombi-blue-400: #3b82f6;
+  --color-kombi-blue-500: #2563eb; /* Couleur de base */
+  --color-kombi-blue-600: #1d4ed8;
+
+  --color-kombi-green-400: #a3e635;
+  --color-kombi-green-500: #84cc16; /* Couleur de base */
+  --color-kombi-green-600: #65a30d;
+
+  --color-kombi-dark-500: #1f2937;
+
+  /* Couleurs Sémantiques (Connectées aux variables dynamiques) */
+  --color-bg-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
+}
+
+/* 4. Styles globaux */
+@layer base {
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    @apply antialiased transition-colors duration-200;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
