@@ -1,5 +1,5 @@
 // src/layouts/MainLayout.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { ChevronUp } from 'lucide-react';
 import { Header } from '../components/Header';

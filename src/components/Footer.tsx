@@ -1,5 +1,4 @@
-// src/components/Footer.tsx
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react'; 
 
@@ -96,7 +95,7 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="text-kombi-orange-500 shrink-0" />
-                <span className="text-sm text-text-muted">+237 6 55 73 05 77 / (+237) 655 730 577</span>
+                <span className="text-sm text-text-muted">+237 6 55 73 05 77 ./ (+237) 655 730 577</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="text-kombi-orange-500 shrink-0" />

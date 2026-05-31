@@ -98,7 +98,7 @@ export const WalletPage = () => {
           <div className="relative z-10">
             <p className="text-gray-300 text-sm font-medium mb-1">Solde disponible</p>
             <h2 className="text-4xl md:text-5xl font-black mb-6">
-              {user?.walletBalance ? user.walletBalance.toLocaleString('fr-FR') : '0'} <span className="text-lg font-bold text-gray-400">XAF</span>
+              {user?.balance ? user.balance.toLocaleString('fr-FR') : '0'} <span className="text-lg font-bold text-gray-400">XAF</span>
             </h2>
 
             <div className="flex gap-3">

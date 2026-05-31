@@ -1,9 +1,9 @@
 // src/pages/covoiturage/DriverTripsPage.tsx
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, Loader2, Calendar, MapPin, 
-  ArrowRight, Users, Clock, CheckCircle2, XCircle, Settings, AlertTriangle
+  ArrowRight, Users, Clock, CheckCircle2, XCircle, Settings, 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

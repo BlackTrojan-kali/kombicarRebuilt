@@ -1,5 +1,4 @@
 // src/pages/WhyUsPage.tsx
-import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   ChevronLeft, 

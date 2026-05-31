@@ -1,5 +1,5 @@
 // src/components/Header.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import  { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Menu, X, Search, Car, PlusCircle, Calendar, 
@@ -81,7 +81,7 @@ export const Header = () => {
         } catch (apiError) {
           toast.error("Échec de l'envoi de l'alerte au serveur.", { id: "sos-toast" });
         }
-      }, (error) => {
+      }, () => {
         toast.error("Impossible d'obtenir votre position GPS. Vérifiez vos autorisations.", { id: "sos-toast" });
       });
     } catch (error) {

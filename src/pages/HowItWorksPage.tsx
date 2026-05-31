@@ -1,5 +1,4 @@
-// src/pages/HowItWorksPage.tsx
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, MessageCircle } from 'lucide-react';
 

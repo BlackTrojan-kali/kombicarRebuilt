@@ -1,5 +1,5 @@
 // src/pages/notifications/NotificationsPage.tsx
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, CheckCircle2, MessageSquare, 

@@ -1,9 +1,9 @@
 // src/pages/HomePage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowRight, ShieldCheck, Zap, Users, 
-  CheckCircle2, Star, MessageCircle, Heart, Loader2, MapPin
+  ArrowRight, ShieldCheck, Zap,  
+  CheckCircle2, Star,  Heart, Loader2, MapPin
 } from 'lucide-react';
 
 import { HeroSearch } from '../components/home/HeroSearch';

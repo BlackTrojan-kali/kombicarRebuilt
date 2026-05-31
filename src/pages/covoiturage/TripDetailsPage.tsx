@@ -1,8 +1,8 @@
 // src/pages/covoiturage/TripDetailsPage.tsx
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ChevronLeft, Calendar, Clock, MapPin, Star, 
+  ChevronLeft,  Clock, Star, 
   Wind, Briefcase, ShieldCheck, CarFront, Info, Loader2 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
