@@ -315,8 +315,8 @@ export const Header = () => {
               {isAuthenticated && (
                 <>
                   <MobileMenuItem to="/profil/mes-reservations" icon={Calendar} label="Mes réservations" />
-                  <MobileMenuItem to="/mes-trajets-conducteur" icon={Car} label="Mes trajets (Conducteur)" />
-                  <MobileMenuItem to="/covoiturage/publier" icon={PlusCircle} label="Publier un trajet" />
+                  <MobileMenuItem to="/profil/mes-trajets-conducteur" icon={Car} label="Mes trajets (Conducteur)" />
+                  <MobileMenuItem to="/publier" icon={PlusCircle} label="Publier un trajet" />
                 </>
               )}
             </div>
