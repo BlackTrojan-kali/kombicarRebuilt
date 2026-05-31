@@ -52,7 +52,7 @@ export const LoginPage = () => {
       await login(formData);
       toast.success('Connexion réussie !');
       
-      const origin = location.state?.from?.pathname || '/vtc';
+      const origin = location.state?.from?.pathname || '/';
       navigate(origin, { replace: true });
     } catch (error: any) {
       const message = error.response?.data || "Email ou mot de passe incorrect.";
@@ -73,7 +73,7 @@ export const LoginPage = () => {
       await refreshUser(); 
       
       toast.success('Connexion via Google réussie !');
-      const origin = location.state?.from?.pathname || '/vtc';
+      const origin = location.state?.from?.pathname || '/';
       navigate(origin, { replace: true });
     } catch (error: any) {
       toast.error("Échec de la validation du token Google par le serveur.");
@@ -105,7 +105,7 @@ export const LoginPage = () => {
       await refreshUser();
       
       toast.success('Connexion via Apple réussie !');
-      navigate('/vtc', { replace: true });
+      navigate('/', { replace: true });
     } catch (error: any) {
       toast.error('Échec de la connexion via Apple.');
     } finally {
