@@ -199,7 +199,7 @@ export const Header = () => {
                       <Link to="/profil/retraits" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Wallet size={16} /> Mon portefeuille
                       </Link>
-                      <Link to="/mes-trajets-conducteur" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
+                      <Link to="/profil/mes-trajets-conducteur" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>
                         <Car size={16} /> Mes trajets
                       </Link>
                       <Link to="/profil/mes-reservations" className="flex items-center gap-2 px-4 py-2 text-text-main hover:bg-base" onClick={() => setIsProfileDropdownOpen(false)}>

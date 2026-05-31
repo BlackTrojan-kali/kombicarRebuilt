@@ -98,10 +98,6 @@ export const SecurityPage = () => {
 
         </div>
 
-        {/* Bouton d'action */}
-        <button className="w-full bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm py-4 rounded-[16px] transition-colors shadow-md">
-          En savoir plus sur la sécurité
-        </button>
 
       </div>
     </div>

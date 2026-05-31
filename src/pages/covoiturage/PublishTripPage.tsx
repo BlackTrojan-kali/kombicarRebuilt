@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   ChevronLeft, Calendar, Clock, Users, 
-  DollarSign, AlertTriangle, CarFront, Info, Loader2,
+  DollarSign, AlertTriangle, CarFront, Loader2,
   Briefcase
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -364,10 +364,7 @@ export const PublishTripPage = () => {
             </div>
 
             {/* Info Prix recommandé */}
-            <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/50 rounded-xl text-kombi-green-600 dark:text-kombi-green-400">
-              <Info size={18} className="shrink-0 mt-0.5" />
-              <p className="text-xs font-medium">Pour ce trajet, le prix recommandé est entre <strong>4 000 et 5 000 FCFA</strong>.</p>
-            </div>
+           
 
             {/* OPTIONS (Bagages) */}
             <div className="space-y-4 pt-2">

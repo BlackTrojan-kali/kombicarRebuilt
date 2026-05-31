@@ -1,5 +1,4 @@
 // src/pages/HelpPage.tsx
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, 
@@ -181,21 +180,21 @@ export const HelpPage = () => {
             <h2 className="text-lg font-bold text-text-main mb-6">Restez Connectés</h2>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               <a 
-                href="https://www.kombicar.fr/" 
+                href="https://www.kombicar.app/" 
                 target="_blank" rel="noopener noreferrer" 
                 className="flex items-center gap-2 px-5 py-2.5 bg-surface border border-border-main hover:border-kombi-orange-500 hover:text-kombi-orange-500 rounded-full font-bold text-sm text-text-main transition-all shadow-sm"
               >
                 <Globe size={18} /> Site Web
               </a>
               <a 
-                href="https://facebook.com/kombicar" 
+                href="https://www.facebook.com/kombicar.cmr?mibextid=wwXIfr&mibextid=wwXIfr" 
                 target="_blank" rel="noopener noreferrer" 
                 className="flex items-center gap-2 px-5 py-2.5 bg-surface border border-border-main hover:border-blue-500 hover:text-blue-500 rounded-full font-bold text-sm text-text-main transition-all shadow-sm"
               >
                 <FacebookIcon size={18} /> Facebook
               </a>
               <a 
-                href="https://instagram.com/kombicar_cmr" 
+                href="https://www.instagram.com/kombicar_cmr?igsh=YjVhd3NrZ2tldzlq&utm_source=qr" 
                 target="_blank" rel="noopener noreferrer" 
                 className="flex items-center gap-2 px-5 py-2.5 bg-surface border border-border-main hover:border-pink-500 hover:text-pink-500 rounded-full font-bold text-sm text-text-main transition-all shadow-sm"
               >

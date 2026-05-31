@@ -221,7 +221,7 @@ export const HomePage = () => {
               </ul>
 
               <div className="pt-4">
-                <Link to="/covoiturage/publier" className="inline-flex items-center justify-center gap-3 bg-kombi-orange-500 hover:bg-kombi-orange-600 text-white font-extrabold text-lg py-5 px-10 rounded-2xl transition-all shadow-lg hover:shadow-orange-500/30">
+                <Link to="/publier" className="inline-flex items-center justify-center gap-3 bg-kombi-orange-500 hover:bg-kombi-orange-600 text-white font-extrabold text-lg py-5 px-10 rounded-2xl transition-all shadow-lg hover:shadow-orange-500/30">
                   Publier mon trajet <ArrowRight size={22} />
                 </Link>
               </div>

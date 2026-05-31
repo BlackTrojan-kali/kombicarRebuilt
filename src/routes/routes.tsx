@@ -22,6 +22,7 @@ import { DriverReviewsPage } from '../pages/reviews/DriverReviewsPage';
 import { SecurityPage } from '../pages/SecurityPage';
 import { HowItWorksPage } from '../pages/HowItWorksPage';
 import { WhyUsPage } from '../pages/WhyUsPage';
+import { HelpPage } from '../pages/HelpPage';
 
 export const router = createBrowserRouter([
   // ==========================================

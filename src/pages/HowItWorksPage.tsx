@@ -88,7 +88,7 @@ export const HowItWorksPage = () => {
               Notre équipe support répond en moins de 5 minutes sur WhatsApp.
             </p>
             <a 
-              href="https://wa.me/237000000000" // Remplacer par le numéro WhatsApp officiel
+              href="https://wa.me/237655730577" // Remplacer par le numéro WhatsApp officiel
               target="_blank" 
               rel="noopener noreferrer"
               className="w-full sm:w-auto mx-auto inline-flex items-center justify-center gap-2 border-2 border-border-main hover:border-text-main hover:bg-surface text-text-main font-bold py-3.5 px-6 rounded-[16px] transition-all"

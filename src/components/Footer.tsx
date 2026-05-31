@@ -36,10 +36,10 @@ export const Footer = () => {
               Un voyage confortable en toute sécurité. La plateforme de covoiturage et VTC de référence.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              <a href="https://facebook.com/kombicar" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
+              <a href="https://www.facebook.com/kombicar.cmr?mibextid=wwXIfr&mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
                 <FacebookIcon size={20} />
               </a>
-              <a href="https://instagram.com/kombicar_cmr" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
+              <a href="https://www.instagram.com/kombicar_cmr?igsh=YjVhd3NrZ2tldzlq&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-kombi-orange-500 transition-colors">
                 <InstagramIcon size={20} />
               </a>
             </div>
@@ -53,10 +53,7 @@ export const Footer = () => {
                 <Link to="/recherche" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Rechercher un trajet</Link>
               </li>
               <li>
-                <Link to="/covoiturage/publier" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Publier un trajet</Link>
-              </li>
-              <li>
-                <Link to="/vtc" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Réserver un VTC</Link>
+                <Link to="/publier" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Publier un trajet</Link>
               </li>
               <li>
                 <Link to="/comment-ca-marche" className="text-sm text-text-muted hover:text-kombi-orange-500 transition-colors">Comment ça marche ?</Link>
