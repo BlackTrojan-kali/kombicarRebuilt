@@ -54,6 +54,7 @@ export const router = createBrowserRouter([
       { path: '/securite', element: <SecurityPage /> },
       { path: '/pourquoi-nous', element: <WhyUsPage /> },
       { path: '/comment-ca-marche', element: <HowItWorksPage /> },
+      { path: '/aide', element: <HelpPage /> },
       // Routes protégées avec Header
       {
         element: <ProtectedRoute />, 
