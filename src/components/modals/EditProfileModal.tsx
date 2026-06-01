@@ -164,7 +164,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onCl
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
-                  <img src={imagePreview} alt="Aperçu du profil" className="w-full h-full object-cover" />
+                  <img src={`${import.meta.env.VITE_API_BASE_URL_WITHOUT_API_V1}`+imagePreview} alt="Aperçu du profil" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-kombi-orange-500 font-bold text-3xl">
                     {user?.firstName?.charAt(0) || ''}{user?.lastName?.charAt(0) || ''}

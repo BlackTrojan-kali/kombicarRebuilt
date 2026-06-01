@@ -131,7 +131,7 @@ export const TripDetailsPage = () => {
             <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider ml-1">Votre conducteur</h3>
             <div className="flex items-center gap-4 bg-surface border border-border-main rounded-2xl p-4">
               {driver.photoUrl ? (
-                <img src={driver.photoUrl} alt={driver.firstName} className="w-14 h-14 rounded-full object-cover border border-border-main" />
+                <img src={`${import.meta.env.VITE_API_BASE_URL_WITHOUT_API_V1}`+driver.photoUrl} alt={driver.firstName} className="w-14 h-14 rounded-full object-cover border border-border-main" />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-kombi-orange-500 text-white flex items-center justify-center font-bold text-lg">
                   {driver.firstName.charAt(0)}{driver.lastName.charAt(0)}

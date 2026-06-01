@@ -39,7 +39,7 @@ export const UserProfile = () => {
             <div className="relative">
               {user.pictureProfileUrl ? (
                 <img 
-                  src={user.pictureProfileUrl} 
+                  src={`${import.meta.env.VITE_API_BASE_URL_WITHOUT_API_V1}`+user.pictureProfileUrl} 
                   alt="Profil" 
                   className="w-24 h-24 rounded-full object-cover border-4 border-base shadow-sm" 
                 />

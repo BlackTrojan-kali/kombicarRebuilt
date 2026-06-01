@@ -74,7 +74,7 @@ export const HomeTripCard: React.FC<HomeTripCardProps> = ({ tripData }) => {
         
         <div className="flex items-center gap-3">
           {driver.photoUrl ? (
-            <img src={driver.photoUrl} alt={driver.firstName} className="w-10 h-10 rounded-full object-cover border border-border-main" />
+            <img src={`${import.meta.env.VITE_API_BASE_URL_WITHOUT_API_V1}`+driver.photoUrl} alt={driver.firstName} className="w-10 h-10 rounded-full object-cover border border-border-main" />
           ) : (
             <div className="w-10 h-10 rounded-full bg-kombi-dark-500 text-white flex items-center justify-center font-bold text-sm">
               {driver.firstName.charAt(0)}{driver.lastName.charAt(0)}
